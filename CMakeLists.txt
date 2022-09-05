@@ -1,0 +1,85 @@
+cmake_minimum_required(VERSION 3.7)
+project(wyvern)
+
+set(CMAKE_CXX_STANDARD 20)
+
+add_library(${PROJECT_NAME}
+
+	public/wvn/root.cpp
+
+	public/wvn/util/types.cpp
+
+	public/wvn/actor/actor.cpp
+	public/wvn/actor/actor_mgr.cpp
+	public/wvn/actor/event.cpp
+	public/wvn/actor/event_mgr.cpp
+
+	public/wvn/input/input_mgr.cpp
+
+	public/wvn/graphics/rendering_mgr.cpp
+
+	public/wvn/system/system_mgr.cpp
+
+	public/wvn/io/endian.cpp
+	public/wvn/io/stream.cpp
+	public/wvn/io/file_stream.cpp
+	public/wvn/io/memory_stream.cpp
+
+	public/wvn/plugin/plugin_loader.cpp
+	public/wvn/plugin/graphics/vulkan_plugin.cpp
+	public/wvn/plugin/system/sdl2_plugin.cpp
+
+	public/wvn/physics/physics_mgr.cpp
+
+	public/wvn/math/circle.cpp
+	public/wvn/math/colour.cpp
+	public/wvn/math/complex.cpp
+	public/wvn/math/line.cpp
+	public/wvn/math/mat3x2.cpp
+	public/wvn/math/mat4x3.cpp
+	public/wvn/math/mat4x4.cpp
+	public/wvn/math/polygon.cpp
+	public/wvn/math/quad.cpp
+	public/wvn/math/quaternion.cpp
+	public/wvn/math/random.cpp
+	public/wvn/math/timer.cpp
+	public/wvn/math/triangle.cpp
+
+	private/backend/system/sdl2_backend.cpp
+)
+
+target_include_directories(${PROJECT_NAME}
+
+	PUBLIC
+	${CMAKE_CURRENT_SOURCE_DIR}/public
+
+	PRIVATE
+	${CMAKE_CURRENT_SOURCE_DIR}/private
+)
+
+find_package(SDL2 REQUIRED)
+
+set(SDL2_ENABLED true CACHE BOOL "Use SDL2 as the system implementation")
+set(VK_ENABLED true CACHE BOOL "Use Vulkan as the renderer implementation")
+
+add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
+add_compile_definitions(WVN_DEBUG)
+
+if (SDL2_ENABLED)
+	add_compile_definitions(WVN_USE_SDL2)
+	target_link_libraries(${PROJECT_NAME} SDL2::SDL2)
+endif()
+
+if (VK_ENABLED)
+	add_compile_definitions(WVN_USE_VULKAN)
+endif()
+
+add_executable(wvn_test test/src/main.cpp)
+target_include_directories(wvn_test PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/public)
+target_link_libraries(wvn_test PUBLIC ${PROJECT_NAME})
+
+add_custom_command(TARGET wvn_test
+	POST_BUILD
+	COMMAND ${CMAKE_COMMAND} -E copy_directory
+	${CMAKE_SOURCE_DIR}/test/res/ $<TARGET_FILE_DIR:wvn_test>/res
+)
