@@ -8,7 +8,7 @@ namespace wvn
 	class Queue
 	{
 	public:
-		Queue(u64 capacity);
+		Queue(u64 capacity = 64);
 
 		Queue(const Queue& other);
 		Queue(Queue&& other) noexcept;

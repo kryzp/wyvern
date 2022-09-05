@@ -13,7 +13,7 @@ namespace wvn
 	class HashMap
 	{
 	public:
-		static constexpr int MIN_CAPACITY = 16;
+		static constexpr int MIN_CAPACITY = 8;
 
 		using KeyValuePair = Pair<TKey, TValue>;
 
@@ -38,8 +38,8 @@ namespace wvn
 			Iterator& operator -- () { if (m_elem) { m_elem = m_elem->prev; } return *this; }
 			Iterator& operator ++ (int) { if (m_elem) { m_elem = m_elem->next; } return *this; }
 			Iterator& operator -- (int) { if (m_elem) { m_elem = m_elem->prev; } return *this; }
-			bool operator == (const Iterator& other) const { return this->m_bucket == other.m_bucket; }
-			bool operator != (const Iterator& other) const { return this->m_bucket != other.m_bucket; }
+			bool operator == (const Iterator& other) const { return this->m_elem == other.m_elem; }
+			bool operator != (const Iterator& other) const { return this->m_elem != other.m_elem; }
 		private:
 			Element* m_elem;
 		};
@@ -103,6 +103,8 @@ namespace wvn
 		void realloc();
 		void realign_ptrs();
 
+		void _insert(const KeyValuePair& pair);
+
 		Element** m_elements;
 		int m_element_count;
 		int m_capacity;
@@ -134,14 +136,11 @@ namespace wvn
 
 		realloc();
 
-		Element* elem_ptr = other.m_elements[0];
-		int idx = 0;
-		while (elem_ptr)
+		for (int i = 0; i < other.m_capacity; i++)
 		{
-			new (m_elements + idx) Element();
-			m_elements[idx]->data = elem_ptr->data;
-			elem_ptr = elem_ptr->next;
-			idx++;
+			Element* elem_ptr = other.m_elements[i];
+			if (elem_ptr)
+				_insert(elem_ptr->data);
 		}
 
 		realign_ptrs();
@@ -167,16 +166,11 @@ namespace wvn
 
 		realloc();
 
-		Element* elem_ptr = other.m_elements[0];
-
 		for (int i = 0; i < other.m_capacity; i++)
 		{
-			elem_ptr = other.m_elements[i];
+			Element* elem_ptr = other.m_elements[i];
 			if (elem_ptr)
-			{
-				new (m_elements + i) Element();
-				m_elements[i]->data = elem_ptr->data;
-			}
+				_insert(elem_ptr->data);
 		}
 
 		realign_ptrs();
@@ -218,6 +212,14 @@ namespace wvn
 	template <typename TKey, typename TValue>
 	void HashMap<TKey, TValue>::insert(const KeyValuePair& pair)
 	{
+		_insert(pair);
+		realign_ptrs();
+		m_element_count++;
+	}
+
+	template <typename TKey, typename TValue>
+	void HashMap<TKey, TValue>::_insert(const KeyValuePair& pair)
+	{
 		auto idx = index_of(pair.first);
 
 		Element* b = m_elements[idx];
@@ -234,10 +236,6 @@ namespace wvn
 		{
 			m_elements[idx] = new Element(pair);
 		}
-
-		realign_ptrs();
-
-		m_element_count++;
 	}
 
 	template <typename TKey, typename TValue>
@@ -283,23 +281,24 @@ namespace wvn
 	{
 		int old_size = m_capacity;
 
-		if (m_element_count >= m_capacity)
-			m_capacity += MIN_CAPACITY;
-		else if (m_element_count < m_capacity-MIN_CAPACITY)
-			m_capacity -= MIN_CAPACITY;
+		if (m_capacity < MIN_CAPACITY)
+			m_capacity = MIN_CAPACITY;
 
-		if (old_size == m_capacity)
-			return;
+		while (m_element_count >= m_capacity)
+			m_capacity *= 2;
 
 		Element** new_buf = new Element*[m_capacity];
 		mem::set(new_buf, 0, sizeof(Element*) * m_capacity);
 
-		for (int i = 0; i < old_size; i++)
+		if (m_elements)
 		{
-			if (m_elements[i])
+			for (int i = 0; i < old_size; i++)
 			{
-				int idx = index_of(m_elements[i]->data.first);
-				new_buf[idx] = new Element(std::move(*m_elements[i]));
+				if (m_elements[i])
+				{
+					int idx = index_of(m_elements[i]->data.first);
+					new_buf[idx] = new Element(std::move(*m_elements[i]));
+				}
 			}
 		}
 

@@ -40,8 +40,6 @@ public:
 		test_event.append_char("Type", 'B');
 
 		test_event.send(*this);
-
-		wvn::Root::get_singleton().exit();
 	}
 
 	bool on_event(wvn::Event& event) override
@@ -81,7 +79,7 @@ int main()
 
 	new wvn::Root(cfg);
 	{
-		auto ball = wvn::ActorMgr::get_singleton().add<Ball>();
+		Ball* ball = wvn::ActorMgr::get_singleton().create<Ball>();
 	}
 	wvn::Root::get_singleton().run();
 
