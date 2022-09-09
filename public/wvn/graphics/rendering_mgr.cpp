@@ -1,6 +1,7 @@
 #include <wvn/graphics/rendering_mgr.h>
 
 using namespace wvn;
+using namespace wvn::gfx;
 
 WVN_IMPL_SINGLETON(RenderingMgr);
 

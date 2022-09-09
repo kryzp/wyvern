@@ -2,6 +2,7 @@
 #include <wvn/actor/actor.h>
 
 using namespace wvn;
+using namespace wvn::act;
 
 WVN_IMPL_SINGLETON(ActorMgr);
 

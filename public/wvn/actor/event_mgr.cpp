@@ -1,6 +1,7 @@
 #include <wvn/actor/event_mgr.h>
 
 using namespace wvn;
+using namespace wvn::act;
 
 WVN_IMPL_SINGLETON(EventMgr);
 
@@ -13,7 +14,7 @@ EventMgr::~EventMgr()
 {
 }
 
-void EventMgr::enqueue_event(wvn::Event* event)
+void EventMgr::enqueue_event(Event* event)
 {
 	m_events.push(event);
 }

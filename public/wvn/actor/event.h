@@ -4,10 +4,10 @@
 #include <wvn/container/hash_map.h>
 #include <wvn/container/string.h>
 
-namespace wvn
-{
-	class Actor;
+#include <wvn/actor/actor.h>
 
+namespace wvn::act
+{
 	struct EventValue
 	{
 		enum ArgType
@@ -53,9 +53,10 @@ namespace wvn
 	{
 		String type;
 		HashMap<String, EventValue> args;
-		Actor* reciever;
+		ActorHandle reciever;
 
-		void send(Actor& reciever);
+		void send(const ActorHandle& reciever);
+		void send(const Actor* reciever);
 		void dispatch();
 		Event* deep_copy();
 

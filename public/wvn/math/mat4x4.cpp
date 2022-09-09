@@ -1,5 +1,7 @@
 #include <wvn/math/mat4x4.h>
 #include <wvn/math/mat3x2.h>
+#include <wvn/math/mat4x3.h>
+
 #include <wvn/math/vec3.h>
 #include <wvn/util/assert.h>
 #include <wvn/math/calc.h>
@@ -90,6 +92,16 @@ Mat4x4 Mat4x4::from_mat3x2(const Mat3x2& mat)
 		mat.m21, mat.m22, 0.0f, 0.0f,
 		0.0f,    0.0f,    1.0f, 0.0f,
 		mat.m31, mat.m32, 0.0f, 1.0f
+	);
+}
+
+Mat4x4 from_mat4x4(const Mat4x3& mat)
+{
+	return Mat4x4(
+		mat.m11, mat.m12, mat.m13, 0.0f,
+		mat.m21, mat.m22, mat.m23, 0.0f,
+		mat.m31, mat.m32, mat.m33, 0.0f,
+		mat.m41, mat.m42, mat.m43, 1.0f
 	);
 }
 

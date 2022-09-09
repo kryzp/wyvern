@@ -2,30 +2,29 @@
 
 #include <wvn/system/system_backend.h>
 
-namespace wvn::bknd
+namespace wvn::sys
 {
 	class SDL2Backend : public SystemBackend
 	{
 	public:
 		SDL2Backend();
-		~SDL2Backend() override;
+		~SDL2Backend();
 
 		SystemProperties properties() override;
 
-		void update() override;
-		void present() override;
+		String get_window_name() override;
+		void set_window_name(const String& name) override;
 
-		void set_window_position(int x, int y) override;
-		void get_window_position(int* x, int* y) override;
+		Vec2I get_window_position() override;
+		void set_window_position(const Vec2I& position) override;
 
-		int window_width() override;
-		int window_height() override;
+		Vec2U get_window_size() override;
+		void set_window_size(const Vec2U& size) override;
 
-		int draw_width() override;
-		int draw_height() override;
+		Vec2U get_screen_size() override;
 
-		void show_cursor(bool toggle) override;
-		bool cursor_visible() override;
+		void toggle_cursor_visible(bool toggle) override;
+		bool is_cursor_visible() override;
 
 		void sleep_for(u64 ms) override;
 		u64 ticks() override;

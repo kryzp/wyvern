@@ -3,7 +3,7 @@
 #include <wvn/io/stream.h>
 #include <wvn/container/string.h>
 
-namespace wvn
+namespace wvn::io
 {
 	class FileStream : public Stream
 	{

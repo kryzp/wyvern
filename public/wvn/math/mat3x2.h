@@ -14,15 +14,13 @@ namespace wvn
 		{
 			struct
 			{
-				float m11;
-				float m12;
-				float m21;
-				float m22;
-				float m31;
-				float m32;
+				float m11, m12;
+				float m21, m22;
+				float m31, m32;
 			};
 
 			float elements[3][2];
+			float data[6];
 		};
 
 		Mat3x2();
@@ -53,10 +51,12 @@ namespace wvn
 
 		Mat3x2 operator - (const Mat3x2& other) const;
 		Mat3x2 operator + (const Mat3x2& other) const;
+		Mat3x2 operator * (float scalar       ) const;
 		Mat3x2 operator * (const Mat3x2& other) const;
 
 		Mat3x2& operator -= (const Mat3x2& other);
 		Mat3x2& operator += (const Mat3x2& other);
+		Mat3x2& operator *= (float scalar       );
 		Mat3x2& operator *= (const Mat3x2& other);
 
 		float* operator [] (int idx);

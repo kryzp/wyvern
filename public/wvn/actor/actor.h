@@ -1,12 +1,12 @@
 #pragma once
 
-#include <wvn/actor/event.h>
 #include <wvn/util/types.h>
 
-namespace wvn
+namespace wvn::act
 {
 	class ActorHandle;
 	class ActorMgr;
+	class Event;
 
 	using ActorID = u32;
 	using ActorFlag = u32;
@@ -32,7 +32,7 @@ namespace wvn
 
 		virtual void tick() { }
 
-		virtual bool on_event(Event& e) { return false; }
+		virtual bool on_event(Event& e);
 
 		void add_flag(ActorFlag flag);
 		void remove_flag(ActorFlag flag);
@@ -49,7 +49,7 @@ namespace wvn
 	{
 	public:
 		ActorHandle();
-		ActorHandle(Actor* actor);
+		ActorHandle(const Actor* actor);
 		ActorHandle(ActorID id);
 		ActorHandle(const ActorHandle& other);
 		ActorHandle(ActorHandle&& other) noexcept;

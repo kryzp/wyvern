@@ -2,7 +2,7 @@
 
 #include <wvn/util/types.h>
 
-namespace wvn
+namespace wvn::io
 {
 	class Stream
 	{

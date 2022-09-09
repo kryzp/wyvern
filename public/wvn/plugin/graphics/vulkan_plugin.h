@@ -2,7 +2,7 @@
 
 #include <wvn/plugin/plugin.h>
 
-namespace wvn
+namespace wvn::plug
 {
 	class VulkanPlugin : public Plugin
 	{

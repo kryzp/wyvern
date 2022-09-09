@@ -1,10 +1,15 @@
 #pragma once
 
-#include <wvn/graphics/rendering_backend.h>
+#include <wvn/graphics/renderer_backend.h>
 
-namespace wvn::bknd
+namespace wvn::gfx
 {
-	class VulkanBackend : public RenderingBackend
+	class VulkanBackend : public RendererBackend
 	{
+	public:
+		VulkanBackend();
+		~VulkanBackend();
+
+		RendererProperties properties() override;
 	};
 }

@@ -1,6 +1,24 @@
 #include <wvn/root.h>
 #include <wvn/plugin/plugin_loader.h>
 
+#include <wvn/system/system_backend.h>
+#include <wvn/graphics/renderer_backend.h>
+#include <wvn/audio/audio_backend.h>
+
+#include <wvn/actor/actor_mgr.h>
+#include <wvn/actor/scene_mgr.h>
+#include <wvn/actor/event_mgr.h>
+#include <wvn/audio/audio_mgr.h>
+#include <wvn/physics/physics_mgr.h>
+#include <wvn/input/input_mgr.h>
+#include <wvn/graphics/rendering_mgr.h>
+#include <wvn/system/window_mgr.h>
+#include <wvn/network/network_mgr.h>
+
+#include <wvn/plugin/plugin.h>
+
+#include <wvn/math/random.h>
+
 using namespace wvn;
 
 WVN_IMPL_SINGLETON(Root);
@@ -9,15 +27,19 @@ Root::Root(const Config& cfg)
 	: m_config(cfg)
 	, m_running(true)
 {
-	m_plugins = PluginLoader::load_plugins();
+	m_plugins = plug::PluginLoader::load_plugins();
 	install_plugins();
 
-	m_system_mgr = new SystemMgr();
-	m_physics_mgr = new PhysicsMgr();
-	m_actor_mgr = new ActorMgr();
-	m_rendering_mgr = new RenderingMgr();
+	m_window_mgr = new sys::WindowMgr();
+	m_physics_mgr = new phys::PhysicsMgr();
+	m_actor_mgr = new act::ActorMgr();
+	m_scene_mgr = new act::SceneMgr();
+	m_event_mgr = new act::EventMgr();
+	m_rendering_mgr = new gfx::RenderingMgr();
+	m_audio_mgr = new sfx::AudioMgr();
 	m_input_mgr = new InputMgr();
-	m_event_mgr = new EventMgr();
+	m_network_mgr = new net::NetworkMgr();
+
 	m_random = new Random();
 
 	if (m_config.on_init)
@@ -30,12 +52,16 @@ Root::~Root()
 		m_config.on_destroy();
 
 	delete Random::get_singleton_ptr();
-	delete EventMgr::get_singleton_ptr();
+
+	delete net::NetworkMgr::get_singleton_ptr();
 	delete InputMgr::get_singleton_ptr();
-	delete RenderingMgr::get_singleton_ptr();
-	delete ActorMgr::get_singleton_ptr();
-	delete PhysicsMgr::get_singleton_ptr();
-	delete SystemMgr::get_singleton_ptr();
+	delete sfx::AudioMgr::get_singleton_ptr();
+	delete gfx::RenderingMgr::get_singleton_ptr();
+	delete act::EventMgr::get_singleton_ptr();
+	delete act::SceneMgr::get_singleton_ptr();
+	delete act::ActorMgr::get_singleton_ptr();
+	delete phys::PhysicsMgr::get_singleton_ptr();
+	delete sys::WindowMgr::get_singleton_ptr();
 
 	uninstall_plugins();
 }
@@ -49,30 +75,23 @@ void Root::run()
 
 		// update
 		{
-			if (m_config.on_update_pre_actor_tick)
-				m_config.on_update_pre_actor_tick();
-
 			// update actors and dispatch events
-			ActorMgr::get_singleton().tick();
-			EventMgr::get_singleton().dispatch_events();
-
-			if (m_config.on_update_pre_physics)
-				m_config.on_update_pre_physics();
+			act::ActorMgr::get_singleton().tick();
+			act::EventMgr::get_singleton().dispatch_events();
 
 			// simulate physics
-			PhysicsMgr::get_singleton().simulate();
+			phys::PhysicsMgr::get_singleton().simulate();
+		}
 
-			if (m_config.on_update_post_physics)
-				m_config.on_update_post_physics();
+		// audio
+		{
+			sfx::AudioMgr::get_singleton().tick();
 		}
 
 		// render
 		{
-			if (m_config.on_render)
-				m_config.on_render();
-
-			RenderingMgr::get_singleton().render_scene();
-			RenderingMgr::get_singleton().swap_buffers();
+			gfx::RenderingMgr::get_singleton().render_scene();
+			gfx::RenderingMgr::get_singleton().swap_buffers();
 		}
 	}
 }
@@ -100,62 +119,37 @@ const Config& Root::config()
 	return m_config;
 }
 
-void Root::show_cursor(bool toggle)
+sys::SystemBackend* Root::current_system_backend()
 {
-	m_system_bknd->show_cursor(toggle);
+	return m_platform_backend;
 }
 
-bool Root::cursor_visible() const
+void Root::set_system_backend(sys::SystemBackend* backend)
 {
-	return m_system_bknd->cursor_visible();
+	m_platform_backend = backend;
 }
 
-void Root::window_position(int x, int y)
+gfx::RendererBackend* Root::current_renderer_backend()
 {
-	m_system_bknd->set_window_position(x, y);
+	return m_rendering_backend;
 }
 
-unsigned Root::window_width()
+void Root::set_rendering_backend(gfx::RendererBackend* backend)
 {
-	return m_system_bknd->window_width();
+	m_rendering_backend = backend;
 }
 
-unsigned Root::window_height()
+sfx::AudioBackend* Root::current_audio_backend()
 {
-	return m_system_bknd->window_height();
+	return m_audio_backend;
 }
 
-unsigned Root::draw_width()
+void Root::set_audio_backend(sfx::AudioBackend* backend)
 {
-	return m_system_bknd->draw_width();
+	m_audio_backend = backend;
 }
 
-unsigned Root::draw_height()
-{
-	return m_system_bknd->draw_height();
-}
-
-bknd::SystemBackend* Root::current_system_backend()
-{
-	return m_system_bknd;
-}
-
-void Root::set_system_backend(bknd::SystemBackend* backend)
-{
-	m_system_bknd = backend;
-}
-
-bknd::RenderingBackend* Root::current_rendering_backend()
-{
-	return m_rendering_bknd;
-}
-
-void Root::set_rendering_backend(bknd::RenderingBackend* backend)
-{
-	m_rendering_bknd = backend;
-}
-
-void Root::add_plugin(Plugin* plugin)
+void Root::add_plugin(plug::Plugin* plugin)
 {
 	m_plugins.push_back(plugin);
 }

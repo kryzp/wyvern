@@ -17,6 +17,12 @@ namespace wvn
 				T y;
 			};
 
+			struct
+			{
+				T width;
+				T height;
+			};
+
 			T data[2];
 		};
 

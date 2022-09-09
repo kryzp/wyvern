@@ -4,7 +4,7 @@
 #include <wvn/actor/event.h>
 #include <wvn/container/queue.h>
 
-namespace wvn
+namespace wvn::act
 {
 	class EventMgr : public Singleton<EventMgr>
 	{

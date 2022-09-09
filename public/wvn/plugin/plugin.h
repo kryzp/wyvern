@@ -1,6 +1,6 @@
 #pragma once
 
-namespace wvn
+namespace wvn::plug
 {
 	class Plugin
 	{

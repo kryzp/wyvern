@@ -1,8 +1,10 @@
 #pragma once
 
 #include <wvn/util/types.h>
+#include <wvn/math/vec2.h>
+#include <wvn/container/string.h>
 
-namespace wvn::bknd
+namespace wvn::sys
 {
 	struct SystemProperties
 	{
@@ -17,20 +19,19 @@ namespace wvn::bknd
 
 		virtual SystemProperties properties() = 0;
 
-		virtual void update() = 0;
-		virtual void present() = 0;
+		virtual String get_window_name() = 0;
+		virtual void set_window_name(const String& name) = 0;
 
-		virtual void set_window_position(int x, int y) = 0;
-		virtual void get_window_position(int* x, int* y) = 0;
+		virtual Vec2I get_window_position() = 0;
+		virtual void set_window_position(const Vec2I& position) = 0;
 
-		virtual int window_width() = 0;
-		virtual int window_height() = 0;
+		virtual Vec2U get_window_size() = 0;
+		virtual void set_window_size(const Vec2U& size) = 0;
 
-		virtual int draw_width() = 0;
-		virtual int draw_height() = 0;
+		virtual Vec2U get_screen_size() = 0;
 
-		virtual void show_cursor(bool toggle) = 0;
-		virtual bool cursor_visible() = 0;
+		virtual void toggle_cursor_visible(bool toggle) = 0;
+		virtual bool is_cursor_visible() = 0;
 
 		virtual void sleep_for(u64 ms) = 0;
 		virtual u64 ticks() = 0;

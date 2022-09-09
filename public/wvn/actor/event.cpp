@@ -4,13 +4,20 @@
 #include <wvn/actor/actor.h>
 
 using namespace wvn;
+using namespace wvn::act;
 
-void Event::send(Actor& reciever)
+void Event::send(const ActorHandle& reciever)
 {
-	this->reciever = &reciever;
+	this->reciever = reciever;
 
 	Event* dcopy = deep_copy();
 	EventMgr::get_singleton().enqueue_event(dcopy);
+}
+
+void Event::send(const Actor* reciever)
+{
+	ActorHandle handle(reciever);
+	send(handle);
 }
 
 void Event::dispatch()

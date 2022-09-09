@@ -11,7 +11,7 @@
 // todo: create custom implementation
 #include <functional>
 
-namespace wvn
+namespace wvn::act
 {
 	class ActorMgr : public Singleton<ActorMgr>
 	{

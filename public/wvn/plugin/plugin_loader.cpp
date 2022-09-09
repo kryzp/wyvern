@@ -9,7 +9,12 @@
 #include <wvn/plugin/graphics/vulkan_plugin.h>
 #endif
 
+#if WVN_USE_OPENAL
+#include <wvn/plugin/audio/openal_plugin.h>
+#endif
+
 using namespace wvn;
+using namespace wvn::plug;
 
 Vector<Plugin*> PluginLoader::load_plugins()
 {
@@ -21,6 +26,10 @@ Vector<Plugin*> PluginLoader::load_plugins()
 
 #if WVN_USE_VULKAN
 		plugins.push_back(new VulkanPlugin());
+#endif
+
+#if WVN_USE_OPENAL
+		plugins.push_back(new OpenALPlugin());
 #endif
 	}
 	return plugins;

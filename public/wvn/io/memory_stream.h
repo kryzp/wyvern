@@ -2,7 +2,7 @@
 
 #include <wvn/io/stream.h>
 
-namespace wvn
+namespace wvn::io
 {
 	class MemoryStream : public Stream
 	{

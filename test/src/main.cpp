@@ -2,6 +2,9 @@
 
 #include <wvn/actor/actor.h>
 #include <wvn/actor/actor_mgr.h>
+#include <wvn/actor/event.h>
+
+#include <wvn/system/window_mgr.h>
 
 #include <iostream>
 
@@ -13,7 +16,7 @@ struct EventType0Pack
 
 namespace evt
 {
-	EventType0Pack unpack_eventtype0(const wvn::Event& event)
+	EventType0Pack unpack_eventtype0(const wvn::act::Event& event)
 	{
 		return {
 			.damage = event.args["Damage"].f32,
@@ -22,11 +25,11 @@ namespace evt
 	}
 }
 
-class Ball : public wvn::Actor
+class Ball : public wvn::act::Actor
 {
 public:
 	Ball()
-		: wvn::Actor()
+		: wvn::act::Actor()
 	{
 	}
 
@@ -34,17 +37,17 @@ public:
 	{
 		std::cout << "Hello, World!" << std::endl;
 
-		wvn::Event test_event;
+		wvn::act::Event test_event;
 		test_event.type = "EventType0";
 		test_event.append_f32("Damage", 3.5f);
 		test_event.append_char("Type", 'B');
 
-		test_event.send(*this);
+		test_event.send(this);
 	}
 
-	bool on_event(wvn::Event& event) override
+	bool on_event(wvn::act::Event& event) override
 	{
-		if (wvn::Actor::on_event(event))
+		if (wvn::act::Actor::on_event(event))
 			return true;
 
 		auto pack = evt::unpack_eventtype0(event);
@@ -79,7 +82,7 @@ int main()
 
 	new wvn::Root(cfg);
 	{
-		Ball* ball = wvn::ActorMgr::get_singleton().create<Ball>();
+		Ball* ball = wvn::act::ActorMgr::get_singleton().create<Ball>();
 	}
 	wvn::Root::get_singleton().run();
 

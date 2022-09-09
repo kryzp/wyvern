@@ -188,6 +188,24 @@ Mat4x3 Mat4x3::operator + (const Mat4x3& other) const
 	);
 }
 
+Mat4x3 Mat4x3::operator * (float scalar) const
+{
+	return Mat4x3(
+		this->m11 * scalar,
+		this->m12 * scalar,
+		this->m13 * scalar,
+		this->m21 * scalar,
+		this->m22 * scalar,
+		this->m23 * scalar,
+		this->m31 * scalar,
+		this->m32 * scalar,
+		this->m33 * scalar,
+		this->m41 * scalar,
+		this->m42 * scalar,
+		this->m43 * scalar
+	);
+}
+
 Mat4x3 Mat4x3::operator * (const Mat4x3& other) const
 {
 	return Mat4x3(
@@ -218,6 +236,12 @@ Mat4x3& Mat4x3::operator -= (const Mat4x3& other)
 Mat4x3& Mat4x3::operator += (const Mat4x3& other)
 {
 	(*this) = (*this) + other;
+	return *this;
+}
+
+Mat4x3& Mat4x3::operator *= (float scalar)
+{
+	(*this) = (*this) * scalar;
 	return *this;
 }
 

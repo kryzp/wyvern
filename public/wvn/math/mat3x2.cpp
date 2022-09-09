@@ -168,6 +168,18 @@ Mat3x2 Mat3x2::operator + (const Mat3x2& other) const
 	);
 }
 
+Mat3x2 Mat3x2::operator * (float scalar) const
+{
+	return Mat3x2(
+		m11 * scalar,
+		m12 * scalar,
+		m21 * scalar,
+		m22 * scalar,
+		m31 * scalar,
+		m32 * scalar
+	);
+}
+
 Mat3x2 Mat3x2::operator * (const Mat3x2& other) const
 {
 	return Mat3x2(
@@ -189,6 +201,12 @@ Mat3x2& Mat3x2::operator -= (const Mat3x2& other)
 Mat3x2& Mat3x2::operator += (const Mat3x2& other)
 {
 	(*this) = (*this) + other;
+	return *this;
+}
+
+Mat3x2& Mat3x2::operator *= (float scalar)
+{
+	(*this) = (*this) * scalar;
 	return *this;
 }
 

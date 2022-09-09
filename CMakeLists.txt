@@ -13,12 +13,21 @@ add_library(${PROJECT_NAME}
 	public/wvn/actor/actor_mgr.cpp
 	public/wvn/actor/event.cpp
 	public/wvn/actor/event_mgr.cpp
+	public/wvn/actor/scene_mgr.cpp
+
+	public/wvn/audio/audio_mgr.cpp
 
 	public/wvn/input/input_mgr.cpp
 
 	public/wvn/graphics/rendering_mgr.cpp
+	public/wvn/graphics/mesh.cpp
+	public/wvn/graphics/texture.cpp
+	public/wvn/graphics/shader.cpp
+	public/wvn/graphics/render_target.cpp
 
-	public/wvn/system/system_mgr.cpp
+	public/wvn/system/window_mgr.cpp
+
+	public/wvn/network/network_mgr.cpp
 
 	public/wvn/io/endian.cpp
 	public/wvn/io/stream.cpp
@@ -26,10 +35,12 @@ add_library(${PROJECT_NAME}
 	public/wvn/io/memory_stream.cpp
 
 	public/wvn/plugin/plugin_loader.cpp
-	public/wvn/plugin/graphics/vulkan_plugin.cpp
 	public/wvn/plugin/system/sdl2_plugin.cpp
+	public/wvn/plugin/graphics/vulkan_plugin.cpp
+	public/wvn/plugin/audio/openal_plugin.cpp
 
 	public/wvn/physics/physics_mgr.cpp
+	public/wvn/physics/rigidbody.cpp
 
 	public/wvn/math/circle.cpp
 	public/wvn/math/colour.cpp
@@ -46,6 +57,8 @@ add_library(${PROJECT_NAME}
 	public/wvn/math/triangle.cpp
 
 	private/backend/system/sdl2_backend.cpp
+	private/backend/graphics/vulkan_backend.cpp
+	private/backend/audio/openal_backend.cpp
 )
 
 target_include_directories(${PROJECT_NAME}
@@ -61,6 +74,7 @@ find_package(SDL2 REQUIRED)
 
 set(SDL2_ENABLED true CACHE BOOL "Use SDL2 as the system implementation")
 set(VK_ENABLED true CACHE BOOL "Use Vulkan as the renderer implementation")
+set(OPENAL_ENABLED true CACHE BOOL "Use OpenAL as the audio implementation")
 
 add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
 add_compile_definitions(WVN_DEBUG)
@@ -72,6 +86,10 @@ endif()
 
 if (VK_ENABLED)
 	add_compile_definitions(WVN_USE_VULKAN)
+endif()
+
+if (OPENAL_ENABLED)
+	add_compile_definitions(WVN_USE_OPENAL)
 endif()
 
 add_executable(wvn_test test/src/main.cpp)

@@ -2,7 +2,7 @@
 
 #include <wvn/util/singleton.h>
 
-namespace wvn
+namespace wvn::phys
 {
 	class PhysicsMgr : public Singleton<PhysicsMgr>
 	{

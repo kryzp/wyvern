@@ -1,7 +1,9 @@
 #include <wvn/io/stream.h>
 #include <wvn/root.h>
+#include <wvn/system/system_backend.h>
 
 using namespace wvn;
+using namespace wvn::io;
 
 Stream::Stream()
 	: p_stream(nullptr)

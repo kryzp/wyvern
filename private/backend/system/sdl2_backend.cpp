@@ -1,7 +1,7 @@
 #include <backend/system/sdl2_backend.h>
 
 using namespace wvn;
-using namespace wvn::bknd;
+using namespace wvn::sys;
 
 SDL2Backend::SDL2Backend()
 {
@@ -13,45 +13,45 @@ SDL2Backend::~SDL2Backend()
 
 SystemProperties SDL2Backend::properties()
 {
+	SystemProperties properties = {};
+	properties.temp = false;
+
+	return properties;
 }
 
-void SDL2Backend::update()
+String SDL2Backend::get_window_name()
 {
 }
 
-void SDL2Backend::present()
+void SDL2Backend::set_window_name(const String& name)
 {
 }
 
-void SDL2Backend::set_window_position(int x, int y)
+Vec2I SDL2Backend::get_window_position()
 {
 }
 
-void SDL2Backend::get_window_position(int* x, int* y)
+void SDL2Backend::set_window_position(const Vec2I& position)
 {
 }
 
-int SDL2Backend::window_width()
+Vec2U SDL2Backend::get_window_size()
 {
 }
 
-int SDL2Backend::window_height()
+void SDL2Backend::set_window_size(const Vec2U& size)
 {
 }
 
-int SDL2Backend::draw_width()
+Vec2U SDL2Backend::get_screen_size()
 {
 }
 
-int SDL2Backend::draw_height()
+void SDL2Backend::toggle_cursor_visible(bool toggle)
 {
 }
 
-void SDL2Backend::show_cursor(bool toggle)
-{
-}
-
-bool SDL2Backend::cursor_visible()
+bool SDL2Backend::is_cursor_visible()
 {
 }
 

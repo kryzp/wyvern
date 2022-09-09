@@ -2,6 +2,7 @@
 #include <wvn/util/types.h>
 
 using namespace wvn;
+using namespace wvn::io;
 
 Endianness endian::get_endianness()
 {

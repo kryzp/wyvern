@@ -1,12 +1,19 @@
 #include <wvn/actor/actor.h>
 #include <wvn/actor/actor_mgr.h>
+#include <wvn/actor/event.h>
 
 using namespace wvn;
+using namespace wvn::act;
 
 Actor::Actor()
 	: m_flags(0)
 	, m_id(INVALID_ID)
 {
+}
+
+bool Actor::on_event(Event& e)
+{
+	return false;
 }
 
 void Actor::add_flag(ActorFlag flag)
@@ -24,7 +31,7 @@ bool Actor::has_flag(ActorFlag flag) const
 	return (m_flags & (1 << flag)) != 0;
 }
 
-bool Actor::only_has_flag(wvn::ActorFlag flag) const
+bool Actor::only_has_flag(ActorFlag flag) const
 {
 	return (m_flags & (1 << flag)) == (1 << flag);
 }
@@ -41,7 +48,7 @@ ActorHandle::ActorHandle()
 {
 }
 
-ActorHandle::ActorHandle(Actor* actor)
+ActorHandle::ActorHandle(const Actor* actor)
 	: m_id(actor->m_id)
 {
 }

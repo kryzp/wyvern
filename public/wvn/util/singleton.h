@@ -9,9 +9,9 @@ public: \
 private:
 
 #define WVN_IMPL_SINGLETON(_class) \
-	template <> _class* Singleton<_class>::ms_singleton = nullptr; \
-	_class& _class::get_singleton() { WVN_ASSERT(ms_singleton, "ms_singleton must not be nullptr"); return *ms_singleton; } \
-	_class* _class::get_singleton_ptr() { return ms_singleton; }
+	template <> _class* Singleton<_class>::ps_singleton = nullptr; \
+	_class& _class::get_singleton() { WVN_ASSERT(ps_singleton, "ps_singleton must not be nullptr"); return *ps_singleton; } \
+	_class* _class::get_singleton_ptr() { return ps_singleton; }
 
 namespace wvn
 {
@@ -21,28 +21,28 @@ namespace wvn
 	public:
 		Singleton()
 		{
-			WVN_ASSERT(!ms_singleton, "ms_singleton must be nullptr");
-			ms_singleton = static_cast<T*>(this);
+			WVN_ASSERT(!ps_singleton, "ms_singleton must be nullptr");
+			ps_singleton = static_cast<T*>(this);
 		}
 
 		~Singleton()
 		{
-			WVN_ASSERT(ms_singleton, "ms_singleton must not be nullptr");
-			ms_singleton = nullptr;
+			WVN_ASSERT(ps_singleton, "ms_singleton must not be nullptr");
+			ps_singleton = nullptr;
 		}
 
 		static T& get_singleton()
 		{
-			WVN_ASSERT(ms_singleton, "ms_singleton must not be nullptr");
-			return *ms_singleton;
+			WVN_ASSERT(ps_singleton, "ms_singleton must not be nullptr");
+			return *ps_singleton;
 		}
 
 		static T* get_singleton_ptr()
 		{
-			return ms_singleton;
+			return ps_singleton;
 		}
 
 	protected:
-		static T* ms_singleton;
+		static T* ps_singleton;
 	};
 }

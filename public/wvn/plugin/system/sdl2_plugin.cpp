@@ -3,14 +3,15 @@
 #include <wvn/root.h>
 
 using namespace wvn;
+using namespace wvn::plug;
 
 void SDL2Plugin::install()
 {
-	m_backend = new bknd::SDL2Backend();
-	Root::get_singleton().set_system_backend((bknd::SDL2Backend*)m_backend);
+	m_backend = new sys::SDL2Backend();
+	Root::get_singleton().set_system_backend((sys::SDL2Backend*)m_backend);
 }
 
 void SDL2Plugin::uninstall()
 {
-	delete (bknd::SDL2Backend*)m_backend;
+	delete (sys::SDL2Backend*)m_backend;
 }

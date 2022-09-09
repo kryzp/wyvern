@@ -2,7 +2,7 @@
 
 #include <wvn/plugin/plugin.h>
 
-namespace wvn
+namespace wvn::plug
 {
 	class SDL2Plugin : public Plugin
 	{
