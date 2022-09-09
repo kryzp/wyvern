@@ -17,6 +17,6 @@ Proper game engine unlike Leviathan, which is more of a game framework like Mono
  * Plugin system, that allows you to swap out the backend of the project easily
  * Date/Time Features
 
-System Backend: SDL2
-Graphics Backend: Vulkan
-Audio Backend (kind of undecided yet): OpenAL
+System Backend: SDL2  
+Graphics Backend: Vulkan  
+Audio Backend (kind of undecided yet): OpenAL  
