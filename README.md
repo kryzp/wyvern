@@ -3,7 +3,7 @@
 
 Proper game engine unlike Leviathan, which is more of a game framework like MonoGame.
 
-Wyvern features:
+### Wyvern features:
  * Actor System
  * Physics System
  * Rendering System
