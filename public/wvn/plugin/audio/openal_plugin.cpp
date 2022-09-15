@@ -8,10 +8,10 @@ using namespace wvn::plug;
 void OpenALPlugin::install()
 {
 	m_backend = new sfx::OpenALBackend();
-	Root::get_singleton().set_audio_backend((sfx::OpenALBackend*)m_backend);
+	Root::get_singleton().set_audio_backend(static_cast<sfx::OpenALBackend*>(m_backend));
 }
 
 void OpenALPlugin::uninstall()
 {
-	delete (sfx::OpenALBackend*)m_backend;
+	delete static_cast<sfx::OpenALBackend*>(m_backend);
 }

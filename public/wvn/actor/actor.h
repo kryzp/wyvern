@@ -1,6 +1,7 @@
 #pragma once
 
 #include <wvn/util/types.h>
+#include <wvn/container/bitset.h>
 
 namespace wvn::act
 {
@@ -9,7 +10,6 @@ namespace wvn::act
 	class Event;
 
 	using ActorID = u32;
-	using ActorFlag = u32;
 
 	class Actor
 	{
@@ -34,14 +34,16 @@ namespace wvn::act
 
 		virtual bool on_event(Event& e);
 
-		void add_flag(ActorFlag flag);
-		void remove_flag(ActorFlag flag);
-		bool has_flag(ActorFlag flag) const;
-		bool only_has_flag(ActorFlag flag) const;
+		void add_flag(u64 flag);
+		void remove_flag(u64 flag);
+		void toggle_flag(u64 flag);
+		void set_flag(u64 flag, bool mode);
+		bool has_flag(u64 flag) const;
+		bool only_has_flag(u64 flag) const;
 		void clear_flags();
 
 	private:
-		ActorFlag m_flags;
+		Bitset<64> m_flags;
 		ActorID m_id;
 	};
 

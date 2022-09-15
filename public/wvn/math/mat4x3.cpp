@@ -133,22 +133,24 @@ float Mat4x3::determinant() const
 
 Mat4x3 Mat4x3::inverse() const
 {
-	float inv_det = 1.0f / determinant();
+	float det = determinant();
 
-	// i want to kms
 	return Mat4x3(
-		((m22 * m33) - (m32 * m23)) * inv_det,
-		((m13 * m32) - (m12 * m33)) * inv_det,
-		((m12 * m23) - (m13 * m22)) * inv_det,
-		((m23 * m31) - (m21 * m33)) * inv_det,
-		((m11 * m33) - (m13 * m31)) * inv_det,
-		((m21 * m13) - (m11 * m23)) * inv_det,
-		((m21 * m32) - (m31 * m22)) * inv_det,
-		((m31 * m12) - (m11 * m32)) * inv_det,
-		((m11 * m22) - (m21 * m12)) * inv_det,
-		((m41 * ((m22 * m33) - (m32 * m23))) + (m42 * ((m23 * m31) - (m21 * m33))) + (m43 * ((m21 * m32) - (m31 * m22)))) * inv_det,
-		((m41 * ((m13 * m32) - (m12 * m33))) + (m42 * ((m11 * m33) - (m13 * m31))) + (m43 * ((m31 * m12) - (m11 * m32)))) * inv_det,
-		((m41 * ((m12 * m23) - (m13 * m22))) + (m42 * ((m21 * m13) - (m11 * m23))) + (m43 * ((m11 * m22) - (m21 * m12)))) * inv_det
+		((m22 * m33) - (m32 * m23)) / det,
+		((m13 * m32) - (m12 * m33)) / det,
+		((m12 * m23) - (m13 * m22)) / det,
+
+		((m23 * m31) - (m21 * m33)) / det,
+		((m11 * m33) - (m13 * m31)) / det,
+		((m21 * m13) - (m11 * m23)) / det,
+
+		((m21 * m32) - (m31 * m22)) / det,
+		((m31 * m12) - (m11 * m32)) / det,
+		((m11 * m22) - (m21 * m12)) / det,
+
+		((m41 * ((m22 * m33) - (m32 * m23))) + (m42 * ((m23 * m31) - (m21 * m33))) + (m43 * ((m21 * m32) - (m31 * m22)))) / det,
+		((m41 * ((m13 * m32) - (m12 * m33))) + (m42 * ((m11 * m33) - (m13 * m31))) + (m43 * ((m31 * m12) - (m11 * m32)))) / det,
+		((m41 * ((m12 * m23) - (m13 * m22))) + (m42 * ((m21 * m13) - (m11 * m23))) + (m43 * ((m11 * m22) - (m21 * m12)))) / det
 	);
 }
 
@@ -158,12 +160,15 @@ Mat4x3 Mat4x3::operator - (const Mat4x3& other) const
 		this->m11 - other.m11,
 		this->m12 - other.m12,
 		this->m13 - other.m13,
+
 		this->m21 - other.m21,
 		this->m22 - other.m22,
 		this->m23 - other.m23,
+
 		this->m31 - other.m31,
 		this->m32 - other.m32,
 		this->m33 - other.m33,
+
 		this->m41 - other.m41,
 		this->m42 - other.m42,
 		this->m43 - other.m43
@@ -176,12 +181,15 @@ Mat4x3 Mat4x3::operator + (const Mat4x3& other) const
 		this->m11 + other.m11,
 		this->m12 + other.m12,
 		this->m13 + other.m13,
+
 		this->m21 + other.m21,
 		this->m22 + other.m22,
 		this->m23 + other.m23,
+
 		this->m31 + other.m31,
 		this->m32 + other.m32,
 		this->m33 + other.m33,
+
 		this->m41 + other.m41,
 		this->m42 + other.m42,
 		this->m43 + other.m43
@@ -194,12 +202,15 @@ Mat4x3 Mat4x3::operator * (float scalar) const
 		this->m11 * scalar,
 		this->m12 * scalar,
 		this->m13 * scalar,
+
 		this->m21 * scalar,
 		this->m22 * scalar,
 		this->m23 * scalar,
+
 		this->m31 * scalar,
 		this->m32 * scalar,
 		this->m33 * scalar,
+
 		this->m41 * scalar,
 		this->m42 * scalar,
 		this->m43 * scalar

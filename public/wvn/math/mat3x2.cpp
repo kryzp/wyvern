@@ -63,15 +63,15 @@ float Mat3x2::determinant() const
 
 Mat3x2 Mat3x2::inverse() const
 {
-	auto inv_det = 1.0f / determinant();
+	auto det = determinant();
 
 	return Mat3x2(
-		 m22 * inv_det,
-		-m12 * inv_det,
-		-m21 * inv_det,
-		 m11 * inv_det,
-		((m32 * m21) - (m31 * m22)) * inv_det,
-		((m31 * m12) - (m32 * m11)) * inv_det
+		 m22 / det,
+		-m12 / det,
+		-m21 / det,
+		 m11 / det,
+		((m32 * m21) - (m31 * m22)) / det,
+		((m31 * m12) - (m32 * m11)) / det
 	);
 }
 
@@ -149,8 +149,10 @@ Mat3x2 Mat3x2::operator - (const Mat3x2& other) const
 	return Mat3x2(
 		m11 - other.m11,
 		m12 - other.m12,
+
 		m21 - other.m21,
 		m22 - other.m22,
+
 		m31 - other.m31,
 		m32 - other.m32
 	);
@@ -161,8 +163,10 @@ Mat3x2 Mat3x2::operator + (const Mat3x2& other) const
 	return Mat3x2(
 		m11 + other.m11,
 		m12 + other.m12,
+
 		m21 + other.m21,
 		m22 + other.m22,
+
 		m31 + other.m31,
 		m32 + other.m32
 	);
@@ -173,8 +177,10 @@ Mat3x2 Mat3x2::operator * (float scalar) const
 	return Mat3x2(
 		m11 * scalar,
 		m12 * scalar,
+
 		m21 * scalar,
 		m22 * scalar,
+
 		m31 * scalar,
 		m32 * scalar
 	);
@@ -185,8 +191,10 @@ Mat3x2 Mat3x2::operator * (const Mat3x2& other) const
 	return Mat3x2(
 		(this->m11 * other.m11) + (this->m12 * other.m21),
 		(this->m11 * other.m12) + (this->m12 * other.m22),
+
 		(this->m21 * other.m11) + (this->m22 * other.m21),
 		(this->m21 * other.m12) + (this->m22 * other.m22),
+
 		(this->m31 * other.m11) + (this->m32 * other.m21) + other.m31, 
 		(this->m31 * other.m12) + (this->m32 * other.m22) + other.m32
 	);

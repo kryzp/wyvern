@@ -16,29 +16,39 @@ bool Actor::on_event(Event& e)
 	return false;
 }
 
-void Actor::add_flag(ActorFlag flag)
+void Actor::add_flag(u64 flag)
 {
-	m_flags |= (1 << flag);
+	m_flags.enable(flag);
 }
 
-void Actor::remove_flag(ActorFlag flag)
+void Actor::remove_flag(u64 flag)
 {
-	m_flags &= ~(1 << flag);
+	m_flags.disable(flag);
 }
 
-bool Actor::has_flag(ActorFlag flag) const
+void Actor::toggle_flag(u64 flag)
 {
-	return (m_flags & (1 << flag)) != 0;
+	m_flags.toggle(flag);
 }
 
-bool Actor::only_has_flag(ActorFlag flag) const
+void Actor::set_flag(u64 flag, bool mode)
 {
-	return (m_flags & (1 << flag)) == (1 << flag);
+	m_flags.set(flag, mode);
+}
+
+bool Actor::has_flag(u64 flag) const
+{
+	return m_flags.on(flag);
+}
+
+bool Actor::only_has_flag(u64 flag) const
+{
+	return m_flags.on_only(flag);
 }
 
 void Actor::clear_flags()
 {
-	m_flags = 0;
+	m_flags.reset();
 }
 
 /***********************************/

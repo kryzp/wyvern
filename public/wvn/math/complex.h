@@ -17,11 +17,33 @@ namespace wvn
 		static const Complex& zero();
 		static const Complex& one();
 
-		static Complex zeta(const Complex& s, unsigned iter = 32);
-		static Complex pow(const Complex& base, const Complex& power);
-		static Complex ln(const Complex& z); // note: returns the *principal* log[e] (no tau*n)
-		static Complex cos(const Complex& value);
-		static Complex sin(const Complex& value);
+		static Complex zeta(const Complex& s, unsigned iter = 48);
+		static Complex gamma(const Complex& z);
+		static Complex fact(const Complex& z);
+
+		static Complex pow(const Complex& z, const Complex& p);
+		static Complex exp(const Complex& b);
+
+		static Complex log(const Complex& z, const Complex& b);
+		static Complex ln(const Complex& z);
+
+		static Complex sqrt(const Complex& z);
+		static Complex cbrt(const Complex& z);
+		static Complex root(const Complex& z, const Complex& b);
+
+		static Complex cos(const Complex& z);
+		static Complex sin(const Complex& z);
+		static Complex tan(const Complex& z);
+		static Complex cot(const Complex& z);
+		static Complex sec(const Complex& z);
+		static Complex csc(const Complex& z);
+
+		static Complex acos(const Complex& z);
+		static Complex asin(const Complex& z);
+		static Complex atan(const Complex& z);
+		static Complex acot(const Complex& z);
+		static Complex asec(const Complex& z);
+		static Complex acsc(const Complex& z);
 
 		Complex conjugate() const;
 

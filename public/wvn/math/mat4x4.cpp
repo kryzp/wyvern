@@ -39,12 +39,12 @@ Mat4x4::Mat4x4(
 
 float* Mat4x4::value_ptr()
 {
-	return &m11;
+	return data;
 }
 
 const float* Mat4x4::value_ptr() const
 {
-	return &m11;
+	return data;
 }
 
 Mat4x4 Mat4x4::create_orthographic(float width, float height, float near, float far)

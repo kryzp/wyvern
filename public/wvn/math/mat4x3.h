@@ -27,6 +27,7 @@ namespace wvn
 
 		Mat4x3();
 		Mat4x3(const Mat4x3& other);
+		Mat4x3(float initial);
 		Mat4x3(
 			float m11, float m12, float m13,
 			float m21, float m22, float m23,

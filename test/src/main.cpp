@@ -4,6 +4,8 @@
 #include <wvn/actor/actor_mgr.h>
 #include <wvn/actor/event.h>
 
+#include <wvn/math/complex.h>
+
 #include <wvn/system/window_mgr.h>
 
 #include <iostream>
@@ -80,11 +82,18 @@ int main()
 			wvn::Config::FLAG_RESIZABLE;
 	}
 
+	wvn::Complex n1(4.0, 0.0);
+	wvn::Complex root = wvn::Complex::sqrt(n1);
+	wvn::Complex fact = wvn::Complex::fact(n1);
+
+	std::cout << root.real << ", " << root.imag << std::endl;
+	std::cout << fact.real << ", " << fact.imag << std::endl;
+
 	new wvn::Root(cfg);
 	{
 		Ball* ball = wvn::act::ActorMgr::get_singleton().create<Ball>();
 	}
-	wvn::Root::get_singleton().run();
+	//wvn::Root::get_singleton().run();
 
 	delete wvn::Root::get_singleton_ptr();
 

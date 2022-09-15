@@ -21,13 +21,22 @@ add_library(${PROJECT_NAME}
 
 	public/wvn/graphics/rendering_mgr.cpp
 	public/wvn/graphics/mesh.cpp
+	public/wvn/graphics/mesh_mgr.cpp
 	public/wvn/graphics/texture.cpp
+	public/wvn/graphics/texture_mgr.cpp
 	public/wvn/graphics/shader.cpp
 	public/wvn/graphics/render_target.cpp
+	public/wvn/graphics/font.cpp
+	public/wvn/graphics/image.cpp
+	public/wvn/graphics/material.cpp
 
 	public/wvn/system/window_mgr.cpp
 
 	public/wvn/network/network_mgr.cpp
+	public/wvn/network/ip_address.cpp
+	public/wvn/network/tcp_socket.cpp
+	public/wvn/network/udp_socket.cpp
+	public/wvn/network/tcp_listener.cpp
 
 	public/wvn/io/endian.cpp
 	public/wvn/io/stream.cpp
@@ -42,11 +51,14 @@ add_library(${PROJECT_NAME}
 	public/wvn/physics/physics_mgr.cpp
 	public/wvn/physics/rigidbody.cpp
 
+	public/wvn/resource/resource_mgr.cpp
+
 	public/wvn/math/circle.cpp
 	public/wvn/math/colour.cpp
 	public/wvn/math/complex.cpp
 	public/wvn/math/line.cpp
 	public/wvn/math/mat3x2.cpp
+	public/wvn/math/mat3x3.cpp
 	public/wvn/math/mat4x3.cpp
 	public/wvn/math/mat4x4.cpp
 	public/wvn/math/polygon.cpp
