@@ -91,7 +91,7 @@ void ActorMgr::foreach(const std::function<void(ActorHandle&)>& fn)
 	}
 }
 
-void ActorMgr::foreach(ActorFlag mask, const std::function<void(ActorHandle&)>& fn)
+void ActorMgr::foreach(u64 mask, const std::function<void(ActorHandle&)>& fn)
 {
 	for (auto& [id, act] : m_actors)
 	{
@@ -114,7 +114,7 @@ void ActorMgr::foreach_stoppable(const std::function<bool(ActorHandle&)>& fn)
 	}
 }
 
-void ActorMgr::foreach_stoppable(ActorFlag mask, const std::function<bool(ActorHandle&)>& fn)
+void ActorMgr::foreach_stoppable(u64 mask, const std::function<bool(ActorHandle&)>& fn)
 {
 	for (auto& [id, act] : m_actors)
 	{

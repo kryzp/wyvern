@@ -1,4 +1,4 @@
-#include <backend/audio/openal_backend.h>
+#include <backend/audio/openal/openal_backend.h>
 
 using namespace wvn;
 using namespace wvn::sfx;

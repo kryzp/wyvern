@@ -12,6 +12,6 @@ namespace wvn
 		InputMgr();
 		~InputMgr();
 
-		void poll_input();
+		void update();
 	};
 }

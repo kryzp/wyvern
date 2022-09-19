@@ -11,9 +11,11 @@ namespace wvn
 	namespace act  { class ActorMgr; class SceneMgr; class EventMgr; }
 	namespace phys { class PhysicsMgr; }
 	namespace gfx { class RenderingMgr; class RendererBackend; }
-	namespace sys { class WindowMgr; class SystemBackend; }
+	namespace sys { class SystemBackend; }
 	namespace sfx { class AudioMgr; class AudioBackend; }
 	namespace net { class NetworkMgr; }
+	namespace anim { class AnimationMgr; }
+	namespace dev { class LogMgr; }
 	namespace plug { class Plugin; }
 	class InputMgr;
 	class Random;
@@ -38,6 +40,7 @@ namespace wvn
 		std::function<void(void)> on_init = nullptr;
 		std::function<void(void)> on_exit = nullptr;
 		std::function<void(void)> on_destroy = nullptr;
+		std::function<void(const char*)> on_log = nullptr;
 
 		// utility
 		constexpr bool has_flag(ConfigFlag flag) const { return flags & flag; }
@@ -74,7 +77,6 @@ namespace wvn
 		void install_plugins();
 		void uninstall_plugins();
 
-		sys::WindowMgr* m_window_mgr;
 		phys::PhysicsMgr* m_physics_mgr;
 		act::ActorMgr* m_actor_mgr;
 		act::SceneMgr* m_scene_mgr;
@@ -82,11 +84,13 @@ namespace wvn
 		gfx::RenderingMgr* m_rendering_mgr;
 		sfx::AudioMgr* m_audio_mgr;
 		net::NetworkMgr* m_network_mgr;
+		anim::AnimationMgr* m_animation_mgr;
 		InputMgr* m_input_mgr;
+		dev::LogMgr* m_log_mgr;
 
 		Random* m_random;
 
-		sys::SystemBackend* m_platform_backend;
+		sys::SystemBackend* m_system_backend;
 		gfx::RendererBackend* m_rendering_backend;
 		sfx::AudioBackend* m_audio_backend;
 

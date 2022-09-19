@@ -36,9 +36,9 @@ namespace wvn::act
 		Actor* fetch(const ActorHandle& act);
 
 		void foreach(const std::function<void(ActorHandle&)>& fn);
-		void foreach(ActorFlag mask, const std::function<void(ActorHandle&)>& fn);
+		void foreach(u64 mask, const std::function<void(ActorHandle&)>& fn);
 		void foreach_stoppable(const std::function<bool(ActorHandle&)>& fn);
-		void foreach_stoppable(ActorFlag mask, const std::function<bool(ActorHandle&)>& fn);
+		void foreach_stoppable(u64 mask, const std::function<bool(ActorHandle&)>& fn);
 
 	private:
 		void resolve_initializing();

@@ -2,10 +2,6 @@
 
 namespace wvn::gfx
 {
-	struct RenderPass
-	{
-	};
-
 	struct RendererProperties
 	{
 		bool origin_bottom_left;
@@ -18,5 +14,7 @@ namespace wvn::gfx
 		virtual ~RendererBackend() = default;
 
 		virtual RendererProperties properties() = 0;
+
+		virtual void tick() = 0;
 	};
 }

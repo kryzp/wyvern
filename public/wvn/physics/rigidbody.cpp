@@ -70,6 +70,7 @@ void RigidBody::wake_up()
 
 Point3 RigidBody::closest_point_on_bounds(const Point3& point) const
 {
+	return Point3::zero();
 }
 
 void RigidBody::set_centre_of_mass(const wvn::Point3& position)

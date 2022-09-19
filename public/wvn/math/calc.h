@@ -5,19 +5,16 @@
 
 namespace wvn
 {
-	namespace math
-	{
-		constexpr static double E       = 2.71828182845;
-		constexpr static double PI      = 3.14159265359;
-		constexpr static double TAU     = 6.28318530718;
-		constexpr static double RAD2DEG = 57.2957795131;
-		constexpr static double DEG2RAD = 0.01745329251;
-	}
-
 	template <typename T>
 	class Calc
 	{
 	public:
+		constexpr static T E       = 2.71828182845;
+		constexpr static T PI      = 3.14159265359;
+		constexpr static T TAU     = 6.28318530718;
+		constexpr static T RAD2DEG = 57.2957795131;
+		constexpr static T DEG2RAD = 0.01745329251;
+
 		static T abs(T x);
 		static T mod(T x, T y);
 		static T sqrt(T x);
@@ -41,13 +38,14 @@ namespace wvn
 		static T round(T x);
 		static T floor(T x);
 		static T ceil(T x);
+		static T fract(T x);
 
 		static bool within_epsilon(T lhs, T rhs, T epsilon = std::numeric_limits<T>::epsilon());
 
 		static T approach(T from, T to, T amount);
 		static T lerp(T from, T to, T amount);
 		static T smooth(T from, T to, T amount, T t);
-		static T spring(T from, T to, T bounciness, T tension, T& intermediate);
+		static T spring(T from, T to, T bounciness, T tension, T* intermediate);
 
 		static T sin(T x);
 		static T cos(T x);
@@ -130,7 +128,7 @@ namespace wvn
 	template <typename T>
 	T Calc<T>::snap(T x, T interval)
 	{
-		if (interval <= 1.0f)
+		if (interval <= 1.0)
 			return std::floor(x) + std::round(x - std::floor(x));
 		else
 			return std::round(x / interval) * interval;
@@ -197,6 +195,12 @@ namespace wvn
 	}
 
 	template <typename T>
+	T Calc<T>::fract(T x)
+	{
+		return x - std::floor(x);
+	}
+	
+	template <typename T>
 	bool Calc<T>::within_epsilon(T lhs, T rhs, T epsilon)
 	{
 		float delta = rhs - lhs;
@@ -218,16 +222,16 @@ namespace wvn
 	template <typename T>
 	T Calc<T>::smooth(T from, T to, T amount, T t)
 	{
-		return (std::exp(-1.0f * amount * t / (1.0f - amount)) * (from - to)) + to;
+		return (std::exp(-1.0f * amount * t / (1.0 - amount)) * (from - to)) + to;
 	}
 
 	template <typename T>
-	T Calc<T>::spring(T from, T to, T bounciness, T tension, T& intermediate)
+	T Calc<T>::spring(T from, T to, T bounciness, T tension, T* intermediate)
 	{
 		// todo: redo this using fun maths!
 
-		intermediate = lerp(intermediate, (to - from) * tension, 1.0f / bounciness);
-		return from + intermediate;
+		(*intermediate) = lerp(*intermediate, (to - from) * tension, 1.0 / bounciness);
+		return from + (*intermediate);
 	}
 
 	template <typename T>

@@ -2,6 +2,8 @@
 
 #include <wvn/graphics/renderer_backend.h>
 
+#include <vulkan/vulkan.h>
+
 namespace wvn::gfx
 {
 	class VulkanBackend : public RendererBackend
@@ -11,5 +13,10 @@ namespace wvn::gfx
 		~VulkanBackend();
 
 		RendererProperties properties() override;
+
+		void tick() override;
+
+	private:
+		VkInstance m_instance;
 	};
 }

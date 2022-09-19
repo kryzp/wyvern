@@ -19,8 +19,8 @@ namespace wvn
 
 			struct
 			{
-				T width;
-				T height;
+				T w;
+				T h;
 			};
 
 			T data[2];
@@ -115,7 +115,7 @@ namespace wvn
 	template <typename T>
 	Vec2<T> Vec2<T>::random_unit()
 	{
-		return from_angle(Random::get_singleton().real(0.0f, math::TAU), 1.0f);
+		return from_angle(Random::get_singleton().real(0.0f, CalcF::TAU), 1.0f);
 	}
 	
 	template <typename T>

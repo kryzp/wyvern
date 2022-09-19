@@ -1,5 +1,5 @@
 #include <wvn/plugin/audio/openal_plugin.h>
-#include <backend/audio/openal_backend.h>
+#include <backend/audio/openal/openal_backend.h>
 #include <wvn/root.h>
 
 using namespace wvn;

@@ -1,77 +1,14 @@
 #include <wvn/root.h>
-
 #include <wvn/actor/actor.h>
 #include <wvn/actor/actor_mgr.h>
 #include <wvn/actor/event.h>
-
-#include <wvn/math/complex.h>
-
-#include <wvn/system/window_mgr.h>
-
-#include <iostream>
-
-struct EventType0Pack
-{
-	float damage;
-	char type;
-};
-
-namespace evt
-{
-	EventType0Pack unpack_eventtype0(const wvn::act::Event& event)
-	{
-		return {
-			.damage = event.args["Damage"].f32,
-			.type = event.args["Type"].character
-		};
-	}
-}
-
-class Ball : public wvn::act::Actor
-{
-public:
-	Ball()
-		: wvn::act::Actor()
-	{
-	}
-
-	void tick() override
-	{
-		std::cout << "Hello, World!" << std::endl;
-
-		wvn::act::Event test_event;
-		test_event.type = "EventType0";
-		test_event.append_f32("Damage", 3.5f);
-		test_event.append_char("Type", 'B');
-
-		test_event.send(this);
-	}
-
-	bool on_event(wvn::act::Event& event) override
-	{
-		if (wvn::act::Actor::on_event(event))
-			return true;
-
-		auto pack = evt::unpack_eventtype0(event);
-
-		switch (event.type_hash())
-		{
-			case SID("EventType0"):
-				std::cout << "Damage: " << pack.damage << std::endl;
-				std::cout << "thing: " << pack.type << std::endl;
-				return true;
-
-			default:
-				return false;
-		}
-	}
-};
+#include <wvn/container/string.h>
 
 int main()
 {
 	wvn::Config cfg;
 	{
-		cfg.name = "Wyvern Test";
+		cfg.name = "main.cpp";
 		cfg.width = 1280;
 		cfg.height = 720;
 		cfg.target_fps = 60;
@@ -82,19 +19,8 @@ int main()
 			wvn::Config::FLAG_RESIZABLE;
 	}
 
-	wvn::Complex n1(4.0, 0.0);
-	wvn::Complex root = wvn::Complex::sqrt(n1);
-	wvn::Complex fact = wvn::Complex::fact(n1);
-
-	std::cout << root.real << ", " << root.imag << std::endl;
-	std::cout << fact.real << ", " << fact.imag << std::endl;
-
 	new wvn::Root(cfg);
-	{
-		Ball* ball = wvn::act::ActorMgr::get_singleton().create<Ball>();
-	}
-	//wvn::Root::get_singleton().run();
-
+	wvn::Root::get_singleton().run();
 	delete wvn::Root::get_singleton_ptr();
 
 	return 0;

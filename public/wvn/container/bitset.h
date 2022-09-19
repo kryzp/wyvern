@@ -1,6 +1,7 @@
 #pragma once
 
 #include <wvn/util/types.h>
+#include <wvn/util/assert.h>
 
 namespace wvn
 {
@@ -30,26 +31,30 @@ namespace wvn
 		bool on_only(u64 idx) const;
 		bool off(u64 idx) const;
 
+		bool contains(u64 flags) const;
+		bool only_contains(u64 flags) const;
+		bool all_off(u64 flags) const;
+
 		bool operator [] (u64 idx) const;
 		
 		constexpr inline u64 size() const;
 		constexpr inline u64 memory_size() const;
 
 	private:
-		u8* m_bits;
+		b8* m_bytes;
 	};
 
 	template <u64 TSize>
 	Bitset<TSize>::Bitset()
 	{
-		m_bits = new u8[memory_size()];
+		m_bytes = new b8[memory_size()];
 		reset();
 	}
 
 	template <u64 TSize>
 	Bitset<TSize>::~Bitset()
 	{
-		delete[] m_bits;
+		delete[] m_bytes;
 	}
 
 	template <u64 TSize>
@@ -106,7 +111,7 @@ namespace wvn
 	template <u64 TSize>
 	Bitset<TSize>& Bitset<TSize>::reset()
 	{
-		mem::set(m_bits, 0, memory_size());
+		mem::set(m_bytes, 0, memory_size());
 		return *this;
 	}
 
@@ -120,54 +125,79 @@ namespace wvn
 	template <u64 TSize>
 	Bitset<TSize>& Bitset<TSize>::enable(u64 idx)
 	{
-		LEV_ASSERT(idx >= 0 && idx < TSize, "Index must be within range of the bitset");
-		m_bits[idx/8] |= (1 << idx);
+		WVN_ASSERT(idx >= 0 && idx < TSize, "Index must be within range of the bitset");
+		m_bytes[idx/8] |= (1 << idx);
 		return *this;
 	}
 
 	template <u64 TSize>
 	Bitset<TSize>& Bitset<TSize>::disable(u64 idx)
 	{
-		LEV_ASSERT(idx >= 0 && idx < TSize, "Index must be within range of the bitset");
-		m_bits[idx/8] &= ~(1 << idx);
+		WVN_ASSERT(idx >= 0 && idx < TSize, "Index must be within range of the bitset");
+		m_bytes[idx/8] &= ~(1 << idx);
 		return *this;
 	}
 
 	template <u64 TSize>
 	Bitset<TSize>& Bitset<TSize>::toggle(u64 idx)
 	{
-		LEV_ASSERT(idx >= 0 && idx < TSize, "Index must be within range of the bitset");
-		m_bits[idx/8] ^= (1 << idx);
+		WVN_ASSERT(idx >= 0 && idx < TSize, "Index must be within range of the bitset");
+		m_bytes[idx/8] ^= (1 << idx);
 		return *this;
 	}
 
 	template <u64 TSize>
 	Bitset<TSize>& Bitset<TSize>::set(u64 idx, bool mode)
 	{
-		LEV_ASSERT(idx >= 0 && idx < TSize, "Index must be within range of the bitset");
-		if (mode) m_bits[idx/8] |= (1 << idx);
-		else m_bits[idx/8] &= ~(1 << idx);
+		WVN_ASSERT(idx >= 0 && idx < TSize, "Index must be within range of the bitset");
+		if (mode) m_bytes[idx/8] |= (1 << idx);
+		else m_bytes[idx/8] &= ~(1 << idx);
 		return *this;
 	}
 
 	template <u64 TSize>
 	bool Bitset<TSize>::on(u64 idx) const
 	{
-		LEV_ASSERT(idx >= 0 && idx < TSize, "Index must be within range of the bitset");
-		return (m_bits[idx/8] & (1 << idx)) != 0;
+		WVN_ASSERT(idx >= 0 && idx < TSize, "Index must be within range of the bitset");
+		return (m_bytes[idx/8] & (1 << idx)) != 0;
 	}
 
 	template <u64 TSize>
 	bool Bitset<TSize>::on_only(u64 idx) const
 	{
-		LEV_ASSERT(idx >= 0 && idx < TSize, "Index must be within range of the bitset");
-		return (m_bits[idx/8] & (1 << idx)) == idx;
+		WVN_ASSERT(idx >= 0 && idx < TSize, "Index must be within range of the bitset");
+		return (m_bytes[idx/8] & (1 << idx)) == idx;
 	}
 
 	template <u64 TSize>
 	bool Bitset<TSize>::off(u64 idx) const
 	{
 		return !on(idx);
+	}
+
+	template <u64 TSize>
+	bool Bitset<TSize>::contains(u64 flags) const
+	{
+		for (int i = 0; i < memory_size(); i++) {
+			b8 bt = m_bytes[i];
+			auto fl = flags << (i * 8);
+
+			if ((bt & fl) == 0 && fl != 0) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	template <u64 TSize>
+	bool Bitset<TSize>::only_contains(u64 flags) const
+	{
+	}
+
+	template <u64 TSize>
+	bool Bitset<TSize>::all_off(u64 flags) const
+	{
 	}
 
 	template <u64 TSize>

@@ -6,7 +6,7 @@ using namespace wvn;
 using namespace wvn::act;
 
 Actor::Actor()
-	: m_flags(0)
+	: m_flags()
 	, m_id(INVALID_ID)
 {
 }
@@ -18,37 +18,41 @@ bool Actor::on_event(Event& e)
 
 void Actor::add_flag(u64 flag)
 {
-	m_flags.enable(flag);
+	m_flags |= flag;
 }
 
 void Actor::remove_flag(u64 flag)
 {
-	m_flags.disable(flag);
+	m_flags &= ~flag;
 }
 
 void Actor::toggle_flag(u64 flag)
 {
-	m_flags.toggle(flag);
+	m_flags ^= flag;
 }
 
 void Actor::set_flag(u64 flag, bool mode)
 {
-	m_flags.set(flag, mode);
+	if (mode) {
+		m_flags |= flag;
+	} else {
+		m_flags &= ~flag;
+	}
 }
 
 bool Actor::has_flag(u64 flag) const
 {
-	return m_flags.on(flag);
+	return (m_flags & flag) != 0;
 }
 
 bool Actor::only_has_flag(u64 flag) const
 {
-	return m_flags.on_only(flag);
+	return (m_flags & flag) == flag;
 }
 
 void Actor::clear_flags()
 {
-	m_flags.reset();
+	m_flags = 0;
 }
 
 /***********************************/

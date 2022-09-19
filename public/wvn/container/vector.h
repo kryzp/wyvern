@@ -106,6 +106,9 @@ namespace wvn
         void expand(u64 amount = 1);
         void fill(byte value);
 
+		T* data();
+		const T* data() const;
+
         T& front();
         const T& front() const;
         T& back();
@@ -333,6 +336,18 @@ namespace wvn
     {
         mem::set(m_buf, value, sizeof(T) * m_capacity);
     }
+
+	template <typename T>
+	T* Vector<T>::data()
+	{
+		return m_buf;
+	}
+
+	template <typename T>
+	const T* Vector<T>::data() const
+	{
+		return m_buf;
+	}
 
     template <typename T>
     T& Vector<T>::front()

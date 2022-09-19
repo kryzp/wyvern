@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <cctype>
 
+using namespace wvn;
+
 void* mem::set(void* ptr, byte val, u64 size)
 {
 	return ::memset(ptr, val, size);

@@ -12,8 +12,9 @@
 #include <wvn/physics/physics_mgr.h>
 #include <wvn/input/input_mgr.h>
 #include <wvn/graphics/rendering_mgr.h>
-#include <wvn/system/window_mgr.h>
 #include <wvn/network/network_mgr.h>
+#include <wvn/animation/animation_mgr.h>
+#include <wvn/devenv/log_mgr.h>
 
 #include <wvn/plugin/plugin.h>
 
@@ -27,18 +28,20 @@ Root::Root(const Config& cfg)
 	: m_config(cfg)
 	, m_running(true)
 {
+	m_log_mgr = new dev::LogMgr();
+
 	m_plugins = plug::PluginLoader::load_plugins();
 	install_plugins();
 
-	m_window_mgr = new sys::WindowMgr();
-	m_physics_mgr = new phys::PhysicsMgr();
-	m_actor_mgr = new act::ActorMgr();
-	m_scene_mgr = new act::SceneMgr();
-	m_event_mgr = new act::EventMgr();
+	m_physics_mgr 	= new phys::PhysicsMgr();
+	m_actor_mgr 	= new act::ActorMgr();
+	m_scene_mgr 	= new act::SceneMgr();
+	m_event_mgr 	= new act::EventMgr();
 	m_rendering_mgr = new gfx::RenderingMgr();
-	m_audio_mgr = new sfx::AudioMgr();
-	m_input_mgr = new InputMgr();
-	m_network_mgr = new net::NetworkMgr();
+	m_audio_mgr 	= new sfx::AudioMgr();
+	m_input_mgr 	= new InputMgr();
+	m_network_mgr 	= new net::NetworkMgr();
+	m_animation_mgr = new anim::AnimationMgr();
 
 	m_random = new Random();
 
@@ -53,6 +56,7 @@ Root::~Root()
 
 	delete Random::get_singleton_ptr();
 
+	delete anim::AnimationMgr::get_singleton_ptr();
 	delete net::NetworkMgr::get_singleton_ptr();
 	delete InputMgr::get_singleton_ptr();
 	delete sfx::AudioMgr::get_singleton_ptr();
@@ -61,37 +65,41 @@ Root::~Root()
 	delete act::SceneMgr::get_singleton_ptr();
 	delete act::ActorMgr::get_singleton_ptr();
 	delete phys::PhysicsMgr::get_singleton_ptr();
-	delete sys::WindowMgr::get_singleton_ptr();
 
 	uninstall_plugins();
+
+	delete dev::LogMgr::get_singleton_ptr();
 }
 
 void Root::run()
 {
 	while (m_running)
 	{
-		// poll input
-		InputMgr::get_singleton().poll_input();
+		// poll events
+		m_system_backend->poll_events();
+		m_input_mgr->update();
 
 		// update
 		{
 			// update actors and dispatch events
-			act::ActorMgr::get_singleton().tick();
-			act::EventMgr::get_singleton().dispatch_events();
+			m_actor_mgr->tick();
+			m_event_mgr->dispatch_events();
 
 			// simulate physics
-			phys::PhysicsMgr::get_singleton().simulate();
+			m_physics_mgr->simulate();
 		}
 
 		// audio
 		{
-			sfx::AudioMgr::get_singleton().tick();
+			m_audio_mgr->tick();
 		}
 
 		// render
 		{
-			gfx::RenderingMgr::get_singleton().render_scene();
-			gfx::RenderingMgr::get_singleton().swap_buffers();
+			m_animation_mgr->tick();
+
+			m_rendering_mgr->render_scene();
+			m_rendering_mgr->swap_buffers();
 		}
 	}
 }
@@ -121,12 +129,12 @@ const Config& Root::config()
 
 sys::SystemBackend* Root::current_system_backend()
 {
-	return m_platform_backend;
+	return m_system_backend;
 }
 
 void Root::set_system_backend(sys::SystemBackend* backend)
 {
-	m_platform_backend = backend;
+	m_system_backend = backend;
 }
 
 gfx::RendererBackend* Root::current_renderer_backend()

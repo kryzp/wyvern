@@ -60,7 +60,7 @@ Complex Complex::pow(const Complex& z, const Complex& p)
 	Complex real_power = z;
 	{
 		double c1 = CalcD::floor(p.real);
-		double c2 = p.real - c1;
+		double c2 = CalcD::fract(p.real);
 
 		for (double i = 1.0; i < c1; i += 1.0) {
 			real_power *= z;
@@ -78,7 +78,7 @@ Complex Complex::pow(const Complex& z, const Complex& p)
 
 Complex Complex::exp(const wvn::Complex& b)
 {
-	return pow(b, Complex(math::E));
+	return pow(b, Complex(CalcD::E));
 }
 
 Complex Complex::log(const wvn::Complex& z, const wvn::Complex& b)
@@ -136,43 +136,21 @@ Complex Complex::tan(const Complex& z)
 	return sin(z) / cos(z);
 }
 
-Complex Complex::cot(const Complex& z)
-{
-	return cos(z) / sin(z);
-}
-
-Complex Complex::sec(const Complex& z)
-{
-	return Complex(1.0) / cos(z);
-}
-
-Complex Complex::csc(const Complex& z)
-{
-	return Complex(1.0) / sin(z);
-}
+// i dont know what to put for the complex number definitions
 
 Complex Complex::acos(const Complex& z)
 {
+	return CalcF::acos(z.real);
 }
 
 Complex Complex::asin(const Complex& z)
 {
+	return CalcF::asin(z.real);
 }
 
 Complex Complex::atan(const Complex& z)
 {
-}
-
-Complex Complex::acot(const Complex& z)
-{
-}
-
-Complex Complex::asec(const Complex& z)
-{
-}
-
-Complex Complex::acsc(const Complex& z)
-{
+	return CalcF::atan(z.real);
 }
 
 Complex Complex::conjugate() const

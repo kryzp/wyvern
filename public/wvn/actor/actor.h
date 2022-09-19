@@ -1,7 +1,6 @@
 #pragma once
 
 #include <wvn/util/types.h>
-#include <wvn/container/bitset.h>
 
 namespace wvn::act
 {
@@ -43,7 +42,7 @@ namespace wvn::act
 		void clear_flags();
 
 	private:
-		Bitset<64> m_flags;
+		u64 m_flags;
 		ActorID m_id;
 	};
 

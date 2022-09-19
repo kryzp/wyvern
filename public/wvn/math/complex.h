@@ -34,16 +34,10 @@ namespace wvn
 		static Complex cos(const Complex& z);
 		static Complex sin(const Complex& z);
 		static Complex tan(const Complex& z);
-		static Complex cot(const Complex& z);
-		static Complex sec(const Complex& z);
-		static Complex csc(const Complex& z);
 
 		static Complex acos(const Complex& z);
 		static Complex asin(const Complex& z);
 		static Complex atan(const Complex& z);
-		static Complex acot(const Complex& z);
-		static Complex asec(const Complex& z);
-		static Complex acsc(const Complex& z);
 
 		Complex conjugate() const;
 

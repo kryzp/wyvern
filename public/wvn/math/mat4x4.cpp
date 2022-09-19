@@ -73,7 +73,7 @@ Mat4x4 Mat4x4::create_projection(float fov, float aspect, float near, float far)
 
     Mat4x4 result;
 
-	float tan_theta_over_2 = CalcF::tan(fov * math::PI / 360.0f);
+	float tan_theta_over_2 = CalcF::tan(fov * CalcF::PI / 360.0f);
 
 	result.m11 = 1.0f / tan_theta_over_2;
 	result.m22 = aspect / tan_theta_over_2;

@@ -19,16 +19,18 @@ namespace wvn::sys
 
 		virtual SystemProperties properties() = 0;
 
+		virtual void poll_events() = 0;
+
 		virtual String get_window_name() = 0;
 		virtual void set_window_name(const String& name) = 0;
 
 		virtual Vec2I get_window_position() = 0;
 		virtual void set_window_position(const Vec2I& position) = 0;
 
-		virtual Vec2U get_window_size() = 0;
-		virtual void set_window_size(const Vec2U& size) = 0;
+		virtual Vec2I get_window_size() = 0;
+		virtual void set_window_size(const Vec2I& size) = 0;
 
-		virtual Vec2U get_screen_size() = 0;
+		virtual Vec2I get_screen_size() = 0;
 
 		virtual void toggle_cursor_visible(bool toggle) = 0;
 		virtual bool is_cursor_visible() = 0;
@@ -45,5 +47,8 @@ namespace wvn::sys
 		virtual s64 stream_size(void* stream) = 0;
 		virtual s64 stream_position(void* stream) = 0;
 		virtual void stream_close(void* stream) = 0;
+
+		// vulkan specific
+		virtual bool vk_get_instance_extensions(u32* count, const char** names) = 0;
 	};
 }

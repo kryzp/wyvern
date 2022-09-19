@@ -20,17 +20,26 @@ Vector<Plugin*> PluginLoader::load_plugins()
 {
 	Vector<Plugin*> plugins;
 	{
+		// system plugins
+		{
 #if WVN_USE_SDL2
-		plugins.push_back(new SDL2Plugin());
+			plugins.push_back(new SDL2Plugin());
 #endif
+		}
 
+		// renderer plugins
+		{
 #if WVN_USE_VULKAN
-		plugins.push_back(new VulkanPlugin());
+			plugins.push_back(new VulkanPlugin());
 #endif
+		}
 
+		// audio plugins
+		{
 #if WVN_USE_OPENAL
-		plugins.push_back(new OpenALPlugin());
+			plugins.push_back(new OpenALPlugin());
 #endif
+		}
 	}
 	return plugins;
 }

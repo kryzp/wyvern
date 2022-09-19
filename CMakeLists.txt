@@ -19,6 +19,8 @@ add_library(${PROJECT_NAME}
 
 	public/wvn/input/input_mgr.cpp
 
+	public/wvn/animation/animation_mgr.cpp
+
 	public/wvn/graphics/rendering_mgr.cpp
 	public/wvn/graphics/mesh.cpp
 	public/wvn/graphics/mesh_mgr.cpp
@@ -29,8 +31,6 @@ add_library(${PROJECT_NAME}
 	public/wvn/graphics/font.cpp
 	public/wvn/graphics/image.cpp
 	public/wvn/graphics/material.cpp
-
-	public/wvn/system/window_mgr.cpp
 
 	public/wvn/network/network_mgr.cpp
 	public/wvn/network/ip_address.cpp
@@ -68,9 +68,11 @@ add_library(${PROJECT_NAME}
 	public/wvn/math/timer.cpp
 	public/wvn/math/triangle.cpp
 
-	private/backend/system/sdl2_backend.cpp
-	private/backend/graphics/vulkan_backend.cpp
-	private/backend/audio/openal_backend.cpp
+	public/wvn/devenv/log_mgr.cpp
+
+	private/backend/system/sdl2/sdl2_backend.cpp
+	private/backend/graphics/vulkan/vulkan_backend.cpp
+	private/backend/audio/openal/openal_backend.cpp
 )
 
 target_include_directories(${PROJECT_NAME}
@@ -83,6 +85,7 @@ target_include_directories(${PROJECT_NAME}
 )
 
 find_package(SDL2 REQUIRED)
+find_package(Vulkan REQUIRED)
 
 set(SDL2_ENABLED true CACHE BOOL "Use SDL2 as the system implementation")
 set(VK_ENABLED true CACHE BOOL "Use Vulkan as the renderer implementation")
@@ -93,11 +96,15 @@ add_compile_definitions(WVN_DEBUG)
 
 if (SDL2_ENABLED)
 	add_compile_definitions(WVN_USE_SDL2)
+
 	target_link_libraries(${PROJECT_NAME} SDL2::SDL2)
 endif()
 
 if (VK_ENABLED)
 	add_compile_definitions(WVN_USE_VULKAN)
+
+	#target_include_directories(${PROJECT_NAME} PUBLIC ${Vulkan_INCLUDE_DIRS})
+	target_link_libraries(${PROJECT_NAME} Vulkan::Vulkan)
 endif()
 
 if (OPENAL_ENABLED)

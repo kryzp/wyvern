@@ -12,6 +12,6 @@ InputMgr::~InputMgr()
 {
 }
 
-void InputMgr::poll_input()
+void InputMgr::update()
 {
 }
