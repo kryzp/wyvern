@@ -16,6 +16,7 @@ namespace wvn
 
 		static const Complex& zero();
 		static const Complex& one();
+		static const Complex& i();
 
 		static Complex zeta(const Complex& s, unsigned iter = 48);
 		static Complex gamma(const Complex& z);

@@ -226,4 +226,5 @@ Complex& Complex::operator /= (const Complex& other)
 }
 
 const Complex& Complex::zero() { static const Complex ZERO = Complex(0.0, 0.0); return ZERO; }
-const Complex& Complex::one()  { static const Complex ONE  = Complex(1.0, 1.0); return ONE;  }
+const Complex& Complex::one()  { static const Complex ONE  = Complex(1.0, 0.0); return ONE;  }
+const Complex& Complex::i()    { static const Complex I    = Complex(0.0, 1.0); return I;    }
