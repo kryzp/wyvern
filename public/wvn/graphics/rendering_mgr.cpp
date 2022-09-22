@@ -17,7 +17,7 @@ RenderingMgr::~RenderingMgr()
 
 void RenderingMgr::render_scene()
 {
-	Root::get_singleton().current_renderer_backend()->tick();
+	Root::get_singleton().current_renderer_backend()->debug_tick();
 }
 
 void RenderingMgr::swap_buffers()

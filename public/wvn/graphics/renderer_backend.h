@@ -15,6 +15,6 @@ namespace wvn::gfx
 
 		virtual RendererProperties properties() = 0;
 
-		virtual void tick() = 0;
+		virtual void debug_tick() = 0;
 	};
 }

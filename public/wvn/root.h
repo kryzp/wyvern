@@ -15,7 +15,7 @@ namespace wvn
 	namespace sfx { class AudioMgr; class AudioBackend; }
 	namespace net { class NetworkMgr; }
 	namespace anim { class AnimationMgr; }
-	namespace dev { class LogMgr; }
+	namespace dev { class LogMgr; class Console; }
 	namespace plug { class Plugin; }
 	class InputMgr;
 	class Random;
@@ -36,6 +36,7 @@ namespace wvn
 		unsigned target_fps = 60;
 		unsigned max_updates = 5;
 		int flags = FLAG_NONE;
+		u64 random_seed = 0;
 
 		std::function<void(void)> on_init = nullptr;
 		std::function<void(void)> on_exit = nullptr;
@@ -87,6 +88,7 @@ namespace wvn
 		anim::AnimationMgr* m_animation_mgr;
 		InputMgr* m_input_mgr;
 		dev::LogMgr* m_log_mgr;
+		dev::Console* m_console;
 
 		Random* m_random;
 

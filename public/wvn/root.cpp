@@ -15,6 +15,7 @@
 #include <wvn/network/network_mgr.h>
 #include <wvn/animation/animation_mgr.h>
 #include <wvn/devenv/log_mgr.h>
+#include <wvn/devenv/console.h>
 
 #include <wvn/plugin/plugin.h>
 
@@ -29,6 +30,7 @@ Root::Root(const Config& cfg)
 	, m_running(true)
 {
 	m_log_mgr = new dev::LogMgr();
+	m_console = new dev::Console();
 
 	m_plugins = plug::PluginLoader::load_plugins();
 	install_plugins();
@@ -43,14 +45,18 @@ Root::Root(const Config& cfg)
 	m_network_mgr 	= new net::NetworkMgr();
 	m_animation_mgr = new anim::AnimationMgr();
 
-	m_random = new Random();
+	m_random = new Random(cfg.random_seed == 0 ? std::time(nullptr) : cfg.random_seed);
 
 	if (m_config.on_init)
 		m_config.on_init();
+
+	dev::LogMgr::get_singleton().print("[ROOT] Initialized!");
 }
 
 Root::~Root()
 {
+	// deletion must happen in the precise reverse order that objects are created!
+
 	if (m_config.on_destroy)
 		m_config.on_destroy();
 
@@ -68,7 +74,10 @@ Root::~Root()
 
 	uninstall_plugins();
 
+	dev::LogMgr::get_singleton().print("[ROOT] Destroyed!");
+
 	delete dev::LogMgr::get_singleton_ptr();
+	delete dev::Console::get_singleton_ptr();
 }
 
 void Root::run()
@@ -77,6 +86,8 @@ void Root::run()
 	{
 		// poll events
 		m_system_backend->poll_events();
+
+		// update input data to reflect polled events from previous call
 		m_input_mgr->update();
 
 		// update
@@ -87,18 +98,23 @@ void Root::run()
 
 			// simulate physics
 			m_physics_mgr->simulate();
+
+			// update animations
+			m_animation_mgr->tick();
 		}
 
 		// audio
 		{
+			// update audio
 			m_audio_mgr->tick();
 		}
 
 		// render
 		{
-			m_animation_mgr->tick();
-
+			// draw scene
 			m_rendering_mgr->render_scene();
+
+			// finally swap the buffers
 			m_rendering_mgr->swap_buffers();
 		}
 	}

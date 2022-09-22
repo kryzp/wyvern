@@ -42,6 +42,8 @@ using f64 = double;
 using r32 = float;
 using r64 = double;
 
+using single = float;
+
 using b8  = uint8_t;
 using b16 = uint16_t;
 using b32 = uint32_t;

@@ -69,6 +69,7 @@ add_library(${PROJECT_NAME}
 	public/wvn/math/triangle.cpp
 
 	public/wvn/devenv/log_mgr.cpp
+	public/wvn/devenv/console.cpp
 
 	private/backend/system/sdl2/sdl2_backend.cpp
 	private/backend/graphics/vulkan/vulkan_backend.cpp

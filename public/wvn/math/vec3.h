@@ -19,6 +19,13 @@ namespace wvn
 				T z;
 			};
 
+			struct
+			{
+				T w; // width
+				T h; // height
+				T d; // depth
+			};
+
 			T data[3];
 		};
 
@@ -46,6 +53,8 @@ namespace wvn
 		static const Vec3& forward();
 		static const Vec3& backward();
 
+		static Vec3 random_unit();
+		static Vec3 from_angle(float theta, float phi, float length);
 		static float dot(const Vec3& a, const Vec3& b);
 		static Vec3 cross(const Vec3& a, const Vec3& b);
 		static Vec3 transform(const Vec3& vec, const Mat4x3& mat);
@@ -113,6 +122,26 @@ namespace wvn
 	Vec3<T>::Vec3(const Vec2<T>& xy)
 		: x(xy.x), y(xy.y), z(0.0f)
 	{
+	}
+
+	template <typename T>
+	Vec3<T> Vec3<T>::random_unit()
+	{
+		return from_angle(
+			Random::get_singleton().real32(0.0f, CalcF::TAU),
+			Random::get_singleton().real32(0.0f, CalcF::TAU),
+			1.0f
+		);
+	}
+
+	template <typename T>
+	Vec3<T> Vec3<T>::from_angle(float theta, float phi, float length)
+	{
+		return Vec3(
+			CalcF::cos(phi) * length,
+			CalcF::sin(phi) * length,
+			CalcF::sin(theta) * length
+		);
 	}
 
 	template <typename T>

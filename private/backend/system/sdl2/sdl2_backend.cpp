@@ -1,6 +1,7 @@
 #include <backend/system/sdl2/sdl2_backend.h>
 
 #include <wvn/root.h>
+#include <wvn/devenv/log_mgr.h>
 
 #if WVN_USE_VULKAN
 #include <SDL_vulkan.h>
@@ -39,12 +40,16 @@ SDL2Backend::SDL2Backend()
 	toggle_cursor_visible(cfg.has_flag(Config::FLAG_CURSOR_VISIBLE));
 
 	// todo: move all the window initialization stuff away from the system backend and into root or another manager or something
+
+	dev::LogMgr::get_singleton().print("[SDL2] Initialized!");
 }
 
 SDL2Backend::~SDL2Backend()
 {
 	SDL_DestroyWindow(m_window);
 	SDL_Quit();
+
+	dev::LogMgr::get_singleton().print("[SDL2] Destroyed!");
 }
 
 SystemProperties SDL2Backend::properties()
@@ -245,7 +250,7 @@ bool SDL2Backend::vk_get_instance_extensions(u32* count, const char** names)
 }
 
 #if 0
-    void postinit() override
+     void postinit() override
     {
 #ifdef LEV_USE_OPENGL
         if (App::inst()->config().vsync)

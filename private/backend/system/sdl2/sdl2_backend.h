@@ -9,7 +9,7 @@ namespace wvn::sys
 	{
 	public:
 		SDL2Backend();
-		~SDL2Backend();
+		~SDL2Backend() override;
 
 		SystemProperties properties() override;
 

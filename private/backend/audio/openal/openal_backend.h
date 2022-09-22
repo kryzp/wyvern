@@ -8,7 +8,7 @@ namespace wvn::sfx
 	{
 	public:
 		OpenALBackend();
-		~OpenALBackend();
+		~OpenALBackend() override;
 
 		AudioProperties properties() override;
 	};
