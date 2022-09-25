@@ -1,6 +1,6 @@
 # Wyvern
 
-Quite possibly the biggest programming task I've taken on yet. A fully-fledged 3D game engine.
+beeg yoshi size engine
 
 ### Wyvern features:
  * Actor System
