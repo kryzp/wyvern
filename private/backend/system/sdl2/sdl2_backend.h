@@ -24,6 +24,7 @@ namespace wvn::sys
 		Vec2I get_window_size() override;
 		void set_window_size(const Vec2I& size) override;
 
+		Vec2I get_draw_size() override;
 		Vec2I get_screen_size() override;
 
 		void toggle_cursor_visible(bool toggle) override;
@@ -42,8 +43,10 @@ namespace wvn::sys
 		s64 stream_position(void* stream) override;
 		void stream_close(void* stream) override;
 
-		// vulkan specific
+#if WVN_USE_VULKAN
 		bool vk_get_instance_extensions(u32* count, const char** names) override;
+		bool vk_create_surface(VkInstance instance, VkSurfaceKHR* surface) override;
+#endif
 
 	private:
 		SDL_Window* m_window;

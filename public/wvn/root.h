@@ -43,8 +43,10 @@ namespace wvn
 		std::function<void(void)> on_destroy = nullptr;
 		std::function<void(const char*)> on_log = nullptr;
 
-		// utility
-		constexpr bool has_flag(ConfigFlag flag) const { return flags & flag; }
+		constexpr bool has_flag(ConfigFlag flag) const
+		{
+			return flags & flag;
+		}
 	};
 
 	class Root : public Singleton<Root>

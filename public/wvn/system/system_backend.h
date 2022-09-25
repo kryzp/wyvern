@@ -4,6 +4,14 @@
 #include <wvn/math/vec2.h>
 #include <wvn/container/string.h>
 
+#if WVN_USE_VULKAN
+class VkInstance_T;
+using VkInstance = VkInstance_T*;
+
+class VkSurfaceKHR_T;
+using VkSurfaceKHR = VkSurfaceKHR_T*;
+#endif
+
 namespace wvn::sys
 {
 	struct SystemProperties
@@ -30,6 +38,7 @@ namespace wvn::sys
 		virtual Vec2I get_window_size() = 0;
 		virtual void set_window_size(const Vec2I& size) = 0;
 
+		virtual Vec2I get_draw_size() = 0;
 		virtual Vec2I get_screen_size() = 0;
 
 		virtual void toggle_cursor_visible(bool toggle) = 0;
@@ -48,7 +57,9 @@ namespace wvn::sys
 		virtual s64 stream_position(void* stream) = 0;
 		virtual void stream_close(void* stream) = 0;
 
-		// vulkan specific
+#if WVN_USE_VULKAN
 		virtual bool vk_get_instance_extensions(u32* count, const char** names) = 0;
+		virtual bool vk_create_surface(VkInstance instance, VkSurfaceKHR* surface) = 0;
+#endif
 	};
 }

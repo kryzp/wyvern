@@ -1,22 +1,21 @@
 # Wyvern
-3D Game Engine I'm working on
 
-Proper game engine unlike Leviathan, which is more of a game framework like MonoGame.
+Quite possibly the biggest programming task I've taken on yet. A fully-fledged 3D game engine.
 
 ### Wyvern features:
  * Actor System
+ * Animation System
  * Physics System
+ * Custom Containers
+ * Developer Tools
  * Rendering System
  * I/O Features
- * Networking
- * Maths Library
- * Multi-Threading
- * Resource Manager (multi-threaded async loading)
- * Input Management
- * Developer Tools (e.g: console)
- * Plugin system, that allows you to swap out the backend of the project easily
- * Date/Time Features
-
-System Backends: SDL2  
-Graphics Backends: Vulkan  
-Audio Backends (kind of undecided yet): OpenAL  
+ * GUI Library
+ * Input Manager
+ * Extensive Maths Library
+ * Networking Tools
+ * Plugin System, allowing you to swap in and out the backend libraries of the project (e.g: swap vulkan out for a directx or metal rendering backend)
+ * Date/Time features
+ * Resource Manager (multi-threaded generic async loading)
+ * Multi-Threading Tools
+ * General Utilities

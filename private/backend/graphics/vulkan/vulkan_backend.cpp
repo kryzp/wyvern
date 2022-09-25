@@ -15,7 +15,6 @@ vkGetDeviceQueue(m_device, idx.graphics_family.value(), 0, &graphics_queue);
 #include <wvn/root.h>
 #include <wvn/system/system_backend.h>
 #include <wvn/devenv/log_mgr.h>
-#include <wvn/container/optional.h>
 
 using namespace wvn;
 using namespace wvn::gfx;
@@ -148,62 +147,29 @@ static Vector<const char*> get_device_extensions()
 	return result;
 }
 
-struct QueueFamilyIdx
-{
-	Optional<u32> graphics_family;
-	Optional<u32> present_family;
-
-	constexpr bool is_complete() const
-	{
-		return (
-			graphics_family.has_value() &&
-			present_family.has_value()
-		);
-	}
-};
-
-static QueueFamilyIdx find_queue_families(VkPhysicalDevice device)
-{
-	QueueFamilyIdx result;
-
-	u32 queue_family_count = 0;
-	vkGetPhysicalDeviceQueueFamilyProperties(device, &queue_family_count, nullptr);
-
-	if (!queue_family_count) {
-		WVN_ERROR("[VULKAN] Failed to find any queue families!");
-	}
-
-	Vector<VkQueueFamilyProperties> queue_families(queue_family_count);
-	vkGetPhysicalDeviceQueueFamilyProperties(device, &queue_family_count, queue_families.data());
-
-	for (int i = 0; i < queue_family_count; i++) {
-		if (queue_families[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) {
-			result.graphics_family = i;
-		}
-	}
-
-	return result;
-}
-
 VulkanBackend::VulkanBackend()
-	: m_instance()
+	: m_instance(VK_NULL_HANDLE)
+	, m_surface(VK_NULL_HANDLE)
+	, m_queues()
 	, m_logical_data()
 	, m_physical_data()
 #if WVN_DEBUG
 	, m_debug_messenger()
 #endif
 {
-	VkApplicationInfo app_info = {};
-	app_info.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-	app_info.pApplicationName = Root::get_singleton().config().name;
-	app_info.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
-	app_info.pEngineName = "Wyvern";
-	app_info.engineVersion = VK_MAKE_VERSION(1, 0, 0);
-	app_info.apiVersion = VK_API_VERSION_1_0;
+	VkApplicationInfo app_info = {
+		.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
+		.pApplicationName = Root::get_singleton().config().name,
+		.applicationVersion = VK_MAKE_VERSION(1, 0, 0),
+		.pEngineName = "Wyvern",
+		.engineVersion = VK_MAKE_VERSION(1, 0, 0),
+		.apiVersion = VK_API_VERSION_1_3
+	};
 
-	VkInstanceCreateInfo create_info = {};
-	create_info.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-	create_info.pApplicationInfo = &app_info;
+	VkInstanceCreateInfo create_info = {
+		.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
+		.pApplicationInfo = &app_info
+	};
 
 #if WVN_DEBUG
 	VkDebugUtilsMessengerCreateInfoEXT debug_create_info = {};
@@ -233,9 +199,9 @@ VulkanBackend::VulkanBackend()
 #endif
 
 	auto extensions = get_instance_extensions();
-
 	create_info.enabledExtensionCount = extensions.size();
 	create_info.ppEnabledExtensionNames = extensions.data();
+
 	create_info.flags |= VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
 
 	if (VkResult result = vkCreateInstance(&create_info, nullptr, &m_instance); result != VK_SUCCESS)
@@ -251,6 +217,11 @@ VulkanBackend::VulkanBackend()
 	}
 #endif
 
+	// create surface
+	if (bool result = Root::get_singleton().current_system_backend()->vk_create_surface(m_instance, &m_surface); !result) {
+		WVN_ERROR("[VULKAN] Failed to create surface.");
+	}
+
 	enumerate_physical_devices();
 	create_logical_device();
 
@@ -265,6 +236,7 @@ VulkanBackend::~VulkanBackend()
 	}
 #endif
 
+	vkDestroySurfaceKHR(m_instance, m_surface, nullptr);
 	vkDestroyDevice(m_logical_data.device, nullptr);
 	vkDestroyInstance(m_instance, nullptr);
 
@@ -329,30 +301,33 @@ void VulkanBackend::enumerate_physical_devices()
 
 void VulkanBackend::create_logical_device()
 {
-	// this may go out of scope (?) check if this causes errors !
 	constexpr float QUEUE_PRIORITY = 1.0f;
 
 	QueueFamilyIdx idx = find_queue_families(m_physical_data.device);
 
-	VkDeviceQueueCreateInfo queue_create_info = {};
-	queue_create_info.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-	queue_create_info.queueFamilyIndex = idx.graphics_family.value_or(0);
-	queue_create_info.queueCount = 1;
-	queue_create_info.pQueuePriorities = &QUEUE_PRIORITY;
+	Vector<VkDeviceQueueCreateInfo> queue_create_infos;
 
-	VkDeviceCreateInfo device_create_info = {};
-	device_create_info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-	device_create_info.pQueueCreateInfos = &queue_create_info;
-	device_create_info.queueCreateInfoCount = 1;
-	device_create_info.pEnabledFeatures = &m_physical_data.features;
-
-	device_create_info.enabledLayerCount = 0;
-	device_create_info.ppEnabledLayerNames = nullptr;
+	for (auto family : idx.package())
+	{
+		queue_create_infos.push_back({
+			.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
+			.queueFamilyIndex = family,
+			.queueCount = 1,
+			.pQueuePriorities = &QUEUE_PRIORITY
+		});
+	}
 
 	auto extensions = get_device_extensions();
 
-	device_create_info.enabledExtensionCount = extensions.size();
+	VkDeviceCreateInfo device_create_info = {};
+	device_create_info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+	device_create_info.queueCreateInfoCount = static_cast<u32>(queue_create_infos.size());
+	device_create_info.pQueueCreateInfos = queue_create_infos.data();
+	device_create_info.enabledLayerCount = 0;
+	device_create_info.ppEnabledLayerNames = nullptr;
 	device_create_info.ppEnabledExtensionNames = extensions.data();
+	device_create_info.enabledExtensionCount = static_cast<u32>(extensions.size());
+	device_create_info.pEnabledFeatures = &m_physical_data.features;
 
 #if WVN_DEBUG
 	if (g_debug_enable_validation_layers) {
@@ -365,6 +340,11 @@ void VulkanBackend::create_logical_device()
 		dev::LogMgr::get_singleton().print("[VULKAN] Result: %d", result);
 		WVN_ERROR("[VULKAN:DEBUG] Failed to create logical device.");
 	}
+
+	vkGetDeviceQueue(m_logical_data.device, idx.graphics_family.value(), 0, &m_queues.graphics_queue);
+	vkGetDeviceQueue(m_logical_data.device, idx.present_family.value(),  0, &m_queues.present_queue);
+	vkGetDeviceQueue(m_logical_data.device, idx.compute_family.value(),  0, &m_queues.compute_queue);
+	vkGetDeviceQueue(m_logical_data.device, idx.transfer_family.value(), 0, &m_queues.transfer_queue);
 
 	dev::LogMgr::get_singleton().print("[VULKAN] Created a logical device!");
 }
@@ -393,6 +373,53 @@ u32 VulkanBackend::assign_physical_device_usability(
 
 	if (idx.is_complete()) {
 		result += 1 << 2;
+	}
+
+	return result;
+}
+
+VulkanBackend::QueueFamilyIdx VulkanBackend::find_queue_families(VkPhysicalDevice device)
+{
+	QueueFamilyIdx result;
+
+	u32 queue_family_count = 0;
+	vkGetPhysicalDeviceQueueFamilyProperties(device, &queue_family_count, nullptr);
+
+	if (!queue_family_count) {
+		WVN_ERROR("[VULKAN] Failed to find any queue families!");
+	}
+
+	Vector<VkQueueFamilyProperties> queue_families(queue_family_count);
+	vkGetPhysicalDeviceQueueFamilyProperties(device, &queue_family_count, queue_families.data());
+
+	for (int i = 0; i < queue_family_count; i++)
+	{
+		if ((queue_families[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) && !result.graphics_family.has_value()) {
+			result.graphics_family = i;
+			continue;
+		}
+
+		if ((queue_families[i].queueFlags & VK_QUEUE_COMPUTE_BIT) && !result.compute_family.has_value()) {
+			result.compute_family = i;
+			continue;
+		}
+
+		if ((queue_families[i].queueFlags & VK_QUEUE_TRANSFER_BIT) && !result.transfer_family.has_value()) {
+			result.transfer_family = i;
+			continue;
+		}
+
+		VkBool32 present_support = VK_FALSE;
+		vkGetPhysicalDeviceSurfaceSupportKHR(device, i, m_surface, &present_support);
+
+		if (present_support && !result.present_family.has_value()) {
+			result.present_family = i;
+			continue;
+		}
+
+		if (result.is_complete()) {
+			break;
+		}
 	}
 
 	return result;

@@ -18,30 +18,18 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f7c9d8f6-3073-4d14-bdb7-2af3181d6545" name="Changes" comment="Added Complex::i().">
-      <change afterPath="$PROJECT_DIR$/private/backend/graphics/vulkan/vulkan_window.h" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/private/backend/graphics/vulkan/vulkan_window_mac.cpp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/wvn/devenv/console.cpp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/wvn/devenv/console.h" afterDir="false" />
+    <list default="true" id="f7c9d8f6-3073-4d14-bdb7-2af3181d6545" name="Changes" comment="More Vulkan progress.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CMakeLists.txt" beforeDir="false" afterPath="$PROJECT_DIR$/CMakeLists.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/private/backend/audio/openal/openal_backend.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/private/backend/audio/openal/openal_backend.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/private/backend/audio/openal/openal_backend.h" beforeDir="false" afterPath="$PROJECT_DIR$/private/backend/audio/openal/openal_backend.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/private/backend/graphics/vulkan/vulkan_backend.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/private/backend/graphics/vulkan/vulkan_backend.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/private/backend/graphics/vulkan/vulkan_backend.h" beforeDir="false" afterPath="$PROJECT_DIR$/private/backend/graphics/vulkan/vulkan_backend.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/private/backend/system/sdl2/sdl2_backend.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/private/backend/system/sdl2/sdl2_backend.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/private/backend/system/sdl2/sdl2_backend.h" beforeDir="false" afterPath="$PROJECT_DIR$/private/backend/system/sdl2/sdl2_backend.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/public/wvn/container/optional.h" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/container/optional.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/wvn/graphics/renderer_backend.h" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/graphics/renderer_backend.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/wvn/graphics/rendering_mgr.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/graphics/rendering_mgr.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/wvn/math/random.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/math/random.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/wvn/math/random.h" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/math/random.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/wvn/math/vec2.h" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/math/vec2.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/wvn/math/vec3.h" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/math/vec3.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/wvn/root.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/root.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/wvn/math/complex.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/math/complex.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/public/wvn/root.h" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/root.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/wvn/util/assert.h" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/util/assert.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/wvn/util/types.h" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/util/types.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/wvn/system/system_backend.h" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/system/system_backend.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/src/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/test/src/main.cpp" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -113,6 +101,11 @@
     </key>
   </component>
   <component name="RunManager" selected="CMake Application.wyvern">
+    <configuration default="true" type="CLionExternalRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true">
+      <method v="2">
+        <option name="CLION.EXTERNAL.BUILD" enabled="true" />
+      </method>
+    </configuration>
     <configuration name="wvn_test" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="wyvern" TARGET_NAME="wvn_test" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="wyvern" RUN_TARGET_NAME="wvn_test">
       <method v="2">
         <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
@@ -181,7 +174,21 @@
       <workItem from="1663796407041" duration="1339000" />
       <workItem from="1663852095407" duration="7176000" />
       <workItem from="1663875218832" duration="2189000" />
-      <workItem from="1663877416990" duration="746000" />
+      <workItem from="1663877416990" duration="1992000" />
+      <workItem from="1663879426414" duration="35000" />
+      <workItem from="1663879478965" duration="215000" />
+      <workItem from="1663879697277" duration="66000" />
+      <workItem from="1663879765371" duration="514000" />
+      <workItem from="1663880283728" duration="117000" />
+      <workItem from="1663880402677" duration="179000" />
+      <workItem from="1663880593800" duration="74000" />
+      <workItem from="1663880669917" duration="23000" />
+      <workItem from="1663880694946" duration="143000" />
+      <workItem from="1663880841709" duration="5602000" />
+      <workItem from="1663886533259" duration="117000" />
+      <workItem from="1663886651843" duration="1616000" />
+      <workItem from="1663932616382" duration="2373000" />
+      <workItem from="1664117593531" duration="2808000" />
     </task>
     <task id="LOCAL-00001" summary="Working on Actor System.">
       <created>1662415127833</created>
@@ -218,7 +225,14 @@
       <option name="project" value="LOCAL" />
       <updated>1663591246198</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="More Vulkan progress.">
+      <created>1663878333024</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1663878333024</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -241,14 +255,19 @@
     <MESSAGE value="Laying more groundwork." />
     <MESSAGE value="Starting on Vulkan and SDL2 backends." />
     <MESSAGE value="Added Complex::i()." />
-    <option name="LAST_COMMIT_MESSAGE" value="Added Complex::i()." />
+    <MESSAGE value="More Vulkan progress." />
+    <option name="LAST_COMMIT_MESSAGE" value="More Vulkan progress." />
   </component>
   <component name="XDebuggerManager">
-    <watches-manager>
-      <configuration name="CMakeRunConfiguration">
-        <watch expression="*this-&gt;m_extensions.m_buf @ 8" />
-      </configuration>
-    </watches-manager>
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
+          <url>file://$PROJECT_DIR$/public/wvn/math/complex.cpp</url>
+          <line>105</line>
+          <option name="timeStamp" value="5" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />

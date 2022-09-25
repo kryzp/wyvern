@@ -26,6 +26,8 @@ namespace wvn
 
 		constexpr bool has_value() const;
 
+		explicit operator bool () const;
+
 	private:
 		T m_value;
 		bool m_enabled;
@@ -127,6 +129,12 @@ namespace wvn
 
 	template <typename T>
 	constexpr bool Optional<T>::has_value() const
+	{
+		return m_enabled;
+	}
+
+	template <typename T>
+	Optional<T>::operator bool() const
 	{
 		return m_enabled;
 	}

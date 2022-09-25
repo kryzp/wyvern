@@ -54,26 +54,21 @@ Complex Complex::fact(const Complex& z)
 
 Complex Complex::pow(const Complex& z, const Complex& p)
 {
-	if (z == Complex::zero())
-		return Complex::zero();
+	double r = CalcD::sqrt((z.real * z.real) + (z.imag * z.imag));
+	double theta = CalcD::atan2(z.imag, z.real);
+	double lnr = CalcD::ln(r);
+	double exp0 = CalcD::exp(lnr   *  p.real);
+	double exp1 = CalcD::exp(theta * -p.imag);
 
-	Complex real_power = z;
-	{
-		double c1 = CalcD::floor(p.real);
-		double c2 = CalcD::fract(p.real);
+	Complex part0 = Complex(exp0) *
+		((Complex::one() * Complex::cos(lnr * p.imag)) +
+		 (Complex::i  () * Complex::sin(lnr * p.imag)));
 
-		for (double i = 1.0; i < c1; i += 1.0) {
-			real_power *= z;
-		}
+	Complex part1 = Complex(exp1) *
+		((Complex::one() * Complex::cos(theta * p.real)) +
+		 (Complex::i  () * Complex::sin(theta * p.real)));
 
-		real_power *= Complex::root(z, Complex(c2));
-	}
-
-	Complex imag_power =
-		Complex::cos(Complex::ln(z) * p.imag) +
-		(Complex(0.0, 1.0) * Complex::sin(Complex::ln(z) * p.imag));
-
-	return real_power * imag_power;
+	return part0 * part1;
 }
 
 Complex Complex::exp(const wvn::Complex& b)
@@ -99,10 +94,6 @@ Complex Complex::ln(const Complex& z)
 Complex Complex::sqrt(const Complex& z)
 {
 	return Complex::root(z, Complex(2.0, 0.0));
-//	return Complex(
-//		CalcD::sqrt(z.real + ((z.imag * z.imag) / ((4.0 * z.real) + 1))),
-//		z.imag / CalcD::sqrt(z.real + 1.0)
-//	);
 }
 
 Complex Complex::cbrt(const Complex& z)

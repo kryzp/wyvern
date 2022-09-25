@@ -5,6 +5,7 @@
 
 #if WVN_USE_VULKAN
 #include <SDL_vulkan.h>
+#include <vulkan/vulkan.h>
 #endif
 
 using namespace wvn;
@@ -12,9 +13,9 @@ using namespace wvn::sys;
 
 SDL2Backend::SDL2Backend()
 {
-	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_EVENTS | SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER) != 0) {
-		WVN_ERROR("[SDL2] Failed to initialize")
-		//log::error("failed to initialize sdl2: %s", SDL_GetError());
+	if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
+		dev::LogMgr::get_singleton().print("[SDL2] %s", SDL_GetError());
+		WVN_ERROR("[SDL2] Failed to initialize");
 	}
 
 	u64 flags = SDL_WINDOW_ALLOW_HIGHDPI;
@@ -145,7 +146,7 @@ void SDL2Backend::set_window_name(const String& name)
 
 Vec2I SDL2Backend::get_window_position()
 {
-	Vec2I result;
+	Vec2I result = Vec2I::zero();
 	SDL_GetWindowPosition(m_window, &result.x, &result.y);
 	return result;
 }
@@ -157,7 +158,7 @@ void SDL2Backend::set_window_position(const Vec2I& position)
 
 Vec2I SDL2Backend::get_window_size()
 {
-	Vec2I result;
+	Vec2I result = Vec2I::zero();
 	SDL_GetWindowSize(m_window, &result.w, &result.h);
 	return result;
 }
@@ -165,6 +166,17 @@ Vec2I SDL2Backend::get_window_size()
 void SDL2Backend::set_window_size(const Vec2I& size)
 {
 	SDL_SetWindowSize(m_window, size.w, size.h);
+}
+
+Vec2I SDL2Backend::get_draw_size()
+{
+	Vec2I result = Vec2I::zero();
+
+#if WVN_USE_VULKAN
+	SDL_Vulkan_GetDrawableSize(m_window, &result.w, &result.h);
+#endif
+
+	return result;
 }
 
 Vec2I SDL2Backend::get_screen_size()
@@ -240,14 +252,19 @@ void SDL2Backend::stream_close(void* stream)
 	SDL_RWclose((SDL_RWops*)stream);
 }
 
+#if WVN_USE_VULKAN
+
 bool SDL2Backend::vk_get_instance_extensions(u32* count, const char** names)
 {
-#if WVN_USE_VULKAN
 	return SDL_Vulkan_GetInstanceExtensions(m_window, count, names);
-#endif
-
-	return false;
 }
+
+bool SDL2Backend::vk_create_surface(VkInstance instance, VkSurfaceKHR* surface)
+{
+	return SDL_Vulkan_CreateSurface(m_window, instance, surface);
+}
+
+#endif
 
 #if 0
      void postinit() override
