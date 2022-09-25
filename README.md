@@ -2,7 +2,7 @@
 
 beeg yoshi size engine
 
-### Wyvern features:
+### Features:
  * Actor System
  * Animation System
  * Physics System
