@@ -88,7 +88,7 @@ Complex Complex::log(const wvn::Complex& z, const wvn::Complex& b)
 
 Complex Complex::log10(const wvn::Complex& z)
 {
-	return Complex::ln(z) / Complex(2.302585093)
+	return Complex::ln(z) / Complex(2.302585093);
 }
 
 Complex Complex::log2(const wvn::Complex& z)
