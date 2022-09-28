@@ -26,6 +26,8 @@ namespace wvn
 		static Complex exp(const Complex& b);
 
 		static Complex log(const Complex& z, const Complex& b);
+		static Complex log10(const Complex& z);
+		static Complex log2(const Complex& z);
 		static Complex ln(const Complex& z);
 
 		static Complex sqrt(const Complex& z);
@@ -40,6 +42,9 @@ namespace wvn
 		static Complex asin(const Complex& z);
 		static Complex atan(const Complex& z);
 
+		constexpr double magnitude() const;
+		constexpr double magnitude_squared() const;
+		constexpr double argument() const;
 		Complex conjugate() const;
 
 		bool operator == (const Complex& other) const;

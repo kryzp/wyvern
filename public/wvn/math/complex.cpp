@@ -39,14 +39,13 @@ Complex Complex::gamma(const Complex& z)
 
 Complex Complex::fact(const Complex& z)
 {
-	const double LEN = CalcD::sqrt((z.real * z.real) + (z.imag * z.imag));
-	const double DIST = 5.0 + ((LEN * LEN) / 2.0); // i just find that adding 4 gets good performance and good results as that is
+	const double DIST = 10.0 + (z.magnitude_squared() / 2.0);
 	constexpr double DX = 0.01;
 
 	Complex result = Complex::zero();
 
 	for (double x = 0.0; x < DIST; x += DX) {
-		result += Complex::pow(Complex(x), z) * Complex::exp(Complex(-x));
+		result += (Complex::pow(Complex(x, 0.0), z) / CalcD::exp(x)) * DX;
 	}
 
 	return result;
@@ -54,8 +53,14 @@ Complex Complex::fact(const Complex& z)
 
 Complex Complex::pow(const Complex& z, const Complex& p)
 {
-	double r = CalcD::sqrt((z.real * z.real) + (z.imag * z.imag));
-	double theta = CalcD::atan2(z.imag, z.real);
+	if (z == Complex::zero())
+		return Complex::zero();
+
+	if (p == Complex::zero())
+		return Complex::one();
+
+	double r = z.magnitude();
+	double theta = z.argument();
 	double lnr = CalcD::ln(r);
 	double exp0 = CalcD::exp(lnr   *  p.real);
 	double exp1 = CalcD::exp(theta * -p.imag);
@@ -81,24 +86,32 @@ Complex Complex::log(const wvn::Complex& z, const wvn::Complex& b)
 	return Complex::ln(z) / Complex::ln(b);
 }
 
+Complex Complex::log10(const wvn::Complex& z)
+{
+	return Complex::ln(z) / Complex(2.302585093)
+}
+
+Complex Complex::log2(const wvn::Complex& z)
+{
+	return Complex::ln(z) / Complex(0.693147180559945);
+}
+
 Complex Complex::ln(const Complex& z)
 {
-	// ln(z) = ln(radius*e^(i*theta)) = ln(radius) + theta*i
-
 	return Complex(
-		CalcD::ln(CalcD::sqrt((z.real * z.real) + (z.imag * z.imag))),
-		CalcD::atan2(z.imag, z.real)
+		CalcD::ln(z.magnitude()),
+		z.argument()
 	);
 }
 
 Complex Complex::sqrt(const Complex& z)
 {
-	return Complex::root(z, Complex(2.0, 0.0));
+	return Complex::root(z, Complex(2.0));
 }
 
 Complex Complex::cbrt(const Complex& z)
 {
-	return Complex::root(z, Complex(3.0, 0.0));
+	return Complex::root(z, Complex(3.0));
 }
 
 Complex Complex::root(const Complex& z, const wvn::Complex& b)
@@ -109,7 +122,7 @@ Complex Complex::root(const Complex& z, const wvn::Complex& b)
 Complex Complex::cos(const Complex& z)
 {
 	return Complex(
-		CalcD::cos(z.real) * CalcD::cosh(z.imag),
+		 CalcD::cos(z.real) * CalcD::cosh(z.imag),
 		-CalcD::sin(z.real) * CalcD::sinh(z.imag)
 	);
 }
@@ -131,17 +144,32 @@ Complex Complex::tan(const Complex& z)
 
 Complex Complex::acos(const Complex& z)
 {
-	return CalcF::acos(z.real);
+	return CalcD::acos(z.real);
 }
 
 Complex Complex::asin(const Complex& z)
 {
-	return CalcF::asin(z.real);
+	return CalcD::asin(z.real);
 }
 
 Complex Complex::atan(const Complex& z)
 {
-	return CalcF::atan(z.real);
+	return CalcD::atan(z.real);
+}
+
+constexpr double Complex::magnitude() const
+{
+	return CalcD::sqrt((real * real) + (imag * imag));
+}
+
+constexpr double Complex::magnitude_squared() const
+{
+	return (real * real) + (imag * imag);
+}
+
+constexpr double Complex::argument() const
+{
+	return CalcD::atan2(imag, real);
 }
 
 Complex Complex::conjugate() const

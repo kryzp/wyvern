@@ -18,17 +18,10 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f7c9d8f6-3073-4d14-bdb7-2af3181d6545" name="Changes" comment="More Vulkan progress.">
+    <list default="true" id="f7c9d8f6-3073-4d14-bdb7-2af3181d6545" name="Changes" comment="Quick detour to semi-fix the Complex::pow function (still doesn't work for roots)">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/private/backend/graphics/vulkan/vulkan_backend.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/private/backend/graphics/vulkan/vulkan_backend.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/private/backend/graphics/vulkan/vulkan_backend.h" beforeDir="false" afterPath="$PROJECT_DIR$/private/backend/graphics/vulkan/vulkan_backend.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/private/backend/system/sdl2/sdl2_backend.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/private/backend/system/sdl2/sdl2_backend.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/private/backend/system/sdl2/sdl2_backend.h" beforeDir="false" afterPath="$PROJECT_DIR$/private/backend/system/sdl2/sdl2_backend.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/wvn/container/optional.h" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/container/optional.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/public/wvn/math/complex.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/math/complex.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/wvn/root.h" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/root.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/wvn/system/system_backend.h" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/system/system_backend.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/wvn/math/complex.h" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/math/complex.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/test/src/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/test/src/main.cpp" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -101,11 +94,6 @@
     </key>
   </component>
   <component name="RunManager" selected="CMake Application.wyvern">
-    <configuration default="true" type="CLionExternalRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true">
-      <method v="2">
-        <option name="CLION.EXTERNAL.BUILD" enabled="true" />
-      </method>
-    </configuration>
     <configuration name="wvn_test" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="wyvern" TARGET_NAME="wvn_test" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="wyvern" RUN_TARGET_NAME="wvn_test">
       <method v="2">
         <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
@@ -188,7 +176,14 @@
       <workItem from="1663886533259" duration="117000" />
       <workItem from="1663886651843" duration="1616000" />
       <workItem from="1663932616382" duration="2373000" />
-      <workItem from="1664117593531" duration="2808000" />
+      <workItem from="1664117593531" duration="2847000" />
+      <workItem from="1664120901534" duration="26000" />
+      <workItem from="1664121015970" duration="18000" />
+      <workItem from="1664188803363" duration="536000" />
+      <workItem from="1664356515466" duration="377000" />
+      <workItem from="1664357240786" duration="28000" />
+      <workItem from="1664357580608" duration="194000" />
+      <workItem from="1664364900588" duration="405000" />
     </task>
     <task id="LOCAL-00001" summary="Working on Actor System.">
       <created>1662415127833</created>
@@ -232,7 +227,14 @@
       <option name="project" value="LOCAL" />
       <updated>1663878333024</updated>
     </task>
-    <option name="localTasksCounter" value="7" />
+    <task id="LOCAL-00007" summary="Quick detour to semi-fix the Complex::pow function (still doesn't work for roots)">
+      <created>1664120758852</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1664120758852</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -256,18 +258,8 @@
     <MESSAGE value="Starting on Vulkan and SDL2 backends." />
     <MESSAGE value="Added Complex::i()." />
     <MESSAGE value="More Vulkan progress." />
-    <option name="LAST_COMMIT_MESSAGE" value="More Vulkan progress." />
-  </component>
-  <component name="XDebuggerManager">
-    <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
-          <url>file://$PROJECT_DIR$/public/wvn/math/complex.cpp</url>
-          <line>105</line>
-          <option name="timeStamp" value="5" />
-        </line-breakpoint>
-      </breakpoints>
-    </breakpoint-manager>
+    <MESSAGE value="Quick detour to semi-fix the Complex::pow function (still doesn't work for roots)" />
+    <option name="LAST_COMMIT_MESSAGE" value="Quick detour to semi-fix the Complex::pow function (still doesn't work for roots)" />
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />

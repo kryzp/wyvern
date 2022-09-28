@@ -9,14 +9,7 @@ void print_complex(const wvn::Complex& c)
 
 int main()
 {
-	wvn::Complex c0(25.0, 0.0);
-	wvn::Complex c1(2.0, 0.0);
-
-	auto c0sqr = wvn::Complex::root(c0, wvn::Complex(5.0, 0.0));
-	auto c1pow = wvn::Complex::pow(c1, wvn::Complex(2.0, 0.0));
-
-	print_complex(c0sqr);
-	print_complex(c1pow);
+	print_complex(wvn::Complex::fact(wvn::Complex(4.0, 0.0)));
 
 //	wvn::Config cfg;
 //	{
