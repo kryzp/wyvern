@@ -42,6 +42,7 @@ namespace wvn
 		Vector<Str> split(const char* delimiter = " ") const;
 
 		int index_of(const Str& str) const;
+		int last_index_of(const Str& str) const;
 
 		bool starts_with(const Str& str) const;
 		bool ends_with(const Str& str) const;
@@ -357,21 +358,48 @@ namespace wvn
 	template <u64 TSize>
 	int Str<TSize>::index_of(const Str& str) const
 	{
-		for (int j = 0; j < m_length - str.length(); j++)
-		{
-			bool cont = true;
+		WVN_ASSERT(m_length >= str.m_length, "String to check for must not be larger than the string getting checked");
 
-			for (int i = 0; i < str.length(); i++)
+		for (unsigned i = 0; i < m_length - str.m_length; i++)
+		{
+			bool cont = false;
+
+			for (unsigned j = 0; j < str.m_length; j++)
 			{
-				if (m_buf[j+i] != str[i])
+				if (m_buf[i+j] != str[j])
 				{
-					cont = false;
+					cont = true;
 					break;
 				}
 			}
 
-			if (cont)
-				return j;
+			if (!cont)
+				return i;
+		}
+
+		return -1;
+	}
+
+	template <u64 TSize>
+	int Str<TSize>::last_index_of(const Str<TSize>& str) const
+	{
+		WVN_ASSERT(m_length >= str.m_length, "String to check for must not be larger than the string getting checked");
+
+		for (unsigned i = m_length - str.m_length; i > 0; i--)
+		{
+			bool cont = false;
+
+			for (unsigned j = 0; j < str.m_length; j++)
+			{
+				if (m_buf[i+j] != str[j])
+				{
+					cont = true;
+					break;
+				}
+			}
+
+			if (!cont)
+				return i;
 		}
 
 		return -1;

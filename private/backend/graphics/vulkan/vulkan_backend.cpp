@@ -2,14 +2,6 @@
 // https://vulkan-tutorial.com
 // Thank. You. So. Much.
 
-#if 0
-
-VkQueue graphics_queue;
-
-vkGetDeviceQueue(m_device, idx.graphics_family.value(), 0, &graphics_queue);
-
-#endif
-
 #include <backend/graphics/vulkan/vulkan_backend.h>
 
 #include <wvn/root.h>
@@ -21,6 +13,10 @@ using namespace wvn::gfx;
 
 static const char* VALIDATION_LAYERS[] = {
 	"VK_LAYER_KHRONOS_validation"
+};
+
+static const char* DEVICE_EXTENSIONS[] = {
+	VK_KHR_SWAPCHAIN_EXTENSION_NAME
 };
 
 #if WVN_DEBUG
@@ -360,19 +356,23 @@ u32 VulkanBackend::assign_physical_device_usability(
 
 	bool is_correct_device = false;//properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU; // note, isnt my M1 chip integrated graphics! this may cause issues so look here first!!!!!!!!!!!
 	bool has_required_features = false;//features.geometryShader;
+	bool has_required_extensions = check_device_extension_support(device);
+	bool indices_complete = find_queue_families(device).is_complete();
 
 	if (is_correct_device) {
-		result += 1 << 0;
+		result += 1;
 	}
 
 	if (has_required_features) {
-		result += 1 << 1;
+		result += 1;
 	}
 
-	QueueFamilyIdx idx = find_queue_families(device);
+	if (has_required_extensions) {
+		result += 1;
+	}
 
-	if (idx.is_complete()) {
-		result += 1 << 2;
+	if (indices_complete) {
+		result += 1;
 	}
 
 	return result;
@@ -423,6 +423,33 @@ VulkanBackend::QueueFamilyIdx VulkanBackend::find_queue_families(VkPhysicalDevic
 	}
 
 	return result;
+}
+
+bool VulkanBackend::check_device_extension_support(VkPhysicalDevice device)
+{
+	u32 ext_count = 0;
+	vkEnumerateDeviceExtensionProperties(device, nullptr, &ext_count, nullptr);
+
+	if (!ext_count) {
+		WVN_ERROR("[VULKAN] Failed to find any device extension properties!");
+	}
+
+	auto device_exts = get_device_extensions();
+
+	Vector<VkExtensionProperties> available_exts(ext_count);
+	vkEnumerateDeviceExtensionProperties(device, nullptr, &ext_count, available_exts.data());
+
+	Vector<const char*> required_exts(device_exts.begin(), device_exts.end());
+
+	for (const auto& available_extension : available_exts) {
+		for (int i = 0; i < required_exts.size(); i++) {
+			if (available_extension.extensionName == required_exts[i]) {
+				required_exts.erase(i);
+			}
+		}
+	}
+
+	return required_exts.empty();
 }
 
 // temporary function while i learn how tf vulkan actually works lol

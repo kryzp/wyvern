@@ -1,32 +1,37 @@
-#include <wvn/math/complex.h>
+#include <wvn/root.h>
 
-#include <iostream>
+#include <wvn/container/string.h>
+#include <wvn/container/vector.h>
 
-void print_complex(const wvn::Complex& c)
+int main(int argc, char** argv)
 {
-	std::cout << "Re: " << c.real << ", Im: " << c.imag << std::endl;
-}
+	wvn::Vector<int> lol = { 5, 3, 2, 4 };
 
-int main()
-{
-	print_complex(wvn::Complex::fact(wvn::Complex(4.0, 0.0)));
+	auto it = lol.find(3);
+	lol.erase(it);
 
-//	wvn::Config cfg;
-//	{
-//		cfg.name = "main.cpp";
-//		cfg.width = 1280;
-//		cfg.height = 720;
-//		cfg.target_fps = 60;
-//		cfg.max_updates = 5;
-//		cfg.flags =
-//			wvn::Config::FLAG_CURSOR_VISIBLE |
-//			wvn::Config::FLAG_VSYNC |
-//			wvn::Config::FLAG_RESIZABLE;
-//	}
+	for (auto& i : lol) {
+		std::cout << i << std::endl;
+	}
 
-//	new wvn::Root(cfg);
-//	wvn::Root::get_singleton().run();
-//	delete wvn::Root::get_singleton_ptr();
+	/*
+	wvn::Config cfg;
+	{
+		cfg.name = "main.cpp";
+		cfg.width = 1280;
+		cfg.height = 720;
+		cfg.target_fps = 60;
+		cfg.max_updates = 5;
+		cfg.flags =
+			wvn::Config::FLAG_CURSOR_VISIBLE |
+			wvn::Config::FLAG_VSYNC |
+			wvn::Config::FLAG_RESIZABLE;
+	}
+
+	new wvn::Root(cfg);
+	wvn::Root::get_singleton().run();
+	delete wvn::Root::get_singleton_ptr();
+	 */
 
 	return 0;
 }

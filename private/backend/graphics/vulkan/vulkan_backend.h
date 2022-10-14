@@ -71,6 +71,7 @@ namespace wvn::gfx
 
 		u32 assign_physical_device_usability(VkPhysicalDevice device, VkPhysicalDeviceProperties properties, VkPhysicalDeviceFeatures features);
 		QueueFamilyIdx find_queue_families(VkPhysicalDevice device);
+		bool check_device_extension_support(VkPhysicalDevice device);
 
 		VkInstance m_instance;
 		VkSurfaceKHR m_surface;

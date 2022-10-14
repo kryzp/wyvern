@@ -19,8 +19,11 @@ namespace wvn
 	class Vector
 	{
     public:
-		struct Iterator
+		class Iterator
 		{
+			friend class Vector<T>;
+
+		public:
 			Iterator() : m_ptr(nullptr) { }
 			Iterator(T* init) : m_ptr(init) { }
 			~Iterator() = default;
@@ -36,8 +39,11 @@ namespace wvn
 			T* m_ptr;
 		};
 
-		struct ConstIterator
+		class ConstIterator
 		{
+			friend class Vector<T>;
+
+		public:
 			ConstIterator() : m_ptr(nullptr) { }
 			ConstIterator(const T* init) : m_ptr(init) { }
 			~ConstIterator() = default;
@@ -53,8 +59,11 @@ namespace wvn
 			const T* m_ptr;
 		};
 
-		struct ReverseIterator
+		class ReverseIterator
 		{
+			friend class Vector<T>;
+
+		public:
 			ReverseIterator() : m_ptr(nullptr) { }
 			ReverseIterator(T* init) : m_ptr(init) { }
 			~ReverseIterator() = default;
@@ -70,8 +79,11 @@ namespace wvn
 			T* m_ptr;
 		};
 
-		struct ReverseConstIterator
+		class ReverseConstIterator
 		{
+			friend class Vector<T>;
+
+		public:
 			ReverseConstIterator() : m_ptr(nullptr) { }
 			ReverseConstIterator(const T* init) : m_ptr(init) { }
 			~ConstIterator() = default;
@@ -91,6 +103,7 @@ namespace wvn
         
         Vector(std::initializer_list<T> data);
         Vector(u64 initial_capacity);
+		Vector(const Iterator& begin, const Iterator& end);
 
         Vector(const Vector& other);
         Vector(Vector&& other) noexcept;
@@ -102,9 +115,13 @@ namespace wvn
 
         void allocate(u64 capacity);
         void resize(u64 new_count);
-        void erase(u64 index, u64 amount = 1);
         void expand(u64 amount = 1);
         void fill(byte value);
+
+		void erase(u64 index, u64 amount = 1);
+		void erase(Iterator it, u64 amount = 1);
+
+		Iterator find(const T& elem);
 
 		T* data();
 		const T* data() const;
@@ -128,6 +145,9 @@ namespace wvn
 
         void clear();
         u64 size() const;
+
+		bool any() const;
+		bool empty() const;
 
         Iterator begin();
         ConstIterator begin() const;
@@ -180,7 +200,17 @@ namespace wvn
         for (u64 i = 0; i < m_capacity; i++)
             new (m_buf + i) T();
     }
-    
+
+	template <typename T>
+	Vector<T>::Vector(const Iterator& begin, const Iterator& end)
+	{
+		allocate(end.m_ptr - begin.m_ptr);
+		m_size = end.m_ptr - begin.m_ptr;
+
+		for (u64 i = 0; i < m_capacity; i++)
+			new (m_buf + i) T(*(begin.m_ptr + i));
+	}
+
     template <typename T>
     Vector<T>::Vector(const Vector& other)
         : Vector()
@@ -306,21 +336,6 @@ namespace wvn
     }
 
     template <typename T>
-    void Vector<T>::erase(u64 index, u64 amount)
-    {
-		if (amount > 0)
-		{
-			for (int i = 0; i < m_size - amount; i++)
-				m_buf[i] = std::move(m_buf[i + amount]);
-
-			for (int i = m_size - amount; i < m_size; i++)
-				m_buf[i].~T();
-
-			m_size -= amount;
-		}
-    }
-
-    template <typename T>
     void Vector<T>::expand(u64 amount)
     {
         WVN_ASSERT(amount > 0, "Expand amount must be higher than 0");
@@ -336,6 +351,50 @@ namespace wvn
     {
         mem::set(m_buf, value, sizeof(T) * m_capacity);
     }
+
+	template <typename T>
+	void Vector<T>::erase(u64 index, u64 amount)
+	{
+		if (amount <= 0) {
+			return;
+		}
+
+		for (int i = 0; i < m_size - amount; i++)
+			m_buf[i + index] = std::move(m_buf[i + index + amount]);
+
+		for (int i = m_size - amount; i < m_size; i++)
+			m_buf[i + index].~T();
+
+		m_size -= amount;
+	}
+
+	template <typename T>
+	void Vector<T>::erase(Iterator it, u64 amount)
+	{
+		if (amount <= 0) {
+			return;
+		}
+
+		for (int i = 0; i < m_size - amount; i++)
+			*(it.m_ptr + i) = std::move(*(it.m_ptr + i + amount));
+
+		for (int i = m_size - amount; i < m_size; i++)
+			it->~T();
+
+		m_size -= amount;
+	}
+
+	template <typename T>
+	typename Vector<T>::Iterator Vector<T>::find(const T& elem)
+	{
+		for (u64 i = 0; i < m_size; i++) {
+			if (m_buf[i] == elem) {
+				return Iterator(&m_buf[i]);
+			}
+		}
+
+		return end();
+	}
 
 	template <typename T>
 	T* Vector<T>::data()
@@ -440,6 +499,18 @@ namespace wvn
     {
         return m_size;
     }
+
+	template <typename T>
+	bool Vector<T>::any() const
+	{
+		return m_size != 0;
+	}
+
+	template <typename T>
+	bool Vector<T>::empty() const
+	{
+		return m_size == 0;
+	}
 
 	template <typename T>
 	typename Vector<T>::Iterator Vector<T>::begin()
