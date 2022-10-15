@@ -141,6 +141,7 @@ VulkanBackend::VulkanBackend()
 	, m_surface(VK_NULL_HANDLE)
 	, m_swap_chain(VK_NULL_HANDLE)
 	, m_swap_chain_images()
+	, m_swap_chain_image_views()
 	, m_swap_chain_image_format()
 	, m_swap_chain_extent()
 	, m_queues()
@@ -223,6 +224,9 @@ VulkanBackend::VulkanBackend()
 		create_swap_chain(phys_idx);
 	}
 
+	create_image_views();
+	create_graphics_pipeline();
+
 	dev::LogMgr::get_singleton().print("[VULKAN] Initialized!");
 }
 
@@ -234,6 +238,10 @@ VulkanBackend::~VulkanBackend()
 		dev::LogMgr::get_singleton().print("[VULKAN:DEBUG] Destroyed validation layers!");
 	}
 #endif
+
+	for (auto& view : m_swap_chain_image_views) {
+		vkDestroyImageView(m_logical_data.device, view, nullptr);
+	}
 
 	vkDestroySwapchainKHR(m_logical_data.device, m_swap_chain, nullptr);
 	vkDestroySurfaceKHR(m_instance, m_surface, nullptr);
@@ -412,6 +420,43 @@ void VulkanBackend::create_swap_chain(const QueueFamilyIdx& phys_idx)
 	dev::LogMgr::get_singleton().print("[VULKAN] Created the swap chain!");
 }
 
+void VulkanBackend::create_image_views()
+{
+	m_swap_chain_image_views.resize(m_swap_chain_images.size());
+
+	for (u64 i = 0; i < m_swap_chain_images.size(); i++)
+	{
+		VkImageViewCreateInfo create_info = {};
+		create_info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+		create_info.image = m_swap_chain_images[i];
+		create_info.viewType = VK_IMAGE_VIEW_TYPE_2D;
+		create_info.format = m_swap_chain_image_format;
+
+		create_info.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+		create_info.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+		create_info.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+		create_info.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+
+		create_info.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		create_info.subresourceRange.baseMipLevel = 0;
+		create_info.subresourceRange.levelCount = 1;
+		create_info.subresourceRange.baseArrayLayer = 0;
+		create_info.subresourceRange.layerCount = 1;
+
+		if (VkResult result = vkCreateImageView(m_logical_data.device, &create_info, nullptr, &m_swap_chain_image_views[i]); result != VK_SUCCESS) {
+			dev::LogMgr::get_singleton().print("[VULKAN] Result [Index: %d]: %d", i, result);
+			WVN_ERROR("[VULKAN:DEBUG] Failed to create image view.");
+		}
+	}
+
+	dev::LogMgr::get_singleton().print("[VULKAN] Created image views!");
+}
+
+void VulkanBackend::create_graphics_pipeline()
+{
+	dev::LogMgr::get_singleton().print("[VULKAN] Created graphics pipeline!");
+}
+
 // abstract function that generates a "usability" or "goodness value" of a given device
 u32 VulkanBackend::assign_physical_device_usability(
 	VkPhysicalDevice device,
@@ -431,13 +476,14 @@ u32 VulkanBackend::assign_physical_device_usability(
 	if (is_correct_device)     { result += 1; }
 	if (has_required_features) { result += 1; }
 
-	if (has_required_extensions)
-	{
+	if (has_required_extensions) {
 		SwapChainSupportDetails swap_chain_support_details = query_swap_chain_support(device);
 		adequate_swap_chain = swap_chain_support_details.surface_formats.any() && swap_chain_support_details.present_modes.any();
 	}
 
-	(*essentials_completed) = indices_complete && has_required_extensions && adequate_swap_chain;
+	if (essentials_completed) {
+		(*essentials_completed) = indices_complete && has_required_extensions && adequate_swap_chain;
+	}
 
 	return result;
 }

@@ -43,6 +43,7 @@ namespace wvn
 		unsigned height = 720;
 		unsigned target_fps = 60;
 		unsigned max_updates = 5;
+		float opacity = 1.0f;
 		int flags = FLAG_NONE;
 		u64 random_seed = 0;
 		WindowMode window_mode = WINDOW_MODE_WINDOWED;

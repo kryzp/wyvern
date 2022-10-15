@@ -1,8 +1,5 @@
 #include <wvn/root.h>
 
-#include <wvn/container/string.h>
-#include <wvn/container/vector.h>
-
 int main(int argc, char** argv)
 {
 	wvn::Config cfg;

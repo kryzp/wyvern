@@ -6,6 +6,6 @@ namespace wvn::gfx
 	{
 	public:
 		RenderTarget();
-		~RenderTarget();
+		virtual ~RenderTarget();
 	};
 }

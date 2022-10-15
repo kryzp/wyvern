@@ -6,6 +6,6 @@ namespace wvn::gfx
 	{
 	public:
 		Texture();
-		~Texture();
+		virtual ~Texture();
 	};
 }

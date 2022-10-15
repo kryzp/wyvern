@@ -6,6 +6,6 @@ namespace wvn::gfx
 	{
 	public:
 		Mesh();
-		~Mesh();
+		virtual ~Mesh();
 	};
 }

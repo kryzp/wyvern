@@ -89,9 +89,17 @@ namespace wvn::gfx
 		void debug_tick() override;
 
 	private:
+		// todo: split into seperate classes!!! (abstract it)
+		// WVkLogicalDevice m_logical_device;
+		// WVkPhysicalDevice m_physical_device;
+		// WVkSwapChain m_swap_chain;
+		// WVkQueue m_queue;
+
 		void enumerate_physical_devices();
 		void create_logical_device(const QueueFamilyIdx& phys_idx);
 		void create_swap_chain(const QueueFamilyIdx& phys_idx);
+		void create_image_views();
+		void create_graphics_pipeline();
 
 		u32 assign_physical_device_usability(VkPhysicalDevice device, VkPhysicalDeviceProperties properties, VkPhysicalDeviceFeatures features, bool* essentials_completed);
 		QueueFamilyIdx find_queue_families(VkPhysicalDevice device);
@@ -106,6 +114,7 @@ namespace wvn::gfx
 
 		VkSwapchainKHR m_swap_chain;
 		Vector<VkImage> m_swap_chain_images;
+		Vector<VkImageView> m_swap_chain_image_views;
 		VkFormat m_swap_chain_image_format;
 		VkExtent2D m_swap_chain_extent;
 

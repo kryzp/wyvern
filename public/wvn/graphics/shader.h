@@ -6,6 +6,8 @@ namespace wvn::gfx
 	{
 	public:
 		Shader();
-		~Shader();
+		virtual ~Shader();
+
+		static Shader create(const char* path);
 	};
 }

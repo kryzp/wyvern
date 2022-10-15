@@ -69,6 +69,9 @@ Root::Root(const Config& cfg)
 		m_system_backend->set_window_mode(m_config.window_mode);
 		m_system_backend->set_window_opacity(1.0f);
 
+		// set opacity
+		m_system_backend->set_window_opacity(m_config.opacity);
+
 		// set window flags
 		m_system_backend->toggle_cursor_visible(m_config.has_flag(Config::FLAG_CURSOR_VISIBLE));
 		m_system_backend->toggle_window_resizable(m_config.has_flag(Config::FLAG_RESIZABLE));

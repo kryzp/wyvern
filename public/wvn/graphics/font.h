@@ -6,6 +6,6 @@ namespace wvn::gfx
 	{
 	public:
 		Font();
-		~Font();
+		virtual ~Font();
 	};
 }

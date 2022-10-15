@@ -6,6 +6,6 @@ namespace wvn::gfx
 	{
 	public:
 		Material();
-		~Material();
+		virtual ~Material();
 	};
 }

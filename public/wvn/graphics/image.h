@@ -6,6 +6,6 @@ namespace wvn::gfx
 	{
 	public:
 		Image();
-		~Image();
+		virtual ~Image();
 	};
 }
