@@ -105,6 +105,7 @@ namespace wvn::gfx
 		void create_swap_chain(const QueueFamilyIdx& phys_idx);
 		void create_image_views();
 		void create_graphics_pipeline();
+		void create_render_pass();
 
 		u32 assign_physical_device_usability(VkPhysicalDevice device, VkPhysicalDeviceProperties properties, VkPhysicalDeviceFeatures features, bool* essentials_completed);
 		QueueFamilyIdx find_queue_families(VkPhysicalDevice device);
@@ -118,6 +119,9 @@ namespace wvn::gfx
 		// core
 		VkInstance m_instance;
 		VkSurfaceKHR m_surface;
+
+		// render pass
+		VkRenderPass m_render_pass;
 		VkPipelineLayout m_pipeline_layout;
 
 		// swap chain

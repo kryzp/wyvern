@@ -150,6 +150,7 @@ static Vector<const char*> get_instance_extensions()
 VulkanBackend::VulkanBackend()
 	: m_instance(VK_NULL_HANDLE)
 	, m_surface(VK_NULL_HANDLE)
+	, m_render_pass(VK_NULL_HANDLE)
 	, m_pipeline_layout(VK_NULL_HANDLE)
 	, m_swap_chain(VK_NULL_HANDLE)
 	, m_swap_chain_images()
@@ -237,6 +238,7 @@ VulkanBackend::VulkanBackend()
 	}
 
 	create_image_views();
+	create_render_pass();
 	create_graphics_pipeline();
 
 	dev::LogMgr::get_singleton().print("[VULKAN] Initialized!");
@@ -256,6 +258,7 @@ VulkanBackend::~VulkanBackend()
 	}
 
 	vkDestroyPipelineLayout(m_logical_data.device, m_pipeline_layout, nullptr);
+	vkDestroyRenderPass(m_logical_data.device, m_render_pass, nullptr);
 	vkDestroySwapchainKHR(m_logical_data.device, m_swap_chain, nullptr);
 	vkDestroySurfaceKHR(m_instance, m_surface, nullptr);
 	vkDestroyDevice(m_logical_data.device, nullptr);
@@ -583,6 +586,42 @@ void VulkanBackend::create_graphics_pipeline()
 	}
 
 	dev::LogMgr::get_singleton().print("[VULKAN] Created graphics pipeline!");
+}
+
+void VulkanBackend::create_render_pass()
+{
+	VkAttachmentDescription swap_chain_colour_attachment = {};
+	swap_chain_colour_attachment.format = m_swap_chain_image_format;
+	swap_chain_colour_attachment.samples = VK_SAMPLE_COUNT_1_BIT;
+	swap_chain_colour_attachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+	swap_chain_colour_attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+	swap_chain_colour_attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE; // we dont use the stencil buffer YET
+	swap_chain_colour_attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+	swap_chain_colour_attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+	swap_chain_colour_attachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
+	VkAttachmentReference swap_chain_colour_attachment_ref = {};
+	swap_chain_colour_attachment_ref.attachment = 0;
+	swap_chain_colour_attachment_ref.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+	VkSubpassDescription swap_chain_subpass = {};
+	swap_chain_subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+	swap_chain_subpass.colorAttachmentCount = 1;
+	swap_chain_subpass.pColorAttachments = &swap_chain_colour_attachment_ref;
+
+	VkRenderPassCreateInfo render_pass_create_info = {};
+	render_pass_create_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+	render_pass_create_info.attachmentCount = 1;
+	render_pass_create_info.pAttachments = &swap_chain_colour_attachment;
+	render_pass_create_info.subpassCount = 1;
+	render_pass_create_info.pSubpasses = &swap_chain_subpass;
+
+	if (VkResult result = vkCreateRenderPass(m_logical_data.device, &render_pass_create_info, nullptr, &m_render_pass); result != VK_SUCCESS) {
+		dev::LogMgr::get_singleton().print("[VULKAN] Result: %d", result);
+		WVN_ERROR("[VULKAN:DEBUG] Failed to create render pass.");
+	}
+
+	dev::LogMgr::get_singleton().print("[VULKAN] Created render pass!");
 }
 
 // abstract function that generates a "usability" or "goodness value" of a given device
