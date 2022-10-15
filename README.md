@@ -2,6 +2,8 @@
 
 beeg yoshi size engine
 
+p.s: if your first name happens to start with an M, ends in an X and your last name begins with an S and ends with an H, remember, MIT license means I still need credit.
+
 ### Features:
  * Actor System
  * Animation System
