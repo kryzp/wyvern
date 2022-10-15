@@ -4,7 +4,7 @@ int main(int argc, char** argv)
 {
 	wvn::Config cfg;
 	{
-		cfg.name = "main.cpp";
+		cfg.name = "Wyvern | Demo";
 		cfg.width = 1280;
 		cfg.height = 720;
 		cfg.target_fps = 60;

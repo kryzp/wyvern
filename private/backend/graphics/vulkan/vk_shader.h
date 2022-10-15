@@ -1,7 +1,7 @@
 #pragma once
 
 #include <wvn/graphics/shader.h>
-#include <wvn/util/types.h>
+
 #include <vulkan/vulkan.h>
 
 namespace wvn::gfx
@@ -9,12 +9,15 @@ namespace wvn::gfx
 	class VulkanShader : public Shader
 	{
 	public:
-		VulkanShader();
+		VulkanShader(VkShaderModule vert, VkShaderModule frag, VkDevice device);
 		~VulkanShader() override;
 
-	private:
-		void init_shader_module(const byte* code, u64 length);
+		VkShaderModule vert_module;
+		VkShaderModule frag_module;
 
-		VkShaderModule m_module;
+		VkPipelineShaderStageCreateInfo vert_info;
+		VkPipelineShaderStageCreateInfo frag_info;
+
+		VkDevice device;
 	};
 }

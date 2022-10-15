@@ -1,9 +1,12 @@
 #pragma once
 
-#include <wvn/graphics/renderer_backend.h>
 #include <vulkan/vulkan.h>
+
 #include <wvn/container/vector.h>
 #include <wvn/container/optional.h>
+
+#include <wvn/util/types.h>
+#include <wvn/graphics/renderer_backend.h>
 
 namespace wvn::gfx
 {
@@ -28,7 +31,7 @@ namespace wvn::gfx
 
 			constexpr bool all_unique() const
 			{
-				// todo: store this??
+				// todo: store/cache this??
 				const u32 g = graphics_family.value();
 				const u32 p = present_family.value();
 				const u32 c = compute_family.value();
@@ -86,6 +89,8 @@ namespace wvn::gfx
 
 		RendererProperties properties() override;
 
+		Ref<Shader> create_shader(const Vector<char>& vert_source, const Vector<char>& frag_source) override; // todo: don't use refs i need a more sophisticated form of resource management - use handles perhaps?
+
 		void debug_tick() override;
 
 	private:
@@ -108,16 +113,21 @@ namespace wvn::gfx
 		VkSurfaceFormatKHR choose_swap_surface_format(const Vector<VkSurfaceFormatKHR>& available_surface_formats);
 		VkPresentModeKHR choose_swap_present_mode(const Vector<VkPresentModeKHR>& available_present_modes);
 		VkExtent2D choose_swap_extent(const VkSurfaceCapabilitiesKHR& capabilities);
+		VkShaderModule create_shader_module(const Vector<char>& source);
 
+		// core
 		VkInstance m_instance;
 		VkSurfaceKHR m_surface;
+		VkPipelineLayout m_pipeline_layout;
 
+		// swap chain
 		VkSwapchainKHR m_swap_chain;
 		Vector<VkImage> m_swap_chain_images;
 		Vector<VkImageView> m_swap_chain_image_views;
 		VkFormat m_swap_chain_image_format;
 		VkExtent2D m_swap_chain_extent;
 
+		// data
 		QueueData m_queues;
 		LogicalDeviceData m_logical_data;
 		PhysicalDeviceData m_physical_data;

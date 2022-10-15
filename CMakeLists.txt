@@ -72,7 +72,10 @@ add_library(${PROJECT_NAME}
 	public/wvn/devenv/console.cpp
 
 	private/backend/system/sdl2/sdl2_backend.cpp
+
 	private/backend/graphics/vulkan/vulkan_backend.cpp
+	private/backend/graphics/vulkan/vk_shader.cpp
+
 	private/backend/audio/openal/openal_backend.cpp
 )
 
