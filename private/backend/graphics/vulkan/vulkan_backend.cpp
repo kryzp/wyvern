@@ -574,11 +574,11 @@ VkPresentModeKHR VulkanBackend::choose_swap_present_mode(const Vector<VkPresentM
 
 VkExtent2D VulkanBackend::choose_swap_extent(const VkSurfaceCapabilitiesKHR& capabilities)
 {
-	//if (capabilities.currentExtent.width != CalcU::max_number())
+	if (capabilities.currentExtent.width != CalcU::max_number())
 	{
-	//	return capabilities.currentExtent;
+		return capabilities.currentExtent;
 	}
-	//else
+	else
 	{
 		Vec2I wh = Root::get_singleton().current_system_backend()->get_window_size();
 		VkExtent2D actual_extent = { static_cast<u32>(wh.w), static_cast<u32>(wh.h) };
