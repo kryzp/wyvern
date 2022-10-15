@@ -20,10 +20,10 @@ Colour::Colour(u8 r, u8 g, u8 b, u8 a)
 }
 
 Colour::Colour(u32 packed)
-	: r((u8)(packed >> 24))
-	, g((u8)(packed >> 16))
-	, b((u8)(packed >> 8))
-	, a((u8)(packed >> 0))
+	: r(static_cast<u8>(packed >> 24))
+	, g(static_cast<u8>(packed >> 16))
+	, b(static_cast<u8>(packed >> 8 ))
+	, a(static_cast<u8>(packed >> 0 ))
 {
 }
 
@@ -72,7 +72,12 @@ Colour Colour::from_hsv(float hue, float sat, float val, u8 alpha)
 		b = X;
 	}
 
-	return Colour(r * 255.0f, g * 255.0f, b * 255.0f, alpha);
+	return Colour(
+		static_cast<u8>(r * 255.0f),
+		static_cast<u8>(g * 255.0f),
+		static_cast<u8>(b * 255.0f),
+		alpha
+	);
 }
 
 Colour Colour::lerp(const Colour& from, const Colour& to, float amount)
@@ -127,20 +132,20 @@ Colour Colour::operator - () const
 Colour Colour::operator * (float factor) const
 {
 	return Colour(
-		(float)r * factor,
-		(float)g * factor,
-		(float)b * factor,
-		(float)a * factor
+		static_cast<u8>(static_cast<float>(r) * factor),
+		static_cast<u8>(static_cast<float>(g) * factor),
+		static_cast<u8>(static_cast<float>(b) * factor),
+		static_cast<u8>(static_cast<float>(a) * factor)
 	);
 }
 
 Colour Colour::operator / (float factor) const
 {
 	return Colour(
-		(float)r / factor,
-		(float)g / factor,
-		(float)b / factor,
-		(float)a / factor
+		static_cast<u8>(static_cast<float>(r) / factor),
+		static_cast<u8>(static_cast<float>(g) / factor),
+		static_cast<u8>(static_cast<float>(b) / factor),
+		static_cast<u8>(static_cast<float>(a) / factor)
 	);
 }
 

@@ -5,16 +5,6 @@
 
 int main(int argc, char** argv)
 {
-	wvn::Vector<int> lol = { 5, 3, 2, 4 };
-
-	auto it = lol.find(3);
-	lol.erase(it);
-
-	for (auto& i : lol) {
-		std::cout << i << std::endl;
-	}
-
-	/*
 	wvn::Config cfg;
 	{
 		cfg.name = "main.cpp";
@@ -31,7 +21,6 @@ int main(int argc, char** argv)
 	new wvn::Root(cfg);
 	wvn::Root::get_singleton().run();
 	delete wvn::Root::get_singleton_ptr();
-	 */
 
 	return 0;
 }

@@ -10,11 +10,6 @@
 
 namespace wvn
 {
-	// todo:
-	// vector currently doesnt realloc *down*
-	// once you allocate some amount, it can only take up more space, it never frees it up
-	// i think
-
 	template <typename T>
 	class Vector
 	{
@@ -103,6 +98,7 @@ namespace wvn
         
         Vector(std::initializer_list<T> data);
         Vector(u64 initial_capacity);
+		Vector(T* buf, u64 length);
 		Vector(const Iterator& begin, const Iterator& end);
 
         Vector(const Vector& other);
@@ -202,13 +198,25 @@ namespace wvn
     }
 
 	template <typename T>
+	Vector<T>::Vector(T* buf, u64 length)
+		: Vector()
+	{
+		allocate(length);
+		m_size = length;
+
+		for (u64 i = 0; i < length; i++)
+			new (m_buf + i) T(buf[i]);
+	}
+
+	template <typename T>
 	Vector<T>::Vector(const Iterator& begin, const Iterator& end)
+		: Vector()
 	{
 		allocate(end.m_ptr - begin.m_ptr);
 		m_size = end.m_ptr - begin.m_ptr;
 
 		for (u64 i = 0; i < m_capacity; i++)
-			new (m_buf + i) T(*(begin.m_ptr + i));
+			new (m_buf + i) T(begin.m_ptr[i]);
 	}
 
     template <typename T>
@@ -333,6 +341,8 @@ namespace wvn
 
         else if (new_count > m_size)
             expand(new_count - m_size);
+
+		m_size += new_count - m_size;
     }
 
     template <typename T>
@@ -446,9 +456,8 @@ namespace wvn
     T* Vector<T>::push_back(const T& item)
     {
         resize(m_size + 1);
-        new (m_buf + m_size) T(std::move(item));
-        m_size++;
-		return &m_buf[m_size - 1];
+        new (m_buf + m_size - 1) T(std::move(item));
+		return &m_buf[m_size - 2];
     }
 
 	template <typename T>
@@ -456,9 +465,8 @@ namespace wvn
 	T* Vector<T>::emplace_front(Args&&... args)
 	{
 		resize(m_size + 1);
-		mem::move(m_buf + 1, m_buf, sizeof(T) * m_size);
+		mem::move(m_buf + 1, m_buf, sizeof(T) * (m_size - 1));
 		new (m_buf) T(std::forward<Args>(args)...);
-		m_size++;
 		return &m_buf[0];
 	}
 
@@ -467,9 +475,8 @@ namespace wvn
 	T* Vector<T>::emplace_back(Args&&... args)
 	{
 		resize(m_size + 1);
-		new (m_buf + m_size) T(std::forward<Args>(args)...);
-		m_size++;
-		return &m_buf[m_size - 1];
+		new (m_buf + m_size - 1) T(std::forward<Args>(args)...);
+		return &m_buf[m_size - 2];
 	}
 
     template <typename T>
@@ -478,7 +485,7 @@ namespace wvn
         T item = std::move(m_buf[0]);
         m_buf[0].~T();
 
-        for (int i = 0; i < m_size-1; i++)
+        for (int i = 0; i < m_size - 1; i++)
             m_buf[i] = std::move(m_buf[i+1]);
 
         m_size--;

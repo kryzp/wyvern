@@ -222,6 +222,7 @@ namespace wvn
 	template <typename T>
 	T Calc<T>::smooth(T from, T to, T amount, T t)
 	{
+		//return (((amount / (1.0 - amount)) * t * (to - from)) / (1.0 + ((amount / (1.0 - amount)) * t))) + from;
 		return (std::exp(-1.0f * amount * t / (1.0 - amount)) * (from - to)) + to;
 	}
 

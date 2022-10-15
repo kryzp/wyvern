@@ -35,6 +35,7 @@ namespace wvn
 		unsigned height = 720;
 		unsigned target_fps = 60;
 		unsigned max_updates = 5;
+		bool vsync = false;
 		int flags = FLAG_NONE;
 		u64 random_seed = 0;
 
@@ -43,10 +44,7 @@ namespace wvn
 		std::function<void(void)> on_destroy = nullptr;
 		std::function<void(const char*)> on_log = nullptr;
 
-		constexpr bool has_flag(ConfigFlag flag) const
-		{
-			return flags & flag;
-		}
+		constexpr bool has_flag(ConfigFlag flag) const { return flags & flag; }
 	};
 
 	class Root : public Singleton<Root>

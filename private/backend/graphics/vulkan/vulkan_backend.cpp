@@ -1,6 +1,7 @@
 
 // https://vulkan-tutorial.com
 // Thank. You. So. Much.
+// I love Vulkan. Thamk u Khronos (tm) (c) (r) uwu
 
 #include <backend/graphics/vulkan/vulkan_backend.h>
 
@@ -12,11 +13,12 @@ using namespace wvn;
 using namespace wvn::gfx;
 
 static const char* VALIDATION_LAYERS[] = {
-	"VK_LAYER_KHRONOS_validation"
+	"VK_LAYER_KHRONOS_validation" // idk what the #define macro name for this is
 };
 
 static const char* DEVICE_EXTENSIONS[] = {
-	VK_KHR_SWAPCHAIN_EXTENSION_NAME
+	VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+	"VK_KHR_portability_subset"
 };
 
 #if WVN_DEBUG
@@ -134,18 +136,13 @@ static Vector<const char*> get_instance_extensions()
 	return extensions;
 }
 
-static Vector<const char*> get_device_extensions()
-{
-	Vector<const char*> result;
-
-	result.push_back("VK_KHR_portability_subset");
-
-	return result;
-}
-
 VulkanBackend::VulkanBackend()
 	: m_instance(VK_NULL_HANDLE)
 	, m_surface(VK_NULL_HANDLE)
+	, m_swap_chain(VK_NULL_HANDLE)
+	, m_swap_chain_images()
+	, m_swap_chain_image_format()
+	, m_swap_chain_extent()
 	, m_queues()
 	, m_logical_data()
 	, m_physical_data()
@@ -219,7 +216,12 @@ VulkanBackend::VulkanBackend()
 	}
 
 	enumerate_physical_devices();
-	create_logical_device();
+
+	auto phys_idx = find_queue_families(m_physical_data.device);
+	{
+		create_logical_device(phys_idx);
+		create_swap_chain(phys_idx);
+	}
 
 	dev::LogMgr::get_singleton().print("[VULKAN] Initialized!");
 }
@@ -229,9 +231,11 @@ VulkanBackend::~VulkanBackend()
 #if WVN_DEBUG
 	if (g_debug_enable_validation_layers) {
 		debug_destroy_debug_utils_messenger_ext(m_instance, m_debug_messenger, nullptr);
+		dev::LogMgr::get_singleton().print("[VULKAN:DEBUG] Destroyed validation layers!");
 	}
 #endif
 
+	vkDestroySwapchainKHR(m_logical_data.device, m_swap_chain, nullptr);
 	vkDestroySurfaceKHR(m_instance, m_surface, nullptr);
 	vkDestroyDevice(m_logical_data.device, nullptr);
 	vkDestroyInstance(m_instance, nullptr);
@@ -268,7 +272,8 @@ void VulkanBackend::enumerate_physical_devices()
 	m_physical_data.properties = properties;
 	m_physical_data.features = features;
 
-	u32 usability0 = assign_physical_device_usability(m_physical_data.device, properties, features);
+	bool has_essentials = false;
+	u32 usability0 = assign_physical_device_usability(m_physical_data.device, properties, features, &has_essentials);
 
 	// select the device of the highest usability
 	for (int i = 1; i < device_count; i++)
@@ -276,9 +281,9 @@ void VulkanBackend::enumerate_physical_devices()
 		vkGetPhysicalDeviceProperties(devices[i], &m_physical_data.properties);
 		vkGetPhysicalDeviceFeatures(devices[i], &m_physical_data.features);
 
-		u32 usability1 = assign_physical_device_usability(devices[i], properties, features);
+		u32 usability1 = assign_physical_device_usability(devices[i], properties, features, &has_essentials);
 
-		if (usability1 > usability0)
+		if (usability1 > usability0 && has_essentials)
 		{
 			usability0 = usability1;
 
@@ -292,18 +297,16 @@ void VulkanBackend::enumerate_physical_devices()
 		WVN_ERROR("[VULKAN] Unable to find a suitable GPU!");
 	}
 
-	dev::LogMgr::get_singleton().print("[VULKAN] Selected suitable GPU: %d", m_physical_data.device);
+	dev::LogMgr::get_singleton().print("[VULKAN] Selected a suitable GPU: %d", m_physical_data.device);
 }
 
-void VulkanBackend::create_logical_device()
+void VulkanBackend::create_logical_device(const QueueFamilyIdx& phys_idx)
 {
 	constexpr float QUEUE_PRIORITY = 1.0f;
 
-	QueueFamilyIdx idx = find_queue_families(m_physical_data.device);
-
 	Vector<VkDeviceQueueCreateInfo> queue_create_infos;
 
-	for (auto family : idx.package())
+	for (auto family : phys_idx.package())
 	{
 		queue_create_infos.push_back({
 			.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
@@ -313,67 +316,128 @@ void VulkanBackend::create_logical_device()
 		});
 	}
 
-	auto extensions = get_device_extensions();
-
-	VkDeviceCreateInfo device_create_info = {};
-	device_create_info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-	device_create_info.queueCreateInfoCount = static_cast<u32>(queue_create_infos.size());
-	device_create_info.pQueueCreateInfos = queue_create_infos.data();
-	device_create_info.enabledLayerCount = 0;
-	device_create_info.ppEnabledLayerNames = nullptr;
-	device_create_info.ppEnabledExtensionNames = extensions.data();
-	device_create_info.enabledExtensionCount = static_cast<u32>(extensions.size());
-	device_create_info.pEnabledFeatures = &m_physical_data.features;
+	VkDeviceCreateInfo create_info = {};
+	create_info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+	create_info.queueCreateInfoCount = static_cast<u32>(queue_create_infos.size());
+	create_info.pQueueCreateInfos = queue_create_infos.data();
+	create_info.enabledLayerCount = 0;
+	create_info.ppEnabledLayerNames = nullptr;
+	create_info.ppEnabledExtensionNames = DEVICE_EXTENSIONS;
+	create_info.enabledExtensionCount = static_cast<u32>(ARRAY_LENGTH(DEVICE_EXTENSIONS));
+	create_info.pEnabledFeatures = &m_physical_data.features;
 
 #if WVN_DEBUG
 	if (g_debug_enable_validation_layers) {
-		device_create_info.enabledLayerCount = ARRAY_LENGTH(VALIDATION_LAYERS);
-		device_create_info.ppEnabledLayerNames = VALIDATION_LAYERS;
+		create_info.enabledLayerCount = ARRAY_LENGTH(VALIDATION_LAYERS);
+		create_info.ppEnabledLayerNames = VALIDATION_LAYERS;
 	}
+	dev::LogMgr::get_singleton().print("[VULKAN:DEBUG] Enabled validation layers!");
 #endif
 
-	if (VkResult result = vkCreateDevice(m_physical_data.device, &device_create_info, nullptr, &m_logical_data.device); result != VK_SUCCESS) {
+	if (VkResult result = vkCreateDevice(m_physical_data.device, &create_info, nullptr, &m_logical_data.device); result != VK_SUCCESS) {
 		dev::LogMgr::get_singleton().print("[VULKAN] Result: %d", result);
 		WVN_ERROR("[VULKAN:DEBUG] Failed to create logical device.");
 	}
 
-	vkGetDeviceQueue(m_logical_data.device, idx.graphics_family.value(), 0, &m_queues.graphics_queue);
-	vkGetDeviceQueue(m_logical_data.device, idx.present_family.value(),  0, &m_queues.present_queue);
-	vkGetDeviceQueue(m_logical_data.device, idx.compute_family.value(),  0, &m_queues.compute_queue);
-	vkGetDeviceQueue(m_logical_data.device, idx.transfer_family.value(), 0, &m_queues.transfer_queue);
+	vkGetDeviceQueue(m_logical_data.device, phys_idx.graphics_family.value(), 0, &m_queues.graphics_queue);
+	vkGetDeviceQueue(m_logical_data.device, phys_idx.present_family.value(),  0, &m_queues.present_queue);
+	vkGetDeviceQueue(m_logical_data.device, phys_idx.compute_family.value(),  0, &m_queues.compute_queue);
+	vkGetDeviceQueue(m_logical_data.device, phys_idx.transfer_family.value(), 0, &m_queues.transfer_queue);
 
 	dev::LogMgr::get_singleton().print("[VULKAN] Created a logical device!");
+}
+
+void VulkanBackend::create_swap_chain(const QueueFamilyIdx& phys_idx)
+{
+	SwapChainSupportDetails details = query_swap_chain_support(m_physical_data.device);
+
+	auto surf_fmt  = choose_swap_surface_format(details.surface_formats);
+	auto pres_mode = choose_swap_present_mode(details.present_modes);
+	auto extent    = choose_swap_extent(details.capabilities);
+
+	u32 img_count = details.capabilities.minImageCount + 1;
+
+	if (details.capabilities.maxImageCount > 0 && img_count > details.capabilities.maxImageCount) {
+		img_count = details.capabilities.maxImageCount;
+	}
+
+	VkSwapchainCreateInfoKHR create_info = {};
+	create_info.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+	create_info.surface = m_surface;
+	create_info.minImageCount = img_count;
+	create_info.imageFormat = surf_fmt.format;
+	create_info.imageColorSpace = surf_fmt.colorSpace;
+	create_info.imageExtent = extent;
+	create_info.imageArrayLayers = 1;
+	create_info.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+
+	u32 idxs[2] = { phys_idx.graphics_family.value(), phys_idx.present_family.value() };
+
+	if (phys_idx.all_unique())
+	{
+		create_info.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
+		create_info.queueFamilyIndexCount = 2;
+		create_info.pQueueFamilyIndices = idxs;
+	}
+	else
+	{
+		create_info.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
+		create_info.queueFamilyIndexCount = 0;
+		create_info.pQueueFamilyIndices = nullptr;
+	}
+
+	create_info.preTransform = details.capabilities.currentTransform;
+	create_info.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+	create_info.presentMode = pres_mode;
+	create_info.clipped = VK_TRUE;
+	create_info.oldSwapchain = VK_NULL_HANDLE;
+
+	if (VkResult result = vkCreateSwapchainKHR(m_logical_data.device, &create_info, nullptr, &m_swap_chain); result != VK_SUCCESS) {
+		dev::LogMgr::get_singleton().print("[VULKAN] Result: %d", result);
+		WVN_ERROR("[VULKAN:DEBUG] Failed to create swap chain.");
+	}
+
+	vkGetSwapchainImagesKHR(m_logical_data.device, m_swap_chain, &img_count, nullptr);
+
+	if (!img_count) {
+		WVN_ERROR("[VULKAN:DEBUG] Failed to find any images in swap chain!");
+	}
+
+	m_swap_chain_images.resize(img_count);
+	vkGetSwapchainImagesKHR(m_logical_data.device, m_swap_chain, &img_count, m_swap_chain_images.data());
+
+	this->m_swap_chain_image_format = surf_fmt.format;
+	this->m_swap_chain_extent = extent;
+
+	dev::LogMgr::get_singleton().print("[VULKAN] Created the swap chain!");
 }
 
 // abstract function that generates a "usability" or "goodness value" of a given device
 u32 VulkanBackend::assign_physical_device_usability(
 	VkPhysicalDevice device,
 	VkPhysicalDeviceProperties properties,
-	VkPhysicalDeviceFeatures features
+	VkPhysicalDeviceFeatures features,
+	bool* essentials_completed
 )
 {
 	u32 result = 0;
 
-	bool is_correct_device = false;//properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU; // note, isnt my M1 chip integrated graphics! this may cause issues so look here first!!!!!!!!!!!
+	bool adequate_swap_chain = false;
+	bool is_correct_device = false;//properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU; // note, isn't my M1 chip integrated graphics! this may cause issues so look here first!!!!!!!!!!!
 	bool has_required_features = false;//features.geometryShader;
 	bool has_required_extensions = check_device_extension_support(device);
 	bool indices_complete = find_queue_families(device).is_complete();
 
-	if (is_correct_device) {
-		result += 1;
+	if (is_correct_device)     { result += 1; }
+	if (has_required_features) { result += 1; }
+
+	if (has_required_extensions)
+	{
+		SwapChainSupportDetails swap_chain_support_details = query_swap_chain_support(device);
+		adequate_swap_chain = swap_chain_support_details.surface_formats.any() && swap_chain_support_details.present_modes.any();
 	}
 
-	if (has_required_features) {
-		result += 1;
-	}
-
-	if (has_required_extensions) {
-		result += 1;
-	}
-
-	if (indices_complete) {
-		result += 1;
-	}
+	(*essentials_completed) = indices_complete && has_required_extensions && adequate_swap_chain;
 
 	return result;
 }
@@ -434,16 +498,14 @@ bool VulkanBackend::check_device_extension_support(VkPhysicalDevice device)
 		WVN_ERROR("[VULKAN] Failed to find any device extension properties!");
 	}
 
-	auto device_exts = get_device_extensions();
-
 	Vector<VkExtensionProperties> available_exts(ext_count);
 	vkEnumerateDeviceExtensionProperties(device, nullptr, &ext_count, available_exts.data());
 
-	Vector<const char*> required_exts(device_exts.begin(), device_exts.end());
+	Vector<const char*> required_exts(DEVICE_EXTENSIONS, ARRAY_LENGTH(DEVICE_EXTENSIONS));
 
 	for (const auto& available_extension : available_exts) {
 		for (int i = 0; i < required_exts.size(); i++) {
-			if (available_extension.extensionName == required_exts[i]) {
+			if (cstr::compare(available_extension.extensionName, required_exts[i])) {
 				required_exts.erase(i);
 			}
 		}
@@ -452,7 +514,83 @@ bool VulkanBackend::check_device_extension_support(VkPhysicalDevice device)
 	return required_exts.empty();
 }
 
-// temporary function while i learn how tf vulkan actually works lol
+VulkanBackend::SwapChainSupportDetails VulkanBackend::query_swap_chain_support(VkPhysicalDevice device)
+{
+	SwapChainSupportDetails result = {};
+
+	// get capabilities
+	vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, m_surface, &result.capabilities);
+
+	// get surface formats
+	u32 surf_fmt_count = 0;
+	vkGetPhysicalDeviceSurfaceFormatsKHR(device, m_surface, &surf_fmt_count, nullptr);
+
+	if (surf_fmt_count)
+	{
+		result.surface_formats.resize(surf_fmt_count);
+		vkGetPhysicalDeviceSurfaceFormatsKHR(device, m_surface, &surf_fmt_count, result.surface_formats.data());
+	}
+
+	// get present modes
+	u32 present_mode_count = 0;
+	vkGetPhysicalDeviceSurfacePresentModesKHR(device, m_surface, &present_mode_count, nullptr);
+
+	if (present_mode_count)
+	{
+		result.present_modes.resize(present_mode_count);
+		vkGetPhysicalDeviceSurfacePresentModesKHR(device, m_surface, &present_mode_count, result.present_modes.data());
+	}
+
+	return result;
+}
+
+VkSurfaceFormatKHR VulkanBackend::choose_swap_surface_format(const Vector<VkSurfaceFormatKHR>& available_surface_formats)
+{
+	// todo: this could be ranked based on how good each format is rather than choosing the first one that fits
+
+	for (auto& available_format : available_surface_formats)
+	{
+		if (available_format.format == VK_FORMAT_B8G8R8A8_SRGB && available_format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
+		{
+			return available_format;
+		}
+	}
+
+	return available_surface_formats[0];
+}
+
+VkPresentModeKHR VulkanBackend::choose_swap_present_mode(const Vector<VkPresentModeKHR>& available_present_modes)
+{
+	for (const auto& available_present_mode : available_present_modes)
+	{
+		if (available_present_mode == VK_PRESENT_MODE_MAILBOX_KHR)
+		{
+			return available_present_mode;
+		}
+	}
+
+	return VK_PRESENT_MODE_FIFO_KHR;
+}
+
+VkExtent2D VulkanBackend::choose_swap_extent(const VkSurfaceCapabilitiesKHR& capabilities)
+{
+	//if (capabilities.currentExtent.width != CalcU::max_number())
+	{
+	//	return capabilities.currentExtent;
+	}
+	//else
+	{
+		Vec2I wh = Root::get_singleton().current_system_backend()->get_window_size();
+		VkExtent2D actual_extent = { static_cast<u32>(wh.w), static_cast<u32>(wh.h) };
+
+		actual_extent.width  = CalcU::clamp(actual_extent.width,  capabilities.minImageExtent.width,  capabilities.maxImageExtent.width );
+		actual_extent.height = CalcU::clamp(actual_extent.height, capabilities.minImageExtent.height, capabilities.maxImageExtent.height);
+
+		return actual_extent;
+	}
+}
+
+// temporary function while I learn how tf vulkan actually works lol
 void VulkanBackend::debug_tick()
 {
 }
