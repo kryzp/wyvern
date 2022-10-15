@@ -8,6 +8,13 @@
 
 namespace wvn
 {
+	enum WindowMode
+	{
+		WINDOW_MODE_WINDOWED,
+		WINDOW_MODE_BORDERLESS,
+		WINDOW_MODE_FULLSCREEN
+	};
+
 	namespace act  { class ActorMgr; class SceneMgr; class EventMgr; }
 	namespace phys { class PhysicsMgr; }
 	namespace gfx { class RenderingMgr; class RendererBackend; }
@@ -27,7 +34,8 @@ namespace wvn
 			FLAG_NONE           = 0 << 0,
 			FLAG_RESIZABLE      = 1 << 0,
 			FLAG_VSYNC          = 1 << 1,
-			FLAG_CURSOR_VISIBLE = 1 << 2
+			FLAG_CURSOR_VISIBLE = 1 << 2,
+			FLAG_CENTRE_WINDOW  = 1 << 3
 		};
 
 		const char* name = nullptr;
@@ -35,9 +43,9 @@ namespace wvn
 		unsigned height = 720;
 		unsigned target_fps = 60;
 		unsigned max_updates = 5;
-		bool vsync = false;
 		int flags = FLAG_NONE;
 		u64 random_seed = 0;
+		WindowMode window_mode = WINDOW_MODE_WINDOWED;
 
 		std::function<void(void)> on_init = nullptr;
 		std::function<void(void)> on_exit = nullptr;

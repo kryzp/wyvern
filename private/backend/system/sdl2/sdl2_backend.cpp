@@ -12,10 +12,11 @@ using namespace wvn;
 using namespace wvn::sys;
 
 SDL2Backend::SDL2Backend()
+	: m_window(nullptr)
 {
 	if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
 		dev::LogMgr::get_singleton().print("[SDL2] %s", SDL_GetError());
-		WVN_ERROR("[SDL2] Failed to initialize");
+		WVN_ERROR("[SDL2] Failed to initialize!");
 	}
 
 	u64 flags = SDL_WINDOW_ALLOW_HIGHDPI;
@@ -33,14 +34,8 @@ SDL2Backend::SDL2Backend()
 	m_window = SDL_CreateWindow(cfg.name, 0, 0, cfg.width, cfg.height, flags);
 
 	if (!m_window) {
-		WVN_ERROR("Failed to create window");
+		WVN_ERROR("Failed to create window.");
 	}
-
-	SDL_SetWindowPosition(m_window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
-
-	toggle_cursor_visible(cfg.has_flag(Config::FLAG_CURSOR_VISIBLE));
-
-	// todo: move all the window initialization stuff away from the system backend and into root or another manager or something
 
 	dev::LogMgr::get_singleton().print("[SDL2] Initialized!");
 }
@@ -186,14 +181,68 @@ Vec2I SDL2Backend::get_screen_size()
 	return { display_mode.w, display_mode.h };
 }
 
-void SDL2Backend::toggle_cursor_visible(bool toggle)
+float SDL2Backend::get_window_opacity()
 {
-	SDL_ShowCursor(toggle ? SDL_ENABLE : SDL_DISABLE);
+	float result = 1.0f;
+	SDL_GetWindowOpacity(m_window, &result);
+	return result;
+}
+
+void SDL2Backend::set_window_opacity(float opacity)
+{
+	SDL_SetWindowOpacity(m_window, opacity);
+}
+
+bool SDL2Backend::is_window_resizable()
+{
+	return SDL_GetWindowFlags(m_window) & SDL_WINDOW_RESIZABLE;
+}
+
+void SDL2Backend::toggle_window_resizable(bool toggle)
+{
+	SDL_SetWindowResizable(m_window, static_cast<SDL_bool>(toggle));
 }
 
 bool SDL2Backend::is_cursor_visible()
 {
 	return SDL_ShowCursor(SDL_QUERY) == SDL_ENABLE;
+}
+
+void SDL2Backend::toggle_cursor_visible(bool toggle)
+{
+	SDL_ShowCursor(toggle ? SDL_ENABLE : SDL_DISABLE);
+}
+
+WindowMode SDL2Backend::get_window_mode()
+{
+	auto flags = SDL_GetWindowFlags(m_window);
+
+	if (flags & SDL_WINDOW_FULLSCREEN) {
+		return WINDOW_MODE_FULLSCREEN;
+	} else if (flags & SDL_WINDOW_BORDERLESS) {
+		return WINDOW_MODE_BORDERLESS;
+	}
+
+	return WINDOW_MODE_WINDOWED;
+}
+
+void SDL2Backend::set_window_mode(WindowMode toggle)
+{
+	switch (toggle)
+	{
+		case WINDOW_MODE_FULLSCREEN:
+			SDL_SetWindowFullscreen(m_window, true);
+			break;
+
+		case WINDOW_MODE_BORDERLESS:
+			SDL_SetWindowFullscreen(m_window, false);
+			SDL_SetWindowBordered(m_window, SDL_FALSE);
+			break;
+
+		case WINDOW_MODE_WINDOWED:
+			SDL_SetWindowFullscreen(m_window, false);
+			SDL_SetWindowBordered(m_window, SDL_TRUE);
+	}
 }
 
 void SDL2Backend::sleep_for(u64 ms)
@@ -264,84 +313,4 @@ bool SDL2Backend::vk_create_surface(VkInstance instance, VkSurfaceKHR* surface)
 	return SDL_Vulkan_CreateSurface(m_window, instance, surface);
 }
 
-#endif
-
-#if 0
-     void postinit() override
-    {
-#ifdef LEV_USE_OPENGL
-        if (App::inst()->config().vsync)
-            SDL_GL_SetSwapInterval(1);
-        else
-            SDL_GL_SetSwapInterval(0);
-#endif
-    }
-
-    void present() override
-    {
-#ifdef LEV_USE_OPENGL
-        SDL_GL_SwapWindow(m_window);
-#endif
-
-        SDL_ShowWindow(m_window);
-    }
-
-    int draw_width() override
-    {
-        int result = 0;
-
-#ifdef LEV_USE_OPENGL
-        SDL_GL_GetDrawableSize(m_window, &result, nullptr);
-#else
-        result = window_width();
-#endif
-
-        return result;
-    }
-
-    int draw_height() override
-    {
-        int result = 0;
-
-#ifdef LEV_USE_OPENGL
-        SDL_GL_GetDrawableSize(m_window, nullptr, &result);
-#else
-        result = window_height();
-#endif
-
-        return result;
-    }
-
-    void* gl_context_create() override
-    {
-#ifdef LEV_USE_OPENGL
-        return SDL_GL_CreateContext(m_window);
-#endif
-
-        return nullptr;
-    }
-
-    void gl_context_make_current(void* context) override
-    {
-#ifdef LEV_USE_OPENGL
-        SDL_GL_MakeCurrent(m_window, context);
-#endif
-    }
-
-    void gl_context_destroy(void* context) override
-    {
-#ifdef LEV_USE_OPENGL
-        SDL_GL_DeleteContext(context);
-#endif
-    }
-
-    bool gl_load_glad_loader() override
-    {
-#if LEV_USE_OPENGL
-		return gladLoadGLLoader((GLADloadproc)SDL_GL_GetProcAddress);
-#else
-		return false;
-#endif
-    }
-};
 #endif

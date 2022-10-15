@@ -47,6 +47,33 @@ Root::Root(const Config& cfg)
 
 	m_random = new Random(cfg.random_seed == 0 ? std::time(nullptr) : cfg.random_seed);
 
+	// update window
+	{
+		const auto screen_size = m_system_backend->get_screen_size();
+
+		// set title
+		m_system_backend->set_window_name(m_config.name);
+
+		// set position
+		if (m_config.has_flag(Config::FLAG_CENTRE_WINDOW)) {
+			m_system_backend->set_window_position(Vec2I(
+				(static_cast<int>(screen_size.w) - static_cast<int>(m_config.width)) / 2,
+				(static_cast<int>(screen_size.h) - static_cast<int>(m_config.height)) / 2
+			));
+		}
+
+		// set size
+		m_system_backend->set_window_size(Vec2I(m_config.width, m_config.height));
+
+		// set window mode
+		m_system_backend->set_window_mode(m_config.window_mode);
+		m_system_backend->set_window_opacity(1.0f);
+
+		// set window flags
+		m_system_backend->toggle_cursor_visible(m_config.has_flag(Config::FLAG_CURSOR_VISIBLE));
+		m_system_backend->toggle_window_resizable(m_config.has_flag(Config::FLAG_RESIZABLE));
+	}
+
 	if (m_config.on_init)
 		m_config.on_init();
 

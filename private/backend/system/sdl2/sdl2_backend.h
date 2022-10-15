@@ -27,8 +27,17 @@ namespace wvn::sys
 		Vec2I get_draw_size() override;
 		Vec2I get_screen_size() override;
 
-		void toggle_cursor_visible(bool toggle) override;
+		float get_window_opacity() override;
+		void set_window_opacity(float opacity) override;
+
+		bool is_window_resizable() override;
+		void toggle_window_resizable(bool toggle) override;
+
 		bool is_cursor_visible() override;
+		void toggle_cursor_visible(bool toggle) override;
+
+		WindowMode get_window_mode() override;
+		void set_window_mode(WindowMode toggle) override;
 
 		void sleep_for(u64 ms) override;
 		u64 ticks() override;

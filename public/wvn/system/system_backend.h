@@ -3,6 +3,7 @@
 #include <wvn/util/types.h>
 #include <wvn/math/vec2.h>
 #include <wvn/container/string.h>
+#include <wvn/root.h>
 
 #if WVN_USE_VULKAN
 class VkInstance_T;
@@ -41,8 +42,17 @@ namespace wvn::sys
 		virtual Vec2I get_draw_size() = 0;
 		virtual Vec2I get_screen_size() = 0;
 
-		virtual void toggle_cursor_visible(bool toggle) = 0;
+		virtual float get_window_opacity() = 0;
+		virtual void set_window_opacity(float opacity) = 0;
+
+		virtual bool is_window_resizable() = 0;
+		virtual void toggle_window_resizable(bool toggle) = 0;
+
 		virtual bool is_cursor_visible() = 0;
+		virtual void toggle_cursor_visible(bool toggle) = 0;
+
+		virtual WindowMode get_window_mode() = 0;
+		virtual void set_window_mode(WindowMode toggle) = 0;
 
 		virtual void sleep_for(u64 ms) = 0;
 		virtual u64 ticks() = 0;
