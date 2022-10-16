@@ -34,12 +34,12 @@ namespace wvn
 		static Complex cbrt(const Complex& z);
 		static Complex root(const Complex& z, const Complex& b);
 
-		static Complex cos(const Complex& z);
 		static Complex sin(const Complex& z);
+		static Complex cos(const Complex& z);
 		static Complex tan(const Complex& z);
 
-		static Complex acos(const Complex& z);
 		static Complex asin(const Complex& z);
+		static Complex acos(const Complex& z);
 		static Complex atan(const Complex& z);
 
 		constexpr double magnitude() const;

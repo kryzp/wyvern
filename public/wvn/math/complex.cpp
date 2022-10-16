@@ -119,14 +119,6 @@ Complex Complex::root(const Complex& z, const wvn::Complex& b)
 	return Complex::pow(z, Complex(1.0) / b);
 }
 
-Complex Complex::cos(const Complex& z)
-{
-	return Complex(
-		 CalcD::cos(z.real) * CalcD::cosh(z.imag),
-		-CalcD::sin(z.real) * CalcD::sinh(z.imag)
-	);
-}
-
 Complex Complex::sin(const Complex& z)
 {
 	return Complex(
@@ -135,26 +127,35 @@ Complex Complex::sin(const Complex& z)
 	);
 }
 
+Complex Complex::cos(const Complex& z)
+{
+	return Complex(
+		 CalcD::cos(z.real) * CalcD::cosh(z.imag),
+		-CalcD::sin(z.real) * CalcD::sinh(z.imag)
+	);
+}
+
 Complex Complex::tan(const Complex& z)
 {
 	return sin(z) / cos(z);
 }
 
-// i dont know what to put for the complex number definitions
-
-Complex Complex::acos(const Complex& z)
-{
-	return CalcD::acos(z.real);
-}
+// these are the only i didnt bother to actually derive myself
+// thanks wolfram alpha :)
 
 Complex Complex::asin(const Complex& z)
 {
-	return CalcD::asin(z.real);
+	return Complex(-1.0) * Complex::i() * Complex::ln(Complex::i() * z + Complex::sqrt(Complex::one() - Complex::pow(z, Complex(2.0))));
+}
+
+Complex Complex::acos(const Complex& z)
+{
+	return Complex(CalcD::PI / 2.0) + Complex::i() * Complex::ln(Complex::i() * z + Complex::sqrt(Complex::one() - Complex::pow(z, Complex(2.0))));
 }
 
 Complex Complex::atan(const Complex& z)
 {
-	return CalcD::atan(z.real);
+	return Complex(0.5) * Complex::i() * Complex::ln((Complex::one() - (Complex::i() * z)) / (Complex::one() + (Complex::i() * z)));
 }
 
 constexpr double Complex::magnitude() const
