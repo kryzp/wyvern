@@ -18,62 +18,8 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f7c9d8f6-3073-4d14-bdb7-2af3181d6545" name="Changes" comment="Completed the Complex arc* functions!">
-      <change afterPath="$PROJECT_DIR$/private/backend/graphics/vulkan/vk_framebuffer.cpp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/private/backend/graphics/vulkan/vk_framebuffer.h" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/private/backend/graphics/vulkan/vk_mesh.cpp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/private/backend/graphics/vulkan/vk_mesh.h" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/private/backend/graphics/vulkan/vk_texture.cpp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/private/backend/graphics/vulkan/vk_texture.h" afterDir="false" />
+    <list default="true" id="f7c9d8f6-3073-4d14-bdb7-2af3181d6545" name="Changes" comment="Working on swap-chain recreation. Also changed /math/ to /maths/ because I'm not in 'murica">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CMakeLists.txt" beforeDir="false" afterPath="$PROJECT_DIR$/CMakeLists.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/private/backend/graphics/vulkan/vulkan_backend.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/private/backend/graphics/vulkan/vulkan_backend.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/private/backend/graphics/vulkan/vulkan_backend.h" beforeDir="false" afterPath="$PROJECT_DIR$/private/backend/graphics/vulkan/vulkan_backend.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/wvn/container/vector.h" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/container/vector.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/wvn/graphics/renderer_backend.h" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/graphics/renderer_backend.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/wvn/graphics/rendering_mgr.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/graphics/rendering_mgr.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/wvn/math/calc.h" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/maths/calc.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/wvn/math/circle.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/maths/circle.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/wvn/math/circle.h" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/maths/circle.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/wvn/math/colour.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/maths/colour.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/wvn/math/colour.h" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/maths/colour.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/wvn/math/complex.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/maths/complex.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/wvn/math/complex.h" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/maths/complex.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/wvn/math/cuboid.h" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/maths/cuboid.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/wvn/math/ease.h" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/maths/ease.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/wvn/math/line.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/maths/line.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/wvn/math/line.h" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/maths/line.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/wvn/math/mat3x2.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/maths/mat3x2.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/wvn/math/mat3x2.h" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/maths/mat3x2.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/wvn/math/mat3x3.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/maths/mat3x3.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/wvn/math/mat3x3.h" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/maths/mat3x3.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/wvn/math/mat4x3.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/maths/mat4x3.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/wvn/math/mat4x3.h" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/maths/mat4x3.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/wvn/math/mat4x4.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/maths/mat4x4.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/wvn/math/mat4x4.h" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/maths/mat4x4.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/wvn/math/polygon.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/maths/polygon.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/wvn/math/polygon.h" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/maths/polygon.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/wvn/math/quad.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/maths/quad.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/wvn/math/quad.h" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/maths/quad.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/wvn/math/quaternion.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/maths/quaternion.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/wvn/math/quaternion.h" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/maths/quaternion.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/wvn/math/random.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/maths/random.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/wvn/math/random.h" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/maths/random.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/wvn/math/range.h" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/maths/range.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/wvn/math/rect.h" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/maths/rect.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/wvn/math/timer.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/maths/timer.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/wvn/math/timer.h" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/maths/timer.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/wvn/math/triangle.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/maths/triangle.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/wvn/math/triangle.h" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/maths/triangle.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/wvn/math/vec2.h" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/maths/vec2.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/wvn/math/vec3.h" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/maths/vec3.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/wvn/physics/rigidbody.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/physics/rigidbody.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/wvn/physics/rigidbody.h" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/physics/rigidbody.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/wvn/root.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/root.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/wvn/system/system_backend.h" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/system/system_backend.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/res/shader.vert" beforeDir="false" afterPath="$PROJECT_DIR$/test/res/shader.vert" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/res/vert.spv" beforeDir="false" afterPath="$PROJECT_DIR$/test/res/vert.spv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/src/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/test/src/main.cpp" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -249,7 +195,7 @@
       <workItem from="1665926692943" duration="19000" />
       <workItem from="1665926826599" duration="6000" />
       <workItem from="1665937771812" duration="4354000" />
-      <workItem from="1665943252555" duration="1000" />
+      <workItem from="1665943252555" duration="41000" />
     </task>
     <task id="LOCAL-00001" summary="Working on Actor System.">
       <created>1662415127833</created>
@@ -398,7 +344,14 @@
       <option name="project" value="LOCAL" />
       <updated>1665923859425</updated>
     </task>
-    <option name="localTasksCounter" value="22" />
+    <task id="LOCAL-00022" summary="Working on swap-chain recreation. Also changed /math/ to /maths/ because I'm not in 'murica">
+      <created>1665943288665</created>
+      <option name="number" value="00022" />
+      <option name="presentableId" value="LOCAL-00022" />
+      <option name="project" value="LOCAL" />
+      <updated>1665943288665</updated>
+    </task>
+    <option name="localTasksCounter" value="23" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -437,7 +390,8 @@
     <MESSAGE value="Small quick additions pt. 1" />
     <MESSAGE value="Removed some unnecessary functions from Bitset" />
     <MESSAGE value="Completed the Complex arc* functions!" />
-    <option name="LAST_COMMIT_MESSAGE" value="Completed the Complex arc* functions!" />
+    <MESSAGE value="Working on swap-chain recreation. Also changed /math/ to /maths/ because I'm not in 'murica" />
+    <option name="LAST_COMMIT_MESSAGE" value="Working on swap-chain recreation. Also changed /math/ to /maths/ because I'm not in 'murica" />
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />
