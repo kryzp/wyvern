@@ -16,16 +16,16 @@ namespace wvn::gfx
 		{
 			Optional<u32> graphics_family;
 			Optional<u32> present_family;
-			Optional<u32> compute_family;
-			Optional<u32> transfer_family;
+//			Optional<u32> compute_family;
+//			Optional<u32> transfer_family;
 
 			constexpr bool is_complete() const
 			{
 				return (
 					graphics_family &&
-					present_family &&
-					compute_family &&
-					transfer_family
+					present_family// &&
+//					compute_family &&
+//					transfer_family
 				);
 			}
 
@@ -34,24 +34,28 @@ namespace wvn::gfx
 				// todo: store/cache this??
 				const u32 g = graphics_family.value();
 				const u32 p = present_family.value();
-				const u32 c = compute_family.value();
-				const u32 t = transfer_family.value();
+//				const u32 c = compute_family.value();
+//				const u32 t = transfer_family.value();
 
 				return (
-					(g != p && g != c && g != t) &&
-					(p != g && p != c && p != t) &&
-					(c != g && c != p && c != t) &&
-					(t != g && t != c && t != p)
+					(g != p)
 				);
+
+//				return (
+//					(g != p && g != c && g != t) &&
+//					(p != g && p != c && p != t) &&
+//					(c != g && c != p && c != t) &&
+//					(t != g && t != c && t != p)
+//				);
 			}
 
 			const Vector<u32> package() const
 			{
 				return {
 					graphics_family.value(),
-					present_family.value(),
-					compute_family.value(),
-					transfer_family.value()
+					present_family.value()//,
+//					compute_family.value(),
+//					transfer_family.value()
 				};
 			}
 		};
@@ -60,8 +64,8 @@ namespace wvn::gfx
 		{
 			VkQueue graphics_queue;
 			VkQueue present_queue;
-			VkQueue compute_queue;
-			VkQueue transfer_queue;
+//			VkQueue compute_queue;
+//			VkQueue transfer_queue;
 		};
 
 		struct LogicalDeviceData
@@ -91,7 +95,8 @@ namespace wvn::gfx
 
 		Ref<Shader> create_shader(const Vector<char>& vert_source, const Vector<char>& frag_source) override; // todo: don't use refs i need a more sophisticated form of resource management - use handles perhaps?
 
-		void debug_tick() override;
+		void wait_for_sync() override;
+		void debug_render() override;
 
 	private:
 		// todo: split into seperate classes!!! (abstract it)
@@ -106,7 +111,12 @@ namespace wvn::gfx
 		void create_image_views();
 		void create_graphics_pipeline();
 		void create_render_pass();
+		void create_swap_chain_framebuffers();
+		void create_command_pool(const QueueFamilyIdx& phys_idx);
+		void create_command_buffer();
+		void create_sync_objects();
 
+		void record_command_buffer(VkCommandBuffer cmd_buf, u32 img_idx);
 		u32 assign_physical_device_usability(VkPhysicalDevice device, VkPhysicalDeviceProperties properties, VkPhysicalDeviceFeatures features, bool* essentials_completed);
 		QueueFamilyIdx find_queue_families(VkPhysicalDevice device);
 		bool check_device_extension_support(VkPhysicalDevice device);
@@ -120,9 +130,19 @@ namespace wvn::gfx
 		VkInstance m_instance;
 		VkSurfaceKHR m_surface;
 
+		// commands
+		VkCommandPool m_command_pool;
+		VkCommandBuffer m_command_buffer;
+
+		// sync
+		VkSemaphore m_image_available_semaphore;
+		VkSemaphore m_render_finished_semaphore;
+		VkFence m_in_flight_fence;
+
 		// render pass
 		VkRenderPass m_render_pass;
 		VkPipelineLayout m_pipeline_layout;
+		VkPipeline m_pipeline;
 
 		// swap chain
 		VkSwapchainKHR m_swap_chain;
@@ -130,6 +150,7 @@ namespace wvn::gfx
 		Vector<VkImageView> m_swap_chain_image_views;
 		VkFormat m_swap_chain_image_format;
 		VkExtent2D m_swap_chain_extent;
+		Vector<VkFramebuffer> m_swap_chain_framebuffers;
 
 		// data
 		QueueData m_queues;

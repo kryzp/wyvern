@@ -150,13 +150,20 @@ static Vector<const char*> get_instance_extensions()
 VulkanBackend::VulkanBackend()
 	: m_instance(VK_NULL_HANDLE)
 	, m_surface(VK_NULL_HANDLE)
+	, m_command_pool(VK_NULL_HANDLE)
+	, m_command_buffer(VK_NULL_HANDLE)
+	, m_image_available_semaphore(VK_NULL_HANDLE)
+	, m_render_finished_semaphore(VK_NULL_HANDLE)
+	, m_in_flight_fence(VK_NULL_HANDLE)
 	, m_render_pass(VK_NULL_HANDLE)
 	, m_pipeline_layout(VK_NULL_HANDLE)
+	, m_pipeline(VK_NULL_HANDLE)
 	, m_swap_chain(VK_NULL_HANDLE)
 	, m_swap_chain_images()
 	, m_swap_chain_image_views()
 	, m_swap_chain_image_format()
 	, m_swap_chain_extent()
+	, m_swap_chain_framebuffers()
 	, m_queues()
 	, m_logical_data()
 	, m_physical_data()
@@ -231,21 +238,49 @@ VulkanBackend::VulkanBackend()
 
 	enumerate_physical_devices();
 
-	auto phys_idx = find_queue_families(m_physical_data.device);
-	{
-		create_logical_device(phys_idx);
-		create_swap_chain(phys_idx);
-	}
+	QueueFamilyIdx phys_idx = find_queue_families(m_physical_data.device);
 
+	create_logical_device(phys_idx);
+	create_swap_chain(phys_idx);
 	create_image_views();
 	create_render_pass();
 	create_graphics_pipeline();
+	create_swap_chain_framebuffers();
+	create_command_pool(phys_idx);
+	create_command_buffer();
+	create_sync_objects();
 
 	dev::LogMgr::get_singleton().print("[VULKAN] Initialized!");
 }
 
 VulkanBackend::~VulkanBackend()
 {
+	vkDeviceWaitIdle(m_logical_data.device);
+
+	// //
+
+	vkDestroyFence(m_logical_data.device, m_in_flight_fence, nullptr);
+	vkDestroySemaphore(m_logical_data.device, m_render_finished_semaphore, nullptr);
+	vkDestroySemaphore(m_logical_data.device, m_image_available_semaphore, nullptr);
+
+	vkDestroyCommandPool(m_logical_data.device, m_command_pool, nullptr);
+
+	for (auto& fbo : m_swap_chain_framebuffers) {
+		vkDestroyFramebuffer(m_logical_data.device, fbo, nullptr);
+	}
+
+	vkDestroyPipeline(m_logical_data.device, m_pipeline, nullptr);
+	vkDestroyPipelineLayout(m_logical_data.device, m_pipeline_layout, nullptr);
+	vkDestroyRenderPass(m_logical_data.device, m_render_pass, nullptr);
+
+	for (auto& view : m_swap_chain_image_views) {
+		vkDestroyImageView(m_logical_data.device, view, nullptr);
+	}
+
+	vkDestroySwapchainKHR(m_logical_data.device, m_swap_chain, nullptr);
+	vkDestroySurfaceKHR(m_instance, m_surface, nullptr);
+	vkDestroyDevice(m_logical_data.device, nullptr);
+
 #if WVN_DEBUG
 	if (g_debug_enable_validation_layers) {
 		debug_destroy_debug_utils_messenger_ext(m_instance, m_debug_messenger, nullptr);
@@ -253,15 +288,6 @@ VulkanBackend::~VulkanBackend()
 	}
 #endif
 
-	for (auto& view : m_swap_chain_image_views) {
-		vkDestroyImageView(m_logical_data.device, view, nullptr);
-	}
-
-	vkDestroyPipelineLayout(m_logical_data.device, m_pipeline_layout, nullptr);
-	vkDestroyRenderPass(m_logical_data.device, m_render_pass, nullptr);
-	vkDestroySwapchainKHR(m_logical_data.device, m_swap_chain, nullptr);
-	vkDestroySurfaceKHR(m_instance, m_surface, nullptr);
-	vkDestroyDevice(m_logical_data.device, nullptr);
 	vkDestroyInstance(m_instance, nullptr);
 
 	dev::LogMgr::get_singleton().print("[VULKAN] Destroyed!");
@@ -270,6 +296,7 @@ VulkanBackend::~VulkanBackend()
 RendererProperties VulkanBackend::properties()
 {
 	RendererProperties properties = {};
+	properties.origin_bottom_left = false;
 
 	return properties;
 }
@@ -365,8 +392,8 @@ void VulkanBackend::create_logical_device(const QueueFamilyIdx& phys_idx)
 
 	vkGetDeviceQueue(m_logical_data.device, phys_idx.graphics_family.value(), 0, &m_queues.graphics_queue);
 	vkGetDeviceQueue(m_logical_data.device, phys_idx.present_family.value(),  0, &m_queues.present_queue);
-	vkGetDeviceQueue(m_logical_data.device, phys_idx.compute_family.value(),  0, &m_queues.compute_queue);
-	vkGetDeviceQueue(m_logical_data.device, phys_idx.transfer_family.value(), 0, &m_queues.transfer_queue);
+//	vkGetDeviceQueue(m_logical_data.device, phys_idx.compute_family.value(),  0, &m_queues.compute_queue);
+//	vkGetDeviceQueue(m_logical_data.device, phys_idx.transfer_family.value(), 0, &m_queues.transfer_queue);
 
 	dev::LogMgr::get_singleton().print("[VULKAN] Created a logical device!");
 }
@@ -573,16 +600,39 @@ void VulkanBackend::create_graphics_pipeline()
 	colour_blend_state_create_info.blendConstants[2] = 0.0f;
 	colour_blend_state_create_info.blendConstants[3] = 0.0f;
 
-	VkPipelineLayoutCreateInfo pipeline_create_info = {};
-	pipeline_create_info.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-	pipeline_create_info.setLayoutCount = 0;
-	pipeline_create_info.pSetLayouts = nullptr;
-	pipeline_create_info.pushConstantRangeCount = 0;
-	pipeline_create_info.pPushConstantRanges = nullptr;
+	VkPipelineLayoutCreateInfo pipeline_layout_create_info = {};
+	pipeline_layout_create_info.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+	pipeline_layout_create_info.setLayoutCount = 0;
+	pipeline_layout_create_info.pSetLayouts = nullptr;
+	pipeline_layout_create_info.pushConstantRangeCount = 0;
+	pipeline_layout_create_info.pPushConstantRanges = nullptr;
 
-	if (VkResult result = vkCreatePipelineLayout(m_logical_data.device, &pipeline_create_info, nullptr, &m_pipeline_layout); result != VK_SUCCESS) {
+	if (VkResult result = vkCreatePipelineLayout(m_logical_data.device, &pipeline_layout_create_info, nullptr, &m_pipeline_layout); result != VK_SUCCESS) {
 		dev::LogMgr::get_singleton().print("[VULKAN] Result: %d", result);
 		WVN_ERROR("[VULKAN:DEBUG] Failed to create pipeline layout.");
+	}
+
+	VkGraphicsPipelineCreateInfo graphics_pipeline_create_info = {};
+	graphics_pipeline_create_info.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+	graphics_pipeline_create_info.stageCount = 2; // vert -> frag
+	graphics_pipeline_create_info.pStages = shader_stages;
+	graphics_pipeline_create_info.pVertexInputState = &vertex_input_state_create_info;
+	graphics_pipeline_create_info.pInputAssemblyState = &input_assembly_state_create_info;
+	graphics_pipeline_create_info.pViewportState = &viewport_state_create_info;
+	graphics_pipeline_create_info.pRasterizationState = &rasterization_state_create_info;
+	graphics_pipeline_create_info.pMultisampleState = &multisample_state_create_info;
+	graphics_pipeline_create_info.pDepthStencilState = nullptr;//&depth_stencil_state_create_info;
+	graphics_pipeline_create_info.pColorBlendState = &colour_blend_state_create_info;
+	graphics_pipeline_create_info.pDynamicState = &dynamic_state_create_info;
+	graphics_pipeline_create_info.layout = m_pipeline_layout;
+	graphics_pipeline_create_info.renderPass = m_render_pass;
+	graphics_pipeline_create_info.subpass = 0;
+	graphics_pipeline_create_info.basePipelineHandle = VK_NULL_HANDLE;
+	graphics_pipeline_create_info.basePipelineIndex = -1;
+
+	if (VkResult result = vkCreateGraphicsPipelines(m_logical_data.device, VK_NULL_HANDLE, 1, &graphics_pipeline_create_info, nullptr, &m_pipeline); result != VK_SUCCESS) {
+		dev::LogMgr::get_singleton().print("[VULKAN] Result: %d", result);
+		WVN_ERROR("[VULKAN:DEBUG] Failed to create graphics pipeline.");
 	}
 
 	dev::LogMgr::get_singleton().print("[VULKAN] Created graphics pipeline!");
@@ -609,12 +659,22 @@ void VulkanBackend::create_render_pass()
 	swap_chain_subpass.colorAttachmentCount = 1;
 	swap_chain_subpass.pColorAttachments = &swap_chain_colour_attachment_ref;
 
+	VkSubpassDependency subpass_dependency = {};
+	subpass_dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+	subpass_dependency.dstSubpass = 0;
+	subpass_dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+	subpass_dependency.srcAccessMask = 0;
+	subpass_dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+	subpass_dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+
 	VkRenderPassCreateInfo render_pass_create_info = {};
 	render_pass_create_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
 	render_pass_create_info.attachmentCount = 1;
 	render_pass_create_info.pAttachments = &swap_chain_colour_attachment;
 	render_pass_create_info.subpassCount = 1;
 	render_pass_create_info.pSubpasses = &swap_chain_subpass;
+	render_pass_create_info.dependencyCount = 1;
+	render_pass_create_info.pDependencies = &subpass_dependency;
 
 	if (VkResult result = vkCreateRenderPass(m_logical_data.device, &render_pass_create_info, nullptr, &m_render_pass); result != VK_SUCCESS) {
 		dev::LogMgr::get_singleton().print("[VULKAN] Result: %d", result);
@@ -622,6 +682,143 @@ void VulkanBackend::create_render_pass()
 	}
 
 	dev::LogMgr::get_singleton().print("[VULKAN] Created render pass!");
+}
+
+void VulkanBackend::create_swap_chain_framebuffers()
+{
+	m_swap_chain_framebuffers.resize(m_swap_chain_image_views.size());
+
+	for (u64 i = 0; i < m_swap_chain_image_views.size(); i++)
+	{
+		VkImageView* attachments = &m_swap_chain_image_views[i];
+
+		VkFramebufferCreateInfo framebufferInfo{};
+		framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+		framebufferInfo.renderPass = m_render_pass;
+		framebufferInfo.attachmentCount = 1;
+		framebufferInfo.pAttachments = attachments;
+		framebufferInfo.width = m_swap_chain_extent.width;
+		framebufferInfo.height = m_swap_chain_extent.height;
+		framebufferInfo.layers = 1;
+
+		if (VkResult result = vkCreateFramebuffer(m_logical_data.device, &framebufferInfo, nullptr, &m_swap_chain_framebuffers[i]); result != VK_SUCCESS) {
+			dev::LogMgr::get_singleton().print("[VULKAN] Result [Index: %d]: %d", i, result);
+			WVN_ERROR("[VULKAN:DEBUG] Failed to create framebuffer.");
+		}
+	}
+
+	dev::LogMgr::get_singleton().print("[VULKAN] Created swap chain framebuffers!");
+}
+
+void VulkanBackend::create_command_pool(const QueueFamilyIdx& phys_idx)
+{
+	VkCommandPoolCreateInfo create_info = {};
+	create_info.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+	create_info.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+	create_info.queueFamilyIndex = phys_idx.graphics_family.value();
+
+	if (VkResult result = vkCreateCommandPool(m_logical_data.device, &create_info, nullptr, &m_command_pool); result != VK_SUCCESS) {
+		dev::LogMgr::get_singleton().print("[VULKAN] Result: %d", result);
+		WVN_ERROR("[VULKAN:DEBUG] Failed to create command pool.");
+	}
+
+	dev::LogMgr::get_singleton().print("[VULKAN] Created command pool!");
+}
+
+void VulkanBackend::create_command_buffer()
+{
+	VkCommandBufferAllocateInfo command_buffer_allocate_info = {};
+	command_buffer_allocate_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+	command_buffer_allocate_info.commandPool = m_command_pool;
+	command_buffer_allocate_info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+	command_buffer_allocate_info.commandBufferCount = 1;
+
+	if (VkResult result = vkAllocateCommandBuffers(m_logical_data.device, &command_buffer_allocate_info, &m_command_buffer); result != VK_SUCCESS) {
+		dev::LogMgr::get_singleton().print("[VULKAN] Result: %d", result);
+		WVN_ERROR("[VULKAN:DEBUG] Failed to create command buffer.");
+	}
+
+	dev::LogMgr::get_singleton().print("[VULKAN] Created command buffer!");
+}
+
+void VulkanBackend::create_sync_objects()
+{
+	VkSemaphoreCreateInfo semaphore_create_info = {};
+	semaphore_create_info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+
+	VkFenceCreateInfo fence_create_info = {};
+	fence_create_info.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+	fence_create_info.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+
+	if (VkResult result = vkCreateSemaphore(m_logical_data.device, &semaphore_create_info, nullptr, &m_image_available_semaphore); result != VK_SUCCESS) {
+		dev::LogMgr::get_singleton().print("[VULKAN] Result: %d", result);
+		WVN_ERROR("[VULKAN:DEBUG] Failed to create image available semaphore.");
+	}
+
+	if (VkResult result = vkCreateSemaphore(m_logical_data.device, &semaphore_create_info, nullptr, &m_render_finished_semaphore); result != VK_SUCCESS) {
+		dev::LogMgr::get_singleton().print("[VULKAN] Result: %d", result);
+		WVN_ERROR("[VULKAN:DEBUG] Failed to create render finished semaphore.");
+	}
+
+	if (VkResult result = vkCreateFence(m_logical_data.device, &fence_create_info, nullptr, &m_in_flight_fence); result != VK_SUCCESS) {
+		dev::LogMgr::get_singleton().print("[VULKAN] Result: %d", result);
+		WVN_ERROR("[VULKAN:DEBUG] Failed to create in flight fence.");
+	}
+
+	dev::LogMgr::get_singleton().print("[VULKAN] Created sync objects!");
+}
+
+void VulkanBackend::record_command_buffer(VkCommandBuffer cmd_buf, u32 img_idx)
+{
+	VkCommandBufferBeginInfo command_buffer_begin_info = {};
+	command_buffer_begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+	command_buffer_begin_info.flags = 0;
+	command_buffer_begin_info.pInheritanceInfo = nullptr;
+
+	if (VkResult result = vkBeginCommandBuffer(cmd_buf, &command_buffer_begin_info); result != VK_SUCCESS) {
+		dev::LogMgr::get_singleton().print("[VULKAN] Result: %d", result);
+		WVN_ERROR("[VULKAN:DEBUG] Failed to begin recording command buffer.");
+	}
+
+	VkClearValue clear_colour = { .color = { .float32 = {
+		0.0f, 0.0f, 0.0f, 1.0f
+	}}};
+
+	VkRenderPassBeginInfo render_pass_begin_info = {};
+	render_pass_begin_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+	render_pass_begin_info.renderPass = m_render_pass;
+	render_pass_begin_info.framebuffer = m_swap_chain_framebuffers[img_idx];
+	render_pass_begin_info.renderArea.offset = { 0, 0 };
+	render_pass_begin_info.renderArea.extent = m_swap_chain_extent;
+	render_pass_begin_info.clearValueCount = 1;
+	render_pass_begin_info.pClearValues = &clear_colour;
+
+	vkCmdBeginRenderPass(cmd_buf, &render_pass_begin_info, VK_SUBPASS_CONTENTS_INLINE);
+
+	vkCmdBindPipeline(cmd_buf, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline);
+
+	VkViewport viewport = {};
+	viewport.x = 0.0f;
+	viewport.y = 0.0f;
+	viewport.width = static_cast<float>(m_swap_chain_extent.width);
+	viewport.height = static_cast<float>(m_swap_chain_extent.height);
+	viewport.minDepth = 0.0f;
+	viewport.maxDepth = 1.0f;
+	vkCmdSetViewport(cmd_buf, 0, 1, &viewport);
+
+	VkRect2D scissor = {};
+	scissor.offset = { 0, 0 };
+	scissor.extent = m_swap_chain_extent;
+	vkCmdSetScissor(cmd_buf, 0, 1, &scissor);
+
+	vkCmdDraw(cmd_buf, 3, 1, 0, 0);
+
+	vkCmdEndRenderPass(cmd_buf);
+
+	if (VkResult result = vkEndCommandBuffer(cmd_buf); result != VK_SUCCESS) {
+		dev::LogMgr::get_singleton().print("[VULKAN] Result: %d", result);
+		WVN_ERROR("[VULKAN:DEBUG] Failed to record command buffer.");
+	}
 }
 
 // abstract function that generates a "usability" or "goodness value" of a given device
@@ -676,15 +873,15 @@ VulkanBackend::QueueFamilyIdx VulkanBackend::find_queue_families(VkPhysicalDevic
 			continue;
 		}
 
-		if ((queue_families[i].queueFlags & VK_QUEUE_COMPUTE_BIT) && !result.compute_family.has_value()) {
-			result.compute_family = i;
-			continue;
-		}
+//		if ((queue_families[i].queueFlags & VK_QUEUE_COMPUTE_BIT) && !result.compute_family.has_value()) {
+//			result.compute_family = i;
+//			continue;
+//		}
 
-		if ((queue_families[i].queueFlags & VK_QUEUE_TRANSFER_BIT) && !result.transfer_family.has_value()) {
-			result.transfer_family = i;
-			continue;
-		}
+//		if ((queue_families[i].queueFlags & VK_QUEUE_TRANSFER_BIT) && !result.transfer_family.has_value()) {
+//			result.transfer_family = i;
+//			continue;
+//		}
 
 		VkBool32 present_support = VK_FALSE;
 		vkGetPhysicalDeviceSurfaceSupportKHR(device, i, m_surface, &present_support);
@@ -830,7 +1027,50 @@ Ref<Shader> VulkanBackend::create_shader(const Vector<char>& vert_source, const 
 	return create_ref<VulkanShader>(vert_module, frag_module, m_logical_data.device);
 }
 
-// temporary function while I learn how tf vulkan actually works lol
-void VulkanBackend::debug_tick()
+void VulkanBackend::wait_for_sync()
 {
+	vkWaitForFences(m_logical_data.device, 1, &m_in_flight_fence, VK_TRUE, UINT64_MAX);
+	vkResetFences(m_logical_data.device, 1, &m_in_flight_fence);
+}
+
+// temporary function while I learn how tf vulkan actually works lol
+void VulkanBackend::debug_render()
+{
+	u32 img_idx;
+	vkAcquireNextImageKHR(m_logical_data.device, m_swap_chain, UINT64_MAX, m_image_available_semaphore, VK_NULL_HANDLE, &img_idx);
+
+	vkResetCommandBuffer(m_command_buffer, 0);
+	record_command_buffer(m_command_buffer, img_idx);
+
+	VkSemaphore wait_semaphores[] = { m_image_available_semaphore };
+	VkPipelineStageFlags wait_stages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+	VkSemaphore signal_semaphores[] = { m_render_finished_semaphore };
+
+	VkSubmitInfo submit_info = {};
+	submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+	submit_info.waitSemaphoreCount = 1;
+	submit_info.pWaitSemaphores = wait_semaphores;
+	submit_info.pWaitDstStageMask = wait_stages;
+	submit_info.commandBufferCount = 1;
+	submit_info.pCommandBuffers = &m_command_buffer;
+	submit_info.signalSemaphoreCount = 1;
+	submit_info.pSignalSemaphores = signal_semaphores;
+
+	if (VkResult result = vkQueueSubmit(m_queues.graphics_queue, 1, &submit_info, m_in_flight_fence); result != VK_SUCCESS) {
+		dev::LogMgr::get_singleton().print("[VULKAN] Result: %d", result);
+		WVN_ERROR("[VULKAN:DEBUG] Failed to submit draw command buffer.");
+	}
+
+	VkSwapchainKHR swapchains[] = { m_swap_chain };
+
+	VkPresentInfoKHR present_info = {};
+	present_info.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+	present_info.waitSemaphoreCount = 1;
+	present_info.pWaitSemaphores = signal_semaphores;
+	present_info.swapchainCount = 1;
+	present_info.pSwapchains = swapchains;
+	present_info.pImageIndices = &img_idx;
+	present_info.pResults = nullptr;
+
+	vkQueuePresentKHR(m_queues.present_queue, &present_info);
 }

@@ -27,7 +27,8 @@ namespace wvn::gfx
 
 		virtual RendererProperties properties() = 0;
 
-		virtual void debug_tick() = 0;
+		virtual void wait_for_sync() = 0;
+		virtual void debug_render() = 0;
 
 		virtual Ref<Shader> create_shader(const Vector<char>& vert_source, const Vector<char>& frag_source) = 0;
 	};

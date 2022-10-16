@@ -80,12 +80,14 @@ Root::Root(const Config& cfg)
 	if (m_config.on_init)
 		m_config.on_init();
 
-	dev::LogMgr::get_singleton().print("[ROOT] Initialized!");
+	dev::LogMgr::get_singleton().print("[ROOT] Initialized!\n--------------------------------");
 }
 
 Root::~Root()
 {
 	// deletion must happen in the precise reverse order that objects are created!
+
+	dev::LogMgr::get_singleton().print("--------------------------------");
 
 	if (m_config.on_destroy)
 		m_config.on_destroy();
