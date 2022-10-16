@@ -1,6 +1,6 @@
 #pragma once
 
-#include <wvn/math/calc.h>
+#include <wvn/maths/calc.h>
 
 namespace wvn
 {

@@ -1,10 +1,10 @@
-#include <wvn/math/mat4x4.h>
-#include <wvn/math/mat3x2.h>
-#include <wvn/math/mat4x3.h>
+#include <wvn/maths/mat4x4.h>
+#include <wvn/maths/mat3x2.h>
+#include <wvn/maths/mat4x3.h>
 
-#include <wvn/math/vec3.h>
+#include <wvn/maths/vec3.h>
 #include <wvn/util/assert.h>
-#include <wvn/math/calc.h>
+#include <wvn/maths/calc.h>
 
 using namespace wvn;
 

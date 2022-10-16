@@ -2,11 +2,10 @@
 
 #include <initializer_list>
 #include <new>
-#include <iostream>
 
 #include <wvn/util/assert.h>
 #include <wvn/util/types.h>
-#include <wvn/math/calc.h>
+#include <wvn/maths/calc.h>
 
 namespace wvn
 {

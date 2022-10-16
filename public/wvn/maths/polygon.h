@@ -2,7 +2,7 @@
 
 #include <wvn/container/vector.h>
 #include <functional>
-#include <wvn/math/vec2.h>
+#include <wvn/maths/vec2.h>
 
 namespace wvn
 {

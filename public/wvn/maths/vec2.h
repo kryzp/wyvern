@@ -1,8 +1,8 @@
 #pragma once
 
-#include <wvn/math/calc.h>
-#include <wvn/math/mat3x2.h>
-#include <wvn/math/random.h>
+#include <wvn/maths/calc.h>
+#include <wvn/maths/mat3x2.h>
+#include <wvn/maths/random.h>
 
 namespace wvn
 {

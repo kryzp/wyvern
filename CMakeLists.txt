@@ -53,20 +53,20 @@ add_library(${PROJECT_NAME}
 
 	public/wvn/resource/resource_mgr.cpp
 
-	public/wvn/math/circle.cpp
-	public/wvn/math/colour.cpp
-	public/wvn/math/complex.cpp
-	public/wvn/math/line.cpp
-	public/wvn/math/mat3x2.cpp
-	public/wvn/math/mat3x3.cpp
-	public/wvn/math/mat4x3.cpp
-	public/wvn/math/mat4x4.cpp
-	public/wvn/math/polygon.cpp
-	public/wvn/math/quad.cpp
-	public/wvn/math/quaternion.cpp
-	public/wvn/math/random.cpp
-	public/wvn/math/timer.cpp
-	public/wvn/math/triangle.cpp
+	public/wvn/maths/circle.cpp
+	public/wvn/maths/colour.cpp
+	public/wvn/maths/complex.cpp
+	public/wvn/maths/line.cpp
+	public/wvn/maths/mat3x2.cpp
+	public/wvn/maths/mat3x3.cpp
+	public/wvn/maths/mat4x3.cpp
+	public/wvn/maths/mat4x4.cpp
+	public/wvn/maths/polygon.cpp
+	public/wvn/maths/quad.cpp
+	public/wvn/maths/quaternion.cpp
+	public/wvn/maths/random.cpp
+	public/wvn/maths/timer.cpp
+	public/wvn/maths/triangle.cpp
 
 	public/wvn/devenv/log_mgr.cpp
 	public/wvn/devenv/console.cpp
@@ -75,6 +75,9 @@ add_library(${PROJECT_NAME}
 
 	private/backend/graphics/vulkan/vulkan_backend.cpp
 	private/backend/graphics/vulkan/vk_shader.cpp
+	private/backend/graphics/vulkan/vk_texture.cpp
+	private/backend/graphics/vulkan/vk_mesh.cpp
+	private/backend/graphics/vulkan/vk_framebuffer.cpp
 
 	private/backend/audio/openal/openal_backend.cpp
 )

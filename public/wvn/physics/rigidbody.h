@@ -1,9 +1,9 @@
 #pragma once
 
-#include <wvn/math/vec2.h>
-#include <wvn/math/vec3.h>
-#include <wvn/math/mat3x3.h>
-#include <wvn/math/quaternion.h>
+#include <wvn/maths/vec2.h>
+#include <wvn/maths/vec3.h>
+#include <wvn/maths/mat3x3.h>
+#include <wvn/maths/quaternion.h>
 
 #include <wvn/container/bitset.h>
 #include <wvn/container/vector.h>

@@ -8,6 +8,7 @@
 #include <wvn/root.h>
 #include <wvn/system/system_backend.h>
 #include <wvn/devenv/log_mgr.h>
+#include <wvn/graphics/render_pass.h>
 
 #include <backend/graphics/vulkan/vk_shader.h>
 
@@ -31,6 +32,8 @@ static VkDynamicState DYNAMIC_STATES[] = {
 	VK_DYNAMIC_STATE_VIEWPORT,
 	VK_DYNAMIC_STATE_SCISSOR
 };
+
+static constexpr u32 MAX_FRAMES_IN_FLIGHT = 2;
 
 #if WVN_DEBUG
 
@@ -150,14 +153,15 @@ static Vector<const char*> get_instance_extensions()
 VulkanBackend::VulkanBackend()
 	: m_instance(VK_NULL_HANDLE)
 	, m_surface(VK_NULL_HANDLE)
+	, m_current_frame(0)
 	, m_command_pool(VK_NULL_HANDLE)
-	, m_command_buffer(VK_NULL_HANDLE)
-	, m_image_available_semaphore(VK_NULL_HANDLE)
-	, m_render_finished_semaphore(VK_NULL_HANDLE)
-	, m_in_flight_fence(VK_NULL_HANDLE)
+	, m_command_buffers()
+	, m_image_available_semaphores()
+	, m_render_finished_semaphores()
+	, m_in_flight_fences()
 	, m_render_pass(VK_NULL_HANDLE)
 	, m_pipeline_layout(VK_NULL_HANDLE)
-	, m_pipeline(VK_NULL_HANDLE)
+	, m_graphics_pipeline(VK_NULL_HANDLE)
 	, m_swap_chain(VK_NULL_HANDLE)
 	, m_swap_chain_images()
 	, m_swap_chain_image_views()
@@ -247,7 +251,7 @@ VulkanBackend::VulkanBackend()
 	create_graphics_pipeline();
 	create_swap_chain_framebuffers();
 	create_command_pool(phys_idx);
-	create_command_buffer();
+	create_command_buffers();
 	create_sync_objects();
 
 	dev::LogMgr::get_singleton().print("[VULKAN] Initialized!");
@@ -259,26 +263,19 @@ VulkanBackend::~VulkanBackend()
 
 	// //
 
-	vkDestroyFence(m_logical_data.device, m_in_flight_fence, nullptr);
-	vkDestroySemaphore(m_logical_data.device, m_render_finished_semaphore, nullptr);
-	vkDestroySemaphore(m_logical_data.device, m_image_available_semaphore, nullptr);
+	clean_up_swap_chain();
 
-	vkDestroyCommandPool(m_logical_data.device, m_command_pool, nullptr);
-
-	for (auto& fbo : m_swap_chain_framebuffers) {
-		vkDestroyFramebuffer(m_logical_data.device, fbo, nullptr);
-	}
-
-	vkDestroyPipeline(m_logical_data.device, m_pipeline, nullptr);
+	vkDestroyPipeline(m_logical_data.device, m_graphics_pipeline, nullptr);
 	vkDestroyPipelineLayout(m_logical_data.device, m_pipeline_layout, nullptr);
 	vkDestroyRenderPass(m_logical_data.device, m_render_pass, nullptr);
 
-	for (auto& view : m_swap_chain_image_views) {
-		vkDestroyImageView(m_logical_data.device, view, nullptr);
+	for (u32 i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+		vkDestroyFence(m_logical_data.device, m_in_flight_fences[i], nullptr);
+		vkDestroySemaphore(m_logical_data.device, m_render_finished_semaphores[i], nullptr);
+		vkDestroySemaphore(m_logical_data.device, m_image_available_semaphores[i], nullptr);
 	}
 
-	vkDestroySwapchainKHR(m_logical_data.device, m_swap_chain, nullptr);
-	vkDestroySurfaceKHR(m_instance, m_surface, nullptr);
+	vkDestroyCommandPool(m_logical_data.device, m_command_pool, nullptr);
 	vkDestroyDevice(m_logical_data.device, nullptr);
 
 #if WVN_DEBUG
@@ -288,6 +285,7 @@ VulkanBackend::~VulkanBackend()
 	}
 #endif
 
+	vkDestroySurfaceKHR(m_instance, m_surface, nullptr);
 	vkDestroyInstance(m_instance, nullptr);
 
 	dev::LogMgr::get_singleton().print("[VULKAN] Destroyed!");
@@ -621,7 +619,7 @@ void VulkanBackend::create_graphics_pipeline()
 	graphics_pipeline_create_info.pViewportState = &viewport_state_create_info;
 	graphics_pipeline_create_info.pRasterizationState = &rasterization_state_create_info;
 	graphics_pipeline_create_info.pMultisampleState = &multisample_state_create_info;
-	graphics_pipeline_create_info.pDepthStencilState = nullptr;//&depth_stencil_state_create_info;
+	graphics_pipeline_create_info.pDepthStencilState = &depth_stencil_state_create_info;
 	graphics_pipeline_create_info.pColorBlendState = &colour_blend_state_create_info;
 	graphics_pipeline_create_info.pDynamicState = &dynamic_state_create_info;
 	graphics_pipeline_create_info.layout = m_pipeline_layout;
@@ -630,7 +628,7 @@ void VulkanBackend::create_graphics_pipeline()
 	graphics_pipeline_create_info.basePipelineHandle = VK_NULL_HANDLE;
 	graphics_pipeline_create_info.basePipelineIndex = -1;
 
-	if (VkResult result = vkCreateGraphicsPipelines(m_logical_data.device, VK_NULL_HANDLE, 1, &graphics_pipeline_create_info, nullptr, &m_pipeline); result != VK_SUCCESS) {
+	if (VkResult result = vkCreateGraphicsPipelines(m_logical_data.device, VK_NULL_HANDLE, 1, &graphics_pipeline_create_info, nullptr, &m_graphics_pipeline); result != VK_SUCCESS) {
 		dev::LogMgr::get_singleton().print("[VULKAN] Result: %d", result);
 		WVN_ERROR("[VULKAN:DEBUG] Failed to create graphics pipeline.");
 	}
@@ -710,6 +708,32 @@ void VulkanBackend::create_swap_chain_framebuffers()
 	dev::LogMgr::get_singleton().print("[VULKAN] Created swap chain framebuffers!");
 }
 
+void VulkanBackend::clean_up_swap_chain()
+{
+	for (auto& fbo : m_swap_chain_framebuffers) {
+		vkDestroyFramebuffer(m_logical_data.device, fbo, nullptr);
+	}
+
+	for (auto& view : m_swap_chain_image_views) {
+		vkDestroyImageView(m_logical_data.device, view, nullptr);
+	}
+
+	vkDestroySwapchainKHR(m_logical_data.device, m_swap_chain, nullptr);
+}
+
+void VulkanBackend::rebuild_swap_chain()
+{
+	vkDeviceWaitIdle(m_logical_data.device);
+
+	clean_up_swap_chain();
+
+	auto phys_idx = find_queue_families(m_physical_data.device);
+
+	create_swap_chain(phys_idx);
+	create_image_views();
+	create_swap_chain_framebuffers();
+}
+
 void VulkanBackend::create_command_pool(const QueueFamilyIdx& phys_idx)
 {
 	VkCommandPoolCreateInfo create_info = {};
@@ -725,15 +749,17 @@ void VulkanBackend::create_command_pool(const QueueFamilyIdx& phys_idx)
 	dev::LogMgr::get_singleton().print("[VULKAN] Created command pool!");
 }
 
-void VulkanBackend::create_command_buffer()
+void VulkanBackend::create_command_buffers()
 {
+	m_command_buffers.resize(MAX_FRAMES_IN_FLIGHT);
+
 	VkCommandBufferAllocateInfo command_buffer_allocate_info = {};
 	command_buffer_allocate_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
 	command_buffer_allocate_info.commandPool = m_command_pool;
 	command_buffer_allocate_info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-	command_buffer_allocate_info.commandBufferCount = 1;
+	command_buffer_allocate_info.commandBufferCount = MAX_FRAMES_IN_FLIGHT;
 
-	if (VkResult result = vkAllocateCommandBuffers(m_logical_data.device, &command_buffer_allocate_info, &m_command_buffer); result != VK_SUCCESS) {
+	if (VkResult result = vkAllocateCommandBuffers(m_logical_data.device, &command_buffer_allocate_info, m_command_buffers.data()); result != VK_SUCCESS) {
 		dev::LogMgr::get_singleton().print("[VULKAN] Result: %d", result);
 		WVN_ERROR("[VULKAN:DEBUG] Failed to create command buffer.");
 	}
@@ -743,6 +769,10 @@ void VulkanBackend::create_command_buffer()
 
 void VulkanBackend::create_sync_objects()
 {
+	m_image_available_semaphores.resize(MAX_FRAMES_IN_FLIGHT);
+	m_render_finished_semaphores.resize(MAX_FRAMES_IN_FLIGHT);
+	m_in_flight_fences          .resize(MAX_FRAMES_IN_FLIGHT);
+
 	VkSemaphoreCreateInfo semaphore_create_info = {};
 	semaphore_create_info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 
@@ -750,19 +780,22 @@ void VulkanBackend::create_sync_objects()
 	fence_create_info.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
 	fence_create_info.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
-	if (VkResult result = vkCreateSemaphore(m_logical_data.device, &semaphore_create_info, nullptr, &m_image_available_semaphore); result != VK_SUCCESS) {
-		dev::LogMgr::get_singleton().print("[VULKAN] Result: %d", result);
-		WVN_ERROR("[VULKAN:DEBUG] Failed to create image available semaphore.");
-	}
+	for (u32 i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+	{
+		if (VkResult result = vkCreateSemaphore(m_logical_data.device, &semaphore_create_info, nullptr, &m_image_available_semaphores[i]); result != VK_SUCCESS) {
+			dev::LogMgr::get_singleton().print("[VULKAN] Result: %d", result);
+			WVN_ERROR("[VULKAN:DEBUG] Failed to create image available semaphore.");
+		}
 
-	if (VkResult result = vkCreateSemaphore(m_logical_data.device, &semaphore_create_info, nullptr, &m_render_finished_semaphore); result != VK_SUCCESS) {
-		dev::LogMgr::get_singleton().print("[VULKAN] Result: %d", result);
-		WVN_ERROR("[VULKAN:DEBUG] Failed to create render finished semaphore.");
-	}
+		if (VkResult result = vkCreateSemaphore(m_logical_data.device, &semaphore_create_info, nullptr, &m_render_finished_semaphores[i]); result != VK_SUCCESS) {
+			dev::LogMgr::get_singleton().print("[VULKAN] Result: %d", result);
+			WVN_ERROR("[VULKAN:DEBUG] Failed to create render finished semaphore.");
+		}
 
-	if (VkResult result = vkCreateFence(m_logical_data.device, &fence_create_info, nullptr, &m_in_flight_fence); result != VK_SUCCESS) {
-		dev::LogMgr::get_singleton().print("[VULKAN] Result: %d", result);
-		WVN_ERROR("[VULKAN:DEBUG] Failed to create in flight fence.");
+		if (VkResult result = vkCreateFence(m_logical_data.device, &fence_create_info, nullptr, &m_in_flight_fences[i]); result != VK_SUCCESS) {
+			dev::LogMgr::get_singleton().print("[VULKAN] Result: %d", result);
+			WVN_ERROR("[VULKAN:DEBUG] Failed to create in flight fence.");
+		}
 	}
 
 	dev::LogMgr::get_singleton().print("[VULKAN] Created sync objects!");
@@ -795,7 +828,7 @@ void VulkanBackend::record_command_buffer(VkCommandBuffer cmd_buf, u32 img_idx)
 
 	vkCmdBeginRenderPass(cmd_buf, &render_pass_begin_info, VK_SUBPASS_CONTENTS_INLINE);
 
-	vkCmdBindPipeline(cmd_buf, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline);
+	vkCmdBindPipeline(cmd_buf, VK_PIPELINE_BIND_POINT_GRAPHICS, m_graphics_pipeline);
 
 	VkViewport viewport = {};
 	viewport.x = 0.0f;
@@ -852,7 +885,7 @@ u32 VulkanBackend::assign_physical_device_usability(
 	return result;
 }
 
-VulkanBackend::QueueFamilyIdx VulkanBackend::find_queue_families(VkPhysicalDevice device)
+QueueFamilyIdx VulkanBackend::find_queue_families(VkPhysicalDevice device)
 {
 	QueueFamilyIdx result;
 
@@ -924,7 +957,7 @@ bool VulkanBackend::check_device_extension_support(VkPhysicalDevice device)
 	return required_exts.empty();
 }
 
-VulkanBackend::SwapChainSupportDetails VulkanBackend::query_swap_chain_support(VkPhysicalDevice device)
+SwapChainSupportDetails VulkanBackend::query_swap_chain_support(VkPhysicalDevice device)
 {
 	SwapChainSupportDetails result = {};
 
@@ -1019,6 +1052,11 @@ VkShaderModule VulkanBackend::create_shader_module(const Vector<char>& source)
 	return module;
 }
 
+Ref<Texture> VulkanBackend::create_texture(u32 width, u32 height)
+{
+	return nullptr;
+}
+
 Ref<Shader> VulkanBackend::create_shader(const Vector<char>& vert_source, const Vector<char>& frag_source)
 {
 	VkShaderModule vert_module = create_shader_module(vert_source);
@@ -1027,24 +1065,38 @@ Ref<Shader> VulkanBackend::create_shader(const Vector<char>& vert_source, const 
 	return create_ref<VulkanShader>(vert_module, frag_module, m_logical_data.device);
 }
 
+Ref<RenderTarget> VulkanBackend::create_render_target(u32 width, u32 height)
+{
+	return nullptr;
+}
+
+Ref<Mesh> VulkanBackend::create_mesh()
+{
+	return nullptr;
+}
+
 void VulkanBackend::wait_for_sync()
 {
-	vkWaitForFences(m_logical_data.device, 1, &m_in_flight_fence, VK_TRUE, UINT64_MAX);
-	vkResetFences(m_logical_data.device, 1, &m_in_flight_fence);
+	vkWaitForFences(m_logical_data.device, 1, &m_in_flight_fences[m_current_frame], VK_TRUE, UINT64_MAX);
+	vkResetFences(m_logical_data.device, 1, &m_in_flight_fences[m_current_frame]);
+}
+
+void VulkanBackend::clear(const Colour& colour)
+{
 }
 
 // temporary function while I learn how tf vulkan actually works lol
 void VulkanBackend::debug_render()
 {
 	u32 img_idx;
-	vkAcquireNextImageKHR(m_logical_data.device, m_swap_chain, UINT64_MAX, m_image_available_semaphore, VK_NULL_HANDLE, &img_idx);
+	vkAcquireNextImageKHR(m_logical_data.device, m_swap_chain, UINT64_MAX, m_image_available_semaphores[m_current_frame], VK_NULL_HANDLE, &img_idx);
 
-	vkResetCommandBuffer(m_command_buffer, 0);
-	record_command_buffer(m_command_buffer, img_idx);
+	vkResetCommandBuffer(m_command_buffers[m_current_frame], 0);
+	record_command_buffer(m_command_buffers[m_current_frame], img_idx);
 
-	VkSemaphore wait_semaphores[] = { m_image_available_semaphore };
+	VkSemaphore wait_semaphores[] = { m_image_available_semaphores[m_current_frame]};
 	VkPipelineStageFlags wait_stages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
-	VkSemaphore signal_semaphores[] = { m_render_finished_semaphore };
+	VkSemaphore signal_semaphores[] = { m_render_finished_semaphores[m_current_frame] };
 
 	VkSubmitInfo submit_info = {};
 	submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -1052,11 +1104,11 @@ void VulkanBackend::debug_render()
 	submit_info.pWaitSemaphores = wait_semaphores;
 	submit_info.pWaitDstStageMask = wait_stages;
 	submit_info.commandBufferCount = 1;
-	submit_info.pCommandBuffers = &m_command_buffer;
+	submit_info.pCommandBuffers = &m_command_buffers[m_current_frame];
 	submit_info.signalSemaphoreCount = 1;
 	submit_info.pSignalSemaphores = signal_semaphores;
 
-	if (VkResult result = vkQueueSubmit(m_queues.graphics_queue, 1, &submit_info, m_in_flight_fence); result != VK_SUCCESS) {
+	if (VkResult result = vkQueueSubmit(m_queues.graphics_queue, 1, &submit_info, m_in_flight_fences[m_current_frame]); result != VK_SUCCESS) {
 		dev::LogMgr::get_singleton().print("[VULKAN] Result: %d", result);
 		WVN_ERROR("[VULKAN:DEBUG] Failed to submit draw command buffer.");
 	}
@@ -1073,4 +1125,11 @@ void VulkanBackend::debug_render()
 	present_info.pResults = nullptr;
 
 	vkQueuePresentKHR(m_queues.present_queue, &present_info);
+
+	// update frame
+	m_current_frame = (m_current_frame + 1) % MAX_FRAMES_IN_FLIGHT;
+}
+
+void VulkanBackend::render(const RenderPass& pass)
+{
 }

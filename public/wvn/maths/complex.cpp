@@ -1,5 +1,5 @@
-#include <wvn/math/complex.h>
-#include <wvn/math/calc.h>
+#include <wvn/maths/complex.h>
+#include <wvn/maths/calc.h>
 
 using namespace wvn;
 
@@ -25,8 +25,8 @@ Complex Complex::zeta(const Complex& s, unsigned iter)
 {
 	Complex result = Complex::zero();
 
-	for (double n = 0.0; n < iter; n += 1.0) {
-		result += Complex(1.0) / Complex::pow(n + 1.0, s);
+	for (int n = 1; n <= iter; n++) {
+		result += Complex(1.0) / Complex::pow(static_cast<double>(n), s);
 	}
 
 	return result;

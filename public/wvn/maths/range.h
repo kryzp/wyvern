@@ -1,6 +1,6 @@
 #pragma once
 
-#include <wvn/math/random.h>
+#include <wvn/maths/random.h>
 
 namespace wvn
 {

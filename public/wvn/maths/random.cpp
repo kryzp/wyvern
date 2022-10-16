@@ -1,4 +1,4 @@
-#include <wvn/math/random.h>
+#include <wvn/maths/random.h>
 
 using namespace wvn;
 

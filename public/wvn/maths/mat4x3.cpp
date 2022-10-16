@@ -1,6 +1,6 @@
-#include <wvn/math/mat4x3.h>
-#include <wvn/math/quaternion.h>
-#include <wvn/math/vec3.h>
+#include <wvn/maths/mat4x3.h>
+#include <wvn/maths/quaternion.h>
+#include <wvn/maths/vec3.h>
 
 using namespace wvn;
 

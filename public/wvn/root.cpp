@@ -19,7 +19,7 @@
 
 #include <wvn/plugin/plugin.h>
 
-#include <wvn/math/random.h>
+#include <wvn/maths/random.h>
 
 using namespace wvn;
 

@@ -1,5 +1,5 @@
-#include <wvn/math/colour.h>
-#include <wvn/math/calc.h>
+#include <wvn/maths/colour.h>
+#include <wvn/maths/calc.h>
 
 using namespace wvn;
 

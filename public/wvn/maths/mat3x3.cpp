@@ -1,4 +1,4 @@
-#include <wvn/math/mat3x3.h>
+#include <wvn/maths/mat3x3.h>
 
 using namespace wvn;
 

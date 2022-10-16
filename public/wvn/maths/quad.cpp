@@ -1,5 +1,5 @@
-#include <wvn/math/quad.h>
-#include <wvn/math/rect.h>
+#include <wvn/maths/quad.h>
+#include <wvn/maths/rect.h>
 
 using namespace wvn;
 

@@ -1,6 +1,6 @@
-#include <wvn/math/polygon.h>
-#include <wvn/math/calc.h>
-#include <wvn/math/vec2.h>
+#include <wvn/maths/polygon.h>
+#include <wvn/maths/calc.h>
+#include <wvn/maths/vec2.h>
 
 using namespace wvn;
 

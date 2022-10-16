@@ -1,6 +1,6 @@
-#include <wvn/math/mat3x2.h>
-#include <wvn/math/vec2.h>
-#include <wvn/math/calc.h>
+#include <wvn/maths/mat3x2.h>
+#include <wvn/maths/vec2.h>
+#include <wvn/maths/calc.h>
 
 // nice spelling of 'transformation' alan :/
 // https://www.alanzucconi.com/2016/02/10/tranfsormation-matrix/

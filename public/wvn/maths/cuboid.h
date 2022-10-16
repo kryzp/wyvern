@@ -1,7 +1,7 @@
 #pragma once
 
-#include <wvn/math/vec3.h>
-#include <wvn/math/rect.h>
+#include <wvn/maths/vec3.h>
+#include <wvn/maths/rect.h>
 
 namespace wvn
 {

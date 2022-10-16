@@ -1,9 +1,9 @@
 #pragma once
 
-#include <wvn/math/calc.h>
-#include <wvn/math/random.h>
-#include <wvn/math/vec2.h>
-#include <wvn/math/mat4x3.h>
+#include <wvn/maths/calc.h>
+#include <wvn/maths/random.h>
+#include <wvn/maths/vec2.h>
+#include <wvn/maths/mat4x3.h>
 
 namespace wvn
 {

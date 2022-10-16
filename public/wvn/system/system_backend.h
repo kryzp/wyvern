@@ -1,7 +1,7 @@
 #pragma once
 
 #include <wvn/util/types.h>
-#include <wvn/math/vec2.h>
+#include <wvn/maths/vec2.h>
 #include <wvn/container/string.h>
 #include <wvn/root.h>
 

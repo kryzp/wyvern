@@ -1,5 +1,5 @@
-#include <wvn/math/line.h>
-#include <wvn/math/calc.h>
+#include <wvn/maths/line.h>
+#include <wvn/maths/calc.h>
 
 using namespace wvn;
 

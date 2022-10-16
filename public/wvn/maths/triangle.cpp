@@ -1,4 +1,4 @@
-#include <wvn/math/triangle.h>
+#include <wvn/maths/triangle.h>
 
 using namespace wvn;
 

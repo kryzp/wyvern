@@ -1,5 +1,5 @@
 #include <wvn/physics/rigidbody.h>
-#include <wvn/math/calc.h>
+#include <wvn/maths/calc.h>
 
 using namespace wvn;
 using namespace wvn::phys;
