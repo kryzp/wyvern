@@ -31,10 +31,6 @@ namespace wvn
 		bool on_only(u64 idx) const;
 		bool off(u64 idx) const;
 
-		bool contains(u64 flags) const;
-		bool only_contains(u64 flags) const;
-		bool all_off(u64 flags) const;
-
 		bool operator [] (u64 idx) const;
 		
 		constexpr inline u64 size() const;
@@ -173,31 +169,6 @@ namespace wvn
 	bool Bitset<TSize>::off(u64 idx) const
 	{
 		return !on(idx);
-	}
-
-	template <u64 TSize>
-	bool Bitset<TSize>::contains(u64 flags) const
-	{
-		for (int i = 0; i < memory_size(); i++) {
-			b8 bt = m_bytes[i];
-			auto fl = flags << (i * 8);
-
-			if ((bt & fl) == 0 && fl != 0) {
-				return false;
-			}
-		}
-
-		return true;
-	}
-
-	template <u64 TSize>
-	bool Bitset<TSize>::only_contains(u64 flags) const
-	{
-	}
-
-	template <u64 TSize>
-	bool Bitset<TSize>::all_off(u64 flags) const
-	{
 	}
 
 	template <u64 TSize>

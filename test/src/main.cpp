@@ -1,7 +1,8 @@
-#include <wvn/root.h>
+#include <wvn/container/bitset.h>
 
 int main(int argc, char** argv)
 {
+#if 0
 	wvn::Config cfg;
 	{
 		cfg.name = "Wyvern | Demo";
@@ -20,6 +21,7 @@ int main(int argc, char** argv)
 	new wvn::Root(cfg);
 	wvn::Root::get_singleton().run();
 	delete wvn::Root::get_singleton_ptr();
+#endif
 
 	return 0;
 }
