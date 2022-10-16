@@ -18,14 +18,7 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f7c9d8f6-3073-4d14-bdb7-2af3181d6545" name="Changes" comment="Started render pass.">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/private/backend/graphics/vulkan/vulkan_backend.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/private/backend/graphics/vulkan/vulkan_backend.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/private/backend/graphics/vulkan/vulkan_backend.h" beforeDir="false" afterPath="$PROJECT_DIR$/private/backend/graphics/vulkan/vulkan_backend.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/wvn/graphics/renderer_backend.h" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/graphics/renderer_backend.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/wvn/graphics/rendering_mgr.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/graphics/rendering_mgr.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/wvn/root.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/root.cpp" afterDir="false" />
-    </list>
+    <list default="true" id="f7c9d8f6-3073-4d14-bdb7-2af3181d6545" name="Changes" comment="TRIANGLE!!! We have liftoff!" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -310,7 +303,14 @@
       <option name="project" value="LOCAL" />
       <updated>1665874054560</updated>
     </task>
-    <option name="localTasksCounter" value="17" />
+    <task id="LOCAL-00017" summary="TRIANGLE!!! We have liftoff!">
+      <created>1665922473559</created>
+      <option name="number" value="00017" />
+      <option name="presentableId" value="LOCAL-00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1665922473559</updated>
+    </task>
+    <option name="localTasksCounter" value="18" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -344,7 +344,8 @@
     <MESSAGE value="Beginning work on the graphics pipeline." />
     <MESSAGE value="More work on graphics pipeline. (still very specific to Vulkan, after I get the basics down I'm going to abstract it all out)" />
     <MESSAGE value="Changes to '.gitignore'." />
-    <option name="LAST_COMMIT_MESSAGE" value="Changes to '.gitignore'." />
+    <MESSAGE value="TRIANGLE!!! We have liftoff!" />
+    <option name="LAST_COMMIT_MESSAGE" value="TRIANGLE!!! We have liftoff!" />
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />

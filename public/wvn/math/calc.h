@@ -27,6 +27,7 @@ namespace wvn
 		static T snap(T x, T interval);
 
 		static T log(T x, T b);
+		static T lb(T x);
 		static T log2(T x);
 		static T log10(T x);
 		static T ln(T x);
@@ -138,6 +139,12 @@ namespace wvn
 	T Calc<T>::log(T x, T b)
 	{
 		return std::log(x) / std::log(b);
+	}
+
+	template <typename T>
+	T Calc<T>::lb(T x)
+	{
+		return std::log2(x);
 	}
 
 	template <typename T>
