@@ -1,6 +1,6 @@
 # wyvern
 
-![github.com/kryzp/wyvern/images/logo.png](url "Logo")
+![github.com/kryzp/wyvern/blob/master/images/logo.png](url "Logo")
 
 beeg yoshi size engine
 
