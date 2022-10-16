@@ -10,7 +10,6 @@
 
 namespace wvn
 {
-
 	template <typename T>
 	class Vector
 	{

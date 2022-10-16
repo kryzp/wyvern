@@ -18,7 +18,9 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f7c9d8f6-3073-4d14-bdb7-2af3181d6545" name="Changes" comment="TRIANGLE!!! We have liftoff!" />
+    <list default="true" id="f7c9d8f6-3073-4d14-bdb7-2af3181d6545" name="Changes" comment="Small quick additions pt. 0">
+      <change beforePath="$PROJECT_DIR$/public/wvn/container/vector.h" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/container/vector.h" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -310,7 +312,14 @@
       <option name="project" value="LOCAL" />
       <updated>1665922473559</updated>
     </task>
-    <option name="localTasksCounter" value="18" />
+    <task id="LOCAL-00018" summary="Small quick additions pt. 0">
+      <created>1665922797871</created>
+      <option name="number" value="00018" />
+      <option name="presentableId" value="LOCAL-00018" />
+      <option name="project" value="LOCAL" />
+      <updated>1665922797871</updated>
+    </task>
+    <option name="localTasksCounter" value="19" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -345,7 +354,8 @@
     <MESSAGE value="More work on graphics pipeline. (still very specific to Vulkan, after I get the basics down I'm going to abstract it all out)" />
     <MESSAGE value="Changes to '.gitignore'." />
     <MESSAGE value="TRIANGLE!!! We have liftoff!" />
-    <option name="LAST_COMMIT_MESSAGE" value="TRIANGLE!!! We have liftoff!" />
+    <MESSAGE value="Small quick additions pt. 0" />
+    <option name="LAST_COMMIT_MESSAGE" value="Small quick additions pt. 0" />
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />
