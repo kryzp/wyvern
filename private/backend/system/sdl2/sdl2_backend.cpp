@@ -2,6 +2,7 @@
 
 #include <wvn/root.h>
 #include <wvn/devenv/log_mgr.h>
+#include <wvn/graphics/renderer_backend.h>
 
 #if WVN_USE_VULKAN
 #include <SDL_vulkan.h>
@@ -66,6 +67,10 @@ void SDL2Backend::poll_events()
 		{
 			case SDL_QUIT:
 				Root::get_singleton().exit();
+				break;
+
+			case SDL_WINDOWEVENT_RESIZED:
+				Root::get_singleton().current_renderer_backend()->on_window_resize(e.window.data1, e.window.data2);
 				break;
 
 			case SDL_MOUSEWHEEL:

@@ -159,6 +159,7 @@ VulkanBackend::VulkanBackend()
 	, m_image_available_semaphores()
 	, m_render_finished_semaphores()
 	, m_in_flight_fences()
+	, m_is_framebuffer_resized(false)
 	, m_render_pass(VK_NULL_HANDLE)
 	, m_pipeline_layout(VK_NULL_HANDLE)
 	, m_graphics_pipeline(VK_NULL_HANDLE)
@@ -723,11 +724,13 @@ void VulkanBackend::clean_up_swap_chain()
 
 void VulkanBackend::rebuild_swap_chain()
 {
-	vkDeviceWaitIdle(m_logical_data.device);
+	// wait until draw size isnt zero
+	while (Root::get_singleton().current_system_backend()->get_draw_size() == Vec2I::zero()) { }
 
+	vkDeviceWaitIdle(m_logical_data.device);
 	clean_up_swap_chain();
 
-	auto phys_idx = find_queue_families(m_physical_data.device);
+	QueueFamilyIdx phys_idx = find_queue_families(m_physical_data.device);
 
 	create_swap_chain(phys_idx);
 	create_image_views();
@@ -1077,19 +1080,33 @@ Ref<Mesh> VulkanBackend::create_mesh()
 
 void VulkanBackend::wait_for_sync()
 {
-	vkWaitForFences(m_logical_data.device, 1, &m_in_flight_fences[m_current_frame], VK_TRUE, UINT64_MAX);
-	vkResetFences(m_logical_data.device, 1, &m_in_flight_fences[m_current_frame]);
 }
 
 void VulkanBackend::clear(const Colour& colour)
 {
 }
 
+void VulkanBackend::on_window_resize(int width, int height)
+{
+	m_is_framebuffer_resized = true;
+}
+
 // temporary function while I learn how tf vulkan actually works lol
 void VulkanBackend::debug_render()
 {
 	u32 img_idx;
-	vkAcquireNextImageKHR(m_logical_data.device, m_swap_chain, UINT64_MAX, m_image_available_semaphores[m_current_frame], VK_NULL_HANDLE, &img_idx);
+
+	vkWaitForFences(m_logical_data.device, 1, &m_in_flight_fences[m_current_frame], VK_TRUE, UINT64_MAX);
+
+	if (VkResult result = vkAcquireNextImageKHR(m_logical_data.device, m_swap_chain, UINT64_MAX, m_image_available_semaphores[m_current_frame], VK_NULL_HANDLE, &img_idx); result == VK_ERROR_OUT_OF_DATE_KHR) {
+		rebuild_swap_chain();
+		return;
+	} else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
+		dev::LogMgr::get_singleton().print("[VULKAN] Result: %d", result);
+		WVN_ERROR("[VULKAN:DEBUG] Failed to acquire next image in swap chain.");
+	}
+
+	vkResetFences(m_logical_data.device, 1, &m_in_flight_fences[m_current_frame]);
 
 	vkResetCommandBuffer(m_command_buffers[m_current_frame], 0);
 	record_command_buffer(m_command_buffers[m_current_frame], img_idx);
@@ -1124,9 +1141,13 @@ void VulkanBackend::debug_render()
 	present_info.pImageIndices = &img_idx;
 	present_info.pResults = nullptr;
 
-	vkQueuePresentKHR(m_queues.present_queue, &present_info);
+	if (VkResult result = vkQueuePresentKHR(m_queues.present_queue, &present_info); result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
+		rebuild_swap_chain();
+	} else if (result != VK_SUCCESS) {
+		dev::LogMgr::get_singleton().print("[VULKAN] Result: %d", result);
+		WVN_ERROR("[VULKAN:DEBUG] Failed to present swap chain image.");
+	}
 
-	// update frame
 	m_current_frame = (m_current_frame + 1) % MAX_FRAMES_IN_FLIGHT;
 }
 

@@ -27,9 +27,9 @@ namespace wvn
 		static T snap(T x, T interval);
 
 		static T log(T x, T b);
-		static T lb(T x);
 		static T log2(T x);
 		static T log10(T x);
+		static T lb(T x);
 		static T ln(T x);
 
 		static T max(T x, T y);
@@ -142,12 +142,6 @@ namespace wvn
 	}
 
 	template <typename T>
-	T Calc<T>::lb(T x)
-	{
-		return std::log2(x);
-	}
-
-	template <typename T>
 	T Calc<T>::log2(T x)
 	{
 		return std::log2(x);
@@ -157,6 +151,12 @@ namespace wvn
 	T Calc<T>::log10(T x)
 	{
 		return std::log10(x);
+	}
+
+	template <typename T>
+	T Calc<T>::lb(T x)
+	{
+		return std::log2(x);
 	}
 
 	template <typename T>
@@ -229,15 +229,13 @@ namespace wvn
 	template <typename T>
 	T Calc<T>::smooth(T from, T to, T amount, T t)
 	{
-		//return (((amount / (1.0 - amount)) * t * (to - from)) / (1.0 + ((amount / (1.0 - amount)) * t))) + from;
 		return (std::exp(-1.0f * amount * t / (1.0 - amount)) * (from - to)) + to;
 	}
 
 	template <typename T>
 	T Calc<T>::spring(T from, T to, T bounciness, T tension, T* intermediate)
 	{
-		// todo: redo this using fun maths!
-
+		// redo this using maths into a single function?
 		(*intermediate) = lerp(*intermediate, (to - from) * tension, 1.0 / bounciness);
 		return from + (*intermediate);
 	}

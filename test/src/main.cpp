@@ -1,5 +1,7 @@
 #include <wvn/root.h>
 
+#include <wvn/maths/ease.h>
+
 int main(int argc, char** argv)
 {
 	wvn::Config cfg;
@@ -16,6 +18,8 @@ int main(int argc, char** argv)
 			wvn::Config::FLAG_RESIZABLE |
 			wvn::Config::FLAG_CENTRE_WINDOW;
 	}
+
+	float tt = wvn::EaseF::linear(3.0);
 
 	new wvn::Root(cfg);
 	wvn::Root::get_singleton().run();

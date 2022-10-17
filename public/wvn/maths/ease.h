@@ -2,6 +2,8 @@
 
 #include <wvn/maths/calc.h>
 
+// credit: equations taken from easings.net!
+
 namespace wvn
 {
 	template <typename T>
@@ -47,22 +49,22 @@ namespace wvn
 	template <typename T>
 	T Ease<T>::elastic_in(T t)
 	{
-		return Calc<T>::sin(13.0 * math::PI * 0.5 * t) * Calc<T>::pow(2, 10.0 * (t - 1.0));
+		return Calc<T>::sin(13.0 * Calc<T>::PI * 0.5 * t) * Calc<T>::pow(2, 10.0 * (t - 1.0));
 	}
 
 	template <typename T>
 	T Ease<T>::elastic_out(T t)
 	{
-		return Calc<T>::sin(-13.0 * math::PI * 0.5 * (t + 1.0)) * Calc<T>::pow(2.0, -10.0 * t) + 1.0;
+		return Calc<T>::sin(-13.0 * Calc<T>::PI * 0.5 * (t + 1.0)) * Calc<T>::pow(2.0, -10.0 * t) + 1.0;
 	}
 
 	template <typename T>
 	T Ease<T>::elastic_in_out(T t)
 	{
 		if (t < 0.5)
-			return 0.5 * Calc<T>::sin(13.0 * math::PI * 0.5 * 2.0 * t) * Calc<T>::pow(2.0, 10.0 * ((2.0 * t) - 1.0));
+			return 0.5 * Calc<T>::sin(13.0 * Calc<T>::PI * 0.5 * 2.0 * t) * Calc<T>::pow(2.0, 10.0 * ((2.0 * t) - 1.0));
 	
-		return 0.5 * (Calc<T>::sin(-13.0 * math::PI * 0.5 * (((2.0 * t) - 1.0) + 1.0)) * Calc<T>::pow(2.0, -10.0 * ((2.0 * t) - 1.0)) + 2.0);
+		return 0.5 * (Calc<T>::sin(-13.0 * Calc<T>::PI * 0.5 * (((2.0 * t) - 1.0) + 1.0)) * Calc<T>::pow(2.0, -10.0 * ((2.0 * t) - 1.0)) + 2.0);
 	}
 
 	template <typename T>

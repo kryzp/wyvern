@@ -102,6 +102,8 @@ namespace wvn::gfx
 		void wait_for_sync() override;
 		void clear(const Colour& colour = Colour::empty()) override;
 
+		void on_window_resize(int width, int height) override;
+
 		Ref<Texture> create_texture(u32 width, u32 height) override;
 		Ref<Shader> create_shader(const Vector<char>& vert_source, const Vector<char>& frag_source) override;
 		Ref<RenderTarget> create_render_target(u32 width, u32 height) override;
@@ -145,6 +147,7 @@ namespace wvn::gfx
 		Vector<VkSemaphore> m_image_available_semaphores;
 		Vector<VkSemaphore> m_render_finished_semaphores;
 		Vector<VkFence> m_in_flight_fences;
+		bool m_is_framebuffer_resized;
 
 		// render pass
 		VkRenderPass m_render_pass;
