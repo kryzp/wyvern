@@ -29,7 +29,6 @@ namespace wvn
 		static T log(T x, T b);
 		static T log2(T x);
 		static T log10(T x);
-		static T lb(T x);
 		static T ln(T x);
 
 		static T max(T x, T y);
@@ -151,12 +150,6 @@ namespace wvn
 	T Calc<T>::log10(T x)
 	{
 		return std::log10(x);
-	}
-
-	template <typename T>
-	T Calc<T>::lb(T x)
-	{
-		return std::log2(x);
 	}
 
 	template <typename T>

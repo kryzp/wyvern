@@ -16,8 +16,10 @@ add_library(${PROJECT_NAME}
 	public/wvn/actor/scene_mgr.cpp
 
 	public/wvn/audio/audio_mgr.cpp
+	public/wvn/audio/sound.cpp
 
 	public/wvn/input/input_mgr.cpp
+	public/wvn/input/v_button.cpp
 
 	public/wvn/animation/animation_mgr.cpp
 

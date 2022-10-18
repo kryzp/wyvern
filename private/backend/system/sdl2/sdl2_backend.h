@@ -1,6 +1,7 @@
 #pragma once
 
 #include <wvn/system/system_backend.h>
+#include <wvn/input/input_mgr.h>
 #include <SDL.h>
 
 namespace wvn::sys
@@ -43,10 +44,10 @@ namespace wvn::sys
 		u64 ticks() override;
 
 		void* stream_from_file(const char* filepath, const char* mode) override;
-		void* stream_from_memory(void* memory, s64 size) override;
-		void* stream_from_const_memory(const void* memory, s64 size) override;
-		s64 stream_read(void* stream, void* ptr, s64 size) override;
-		s64 stream_write(void* stream, const void* ptr, s64 size) override;
+		void* stream_from_memory(void* memory, u64 size) override;
+		void* stream_from_const_memory(const void* memory, u64 size) override;
+		s64 stream_read(void* stream, void* ptr, u64 size) override;
+		s64 stream_write(void* stream, const void* ptr, u64 size) override;
 		s64 stream_seek(void* stream, s64 offset) override;
 		s64 stream_size(void* stream) override;
 		s64 stream_position(void* stream) override;

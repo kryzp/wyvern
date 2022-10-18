@@ -58,10 +58,10 @@ namespace wvn::sys
 		virtual u64 ticks() = 0;
 
 		virtual void* stream_from_file(const char* filepath, const char* mode) = 0;
-		virtual void* stream_from_memory(void* memory, s64 size) = 0;
-		virtual void* stream_from_const_memory(const void* memory, s64 size) = 0;
-		virtual s64 stream_read(void* stream, void* ptr, s64 size) = 0;
-		virtual s64 stream_write(void* stream, const void* ptr, s64 size) = 0;
+		virtual void* stream_from_memory(void* memory, u64 size) = 0;
+		virtual void* stream_from_const_memory(const void* memory, u64 size) = 0;
+		virtual s64 stream_read(void* stream, void* ptr, u64 size) = 0;
+		virtual s64 stream_write(void* stream, const void* ptr, u64 size) = 0;
 		virtual s64 stream_seek(void* stream, s64 offset) = 0;
 		virtual s64 stream_size(void* stream) = 0;
 		virtual s64 stream_position(void* stream) = 0;

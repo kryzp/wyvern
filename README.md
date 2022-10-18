@@ -44,12 +44,12 @@ beeg yoshi size engine
   - [ ] Component-Based System
 - [ ] Input Manager
   - [ ] PC / Console
-- [ ] Extensive Maths Library
-  - [ ] Vector / Matrix Maths
-  - [ ] Shapes
-  - [ ] Random
-  - [ ] Timer
-  - [ ] Calculator and Ease utilities
+- [x] Maths Library
+  - [x] Vector / Matrix Maths
+  - [x] Shapes
+  - [x] Random
+  - [x] Timer
+  - [x] Calculator and Ease utilities
 - [ ] Networking Tools
   - [ ] Abstract Socket + Listener
   - [ ] TCP / UDP Support
@@ -60,6 +60,6 @@ beeg yoshi size engine
 - [ ] Multi-Threading Tools
   - [ ] Thread class
 - [ ] General Utilities
-  - [ ] Types
+  - [x] Types
   - [ ] Debugging / Assertions
-  - [ ] Singleton
+  - [x] Singleton

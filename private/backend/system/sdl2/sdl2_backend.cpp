@@ -3,6 +3,7 @@
 #include <wvn/root.h>
 #include <wvn/devenv/log_mgr.h>
 #include <wvn/graphics/renderer_backend.h>
+#include <wvn/input/input_mgr.h>
 
 #if WVN_USE_VULKAN
 #include <SDL_vulkan.h>
@@ -60,6 +61,7 @@ SystemProperties SDL2Backend::properties()
 void SDL2Backend::poll_events()
 {
 	SDL_Event e;
+	inp::JoystickHat v0;
 
 	while (SDL_PollEvent(&e))
 	{
@@ -74,57 +76,53 @@ void SDL2Backend::poll_events()
 				break;
 
 			case SDL_MOUSEWHEEL:
-				//Input::inst()->on_mouse_wheel(e.wheel.x, e.wheel.y);
+				InputMgr::get_singleton().on_mouse_wheel(e.wheel.x, e.wheel.y);
 				break;
 
 			case SDL_MOUSEMOTION:
 				int spx, spy;
 				SDL_GetGlobalMouseState(&spx, &spy);
-				//Input::inst()->on_mouse_screen_move(spx, spy);
-				//Input::inst()->on_mouse_move(e.motion.x, e.motion.y);
+				InputMgr::get_singleton().on_mouse_screen_move(spx, spy);
+				InputMgr::get_singleton().on_mouse_move(e.motion.x, e.motion.y);
 				break;
 
 			case SDL_MOUSEBUTTONDOWN:
-				//Input::inst()->on_mouse_down((MouseButton)e.button.button);
+				InputMgr::get_singleton().on_mouse_down(e.button.button);
 				break;
 
 			case SDL_MOUSEBUTTONUP:
-				//Input::inst()->on_mouse_up((MouseButton)e.button.button);
+				InputMgr::get_singleton().on_mouse_up(e.button.button);
 				break;
 
 			case SDL_KEYDOWN:
-				//Input::inst()->on_key_down((Key)e.key.keysym.scancode);
+				InputMgr::get_singleton().on_key_down(e.key.keysym.scancode);
 				break;
 
 			case SDL_KEYUP:
-				//Input::inst()->on_key_up((Key)e.key.keysym.scancode);
+				InputMgr::get_singleton().on_key_up(e.key.keysym.scancode);
 				break;
 
 			case SDL_TEXTINPUT:
-				//Input::inst()->on_text_utf8(e.text.text);
+				InputMgr::get_singleton().on_text_utf8(e.text.text);
 				break;
 
 			case SDL_JOYBUTTONDOWN:
-				//Input::inst()->on_joystick_button_down((JoystickButton)e.jbutton.button);
+				//InputMgr::get_singleton().on_joystick_button_down(e.jball.which, e.jbutton.button);
 				break;
 
 			case SDL_JOYBUTTONUP:
-				//Input::inst()->on_joystick_button_up((JoystickButton)e.jbutton.button);
-				break;
-
-			case SDL_JOYBALLMOTION:
-				//Input::inst()->on_joystick_ball(e.jball.ball);
-				break;
-
-			case SDL_JOYHATMOTION:
-				//Input::inst()->on_joystick_hat(e.jhat.value);
+				//InputMgr::get_singleton().on_joystick_button_up(e.jball.which, e.jbutton.button);
 				break;
 
 			case SDL_JOYAXISMOTION:
-				//float value;
-				//if (e.jaxis.value >= 0) value = static_cast<float>(e.jaxis.value) / 32767.0f;
-				//else value = static_cast<float>(e.jaxis.value) / 32768.0f;
-				//Input::inst()->on_joystick_motion((e.jaxis.axis == 0) ? JS_AXIS_H : JS_AXIS_V, value);
+
+				/*
+				InputMgr::get_singleton().on_joystick_motion(
+					e.jaxis.which,
+					(e.jaxis.axis == 0) ? inp::JS_AXIS_H : inp::JS_AXIS_V,
+					static_cast<float>(e.jaxis.value) / static_cast<float>(SDL_JOYSTICK_AXIS_MAX - ((e.jaxis.value >= 0) ? 1.0f : 0.0f))
+				);
+				*/
 				break;
 
 			default:
@@ -266,22 +264,22 @@ void* SDL2Backend::stream_from_file(const char* filepath, const char* mode)
 	return SDL_RWFromFile(filepath, mode);
 }
 
-void* SDL2Backend::stream_from_memory(void* memory, s64 size)
+void* SDL2Backend::stream_from_memory(void* memory, u64 size)
 {
 	return SDL_RWFromMem(memory, size);
 }
 
-void* SDL2Backend::stream_from_const_memory(const void* memory, s64 size)
+void* SDL2Backend::stream_from_const_memory(const void* memory, u64 size)
 {
 	return SDL_RWFromConstMem(memory, size);
 }
 
-s64 SDL2Backend::stream_read(void* stream, void* ptr, s64 size)
+s64 SDL2Backend::stream_read(void* stream, void* ptr, u64 size)
 {
 	return SDL_RWread((SDL_RWops*)stream, ptr, sizeof(char), size);
 }
 
-s64 SDL2Backend::stream_write(void* stream, const void* ptr, s64 size)
+s64 SDL2Backend::stream_write(void* stream, const void* ptr, u64 size)
 {
 	return SDL_RWwrite((SDL_RWops*)stream, ptr, sizeof(char), size);
 }

@@ -921,6 +921,8 @@ u32 VulkanBackend::assign_physical_device_usability(
 	bool indices_complete = find_queue_families(device).is_complete();
 
 	if (properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) {
+		result += 2;
+	} else if (properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU) {
 		result += 1;
 	}
 

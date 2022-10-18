@@ -12,8 +12,9 @@ Stream::Stream()
 
 Stream::~Stream()
 {
-	if (p_stream)
+	if (p_stream) {
 		Root::get_singleton().current_system_backend()->stream_close(p_stream);
+	}
 }
 
 void Stream::read(void* buffer, s64 length) const
