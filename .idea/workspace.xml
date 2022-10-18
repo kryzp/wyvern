@@ -18,15 +18,18 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f7c9d8f6-3073-4d14-bdb7-2af3181d6545" name="Changes" comment="Added logo image.">
+    <list default="true" id="f7c9d8f6-3073-4d14-bdb7-2af3181d6545" name="Changes" comment="Updated README.md.">
+      <change afterPath="$PROJECT_DIR$/public/wvn/graphics/vertex.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/private/backend/graphics/vulkan/vulkan_backend.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/private/backend/graphics/vulkan/vulkan_backend.cpp" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/private/backend/graphics/vulkan/vulkan_backend.h" beforeDir="false" afterPath="$PROJECT_DIR$/private/backend/graphics/vulkan/vulkan_backend.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/private/backend/system/sdl2/sdl2_backend.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/private/backend/system/sdl2/sdl2_backend.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/wvn/graphics/render_pass.h" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/graphics/render_pass.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/public/wvn/graphics/renderer_backend.h" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/graphics/renderer_backend.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/wvn/maths/calc.h" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/maths/calc.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/wvn/maths/ease.h" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/maths/ease.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/src/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/test/src/main.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/wvn/graphics/rendering_mgr.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/graphics/rendering_mgr.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/wvn/maths/colour.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/maths/colour.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/wvn/maths/colour.h" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/maths/colour.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/res/shader.vert" beforeDir="false" afterPath="$PROJECT_DIR$/test/res/shader.vert" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/test/res/vert.spv" beforeDir="false" afterPath="$PROJECT_DIR$/test/res/vert.spv" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -204,7 +207,7 @@
       <workItem from="1665937771812" duration="4354000" />
       <workItem from="1665943252555" duration="41000" />
       <workItem from="1665945531972" duration="1625000" />
-      <workItem from="1666039881020" duration="1018000" />
+      <workItem from="1666039881020" duration="12160000" />
     </task>
     <task id="LOCAL-00001" summary="Working on Actor System.">
       <created>1662415127833</created>
@@ -367,7 +370,21 @@
       <option name="project" value="LOCAL" />
       <updated>1665945581945</updated>
     </task>
-    <option name="localTasksCounter" value="24" />
+    <task id="LOCAL-00024" summary="Fixed Ease">
+      <created>1666040971870</created>
+      <option name="number" value="00024" />
+      <option name="presentableId" value="LOCAL-00024" />
+      <option name="project" value="LOCAL" />
+      <updated>1666040971870</updated>
+    </task>
+    <task id="LOCAL-00025" summary="Updated README.md.">
+      <created>1666041543687</created>
+      <option name="number" value="00025" />
+      <option name="presentableId" value="LOCAL-00025" />
+      <option name="project" value="LOCAL" />
+      <updated>1666041543687</updated>
+    </task>
+    <option name="localTasksCounter" value="26" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -408,7 +425,20 @@
     <MESSAGE value="Completed the Complex arc* functions!" />
     <MESSAGE value="Working on swap-chain recreation. Also changed /math/ to /maths/ because I'm not in 'murica" />
     <MESSAGE value="Added logo image." />
-    <option name="LAST_COMMIT_MESSAGE" value="Added logo image." />
+    <MESSAGE value="Fixed Ease" />
+    <MESSAGE value="Updated README.md." />
+    <option name="LAST_COMMIT_MESSAGE" value="Updated README.md." />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
+          <url>file://$PROJECT_DIR$/private/backend/graphics/vulkan/vulkan_backend.cpp</url>
+          <line>922</line>
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />

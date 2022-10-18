@@ -1,8 +1,16 @@
 #pragma once
 
+#include <wvn/maths/colour.h>
+#include <wvn/maths/rect.h>
+#include <wvn/container/optional.h>
+
 namespace wvn::gfx
 {
-	class RenderPass
+	struct RenderPass
 	{
+		Colour clear_colour;
+
+		Optional<RectF> viewport;
+		Optional<RectI> scissor;
 	};
 }

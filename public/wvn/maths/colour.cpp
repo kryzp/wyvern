@@ -3,6 +3,22 @@
 
 using namespace wvn;
 
+DisplayColour::DisplayColour()
+	: r(0.0f)
+	, g(0.0f)
+	, b(0.0f)
+{
+}
+
+DisplayColour::DisplayColour(float r, float g, float b)
+	: r(r)
+	, g(g)
+	, b(b)
+{
+}
+
+/*******************************************/
+
 Colour::Colour()
 	: r(0)
 	, g(0)
@@ -90,6 +106,16 @@ Colour Colour::lerp(const Colour& from, const Colour& to, float amount)
 	);
 }
 
+u32 Colour::pack() const
+{
+	return (
+		r << 24 |
+		g << 16 |
+		b << 8  |
+		a << 0
+	);
+}
+
 void Colour::premultiply()
 {
 	r = (r * a) / 255;
@@ -102,6 +128,31 @@ Colour Colour::premultiplied() const
 	Colour c = *this;
 	c.premultiply();
 	return c;
+}
+
+DisplayColour Colour::display_colour() const
+{
+	return DisplayColour(
+		static_cast<float>(r) / 255.0f,
+		static_cast<float>(g) / 255.0f,
+		static_cast<float>(b) / 255.0f
+	);
+}
+
+void Colour::export_to_u8(u8* colours) const
+{
+	colours[0] = r;
+	colours[1] = g;
+	colours[2] = b;
+	colours[3] = a;
+}
+
+void Colour::export_to_float(float* colours) const
+{
+	colours[0] = static_cast<float>(r) / 255.0f;
+	colours[1] = static_cast<float>(g) / 255.0f;
+	colours[2] = static_cast<float>(b) / 255.0f;
+	colours[3] = static_cast<float>(a) / 255.0f;
 }
 
 bool Colour::operator == (const Colour& other) const

@@ -30,10 +30,8 @@ namespace wvn::gfx
 		virtual RendererProperties properties() = 0;
 
 		virtual void render(const RenderPass& pass) = 0;
-		virtual void debug_render() = 0;
 
 		virtual void wait_for_sync() = 0;
-		virtual void clear(const Colour& colour = Colour::empty()) = 0;
 
 		virtual void on_window_resize(int width, int height) = 0;
 

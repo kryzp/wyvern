@@ -9,6 +9,8 @@
 #include <wvn/system/system_backend.h>
 #include <wvn/devenv/log_mgr.h>
 #include <wvn/graphics/render_pass.h>
+#include <wvn/graphics/vertex.h>
+#include <wvn/container/array.h>
 
 #include <backend/graphics/vulkan/vk_shader.h>
 
@@ -18,6 +20,14 @@
 
 using namespace wvn;
 using namespace wvn::gfx;
+
+// TEMP //
+static Vertex VERTICES[] = {
+	{ {  0.0f, -0.5f }, { 1.0f, 0.0f, 0.0f } },
+	{ {  0.5f,  0.5f }, { 0.0f, 1.0f, 0.0f } },
+	{ { -0.5f,  0.5f }, { 0.0f, 0.0f, 1.0f } },
+};
+// TEMP //
 
 static const char* VALIDATION_LAYERS[] = {
 	"VK_LAYER_KHRONOS_validation" // idk what the #define macro name for this is
@@ -150,12 +160,43 @@ static Vector<const char*> get_instance_extensions()
 	return extensions;
 }
 
+static Array<VkVertexInputAttributeDescription, 2> get_vertex_attribute_description()
+{
+	Array<VkVertexInputAttributeDescription, 2> result = {};
+
+	// position part
+	result[0].binding = 0;
+	result[0].location = 0;
+	result[0].format = VK_FORMAT_R32G32_SFLOAT;
+	result[0].offset = offsetof(Vertex, pos);
+
+	// colour part
+	result[1].binding = 0;
+	result[1].location = 1;
+	result[1].format = VK_FORMAT_R32G32B32_SFLOAT;
+	result[1].offset = offsetof(Vertex, col);
+
+	return result;
+}
+
+static VkVertexInputBindingDescription get_vertex_binding_description()
+{
+	VkVertexInputBindingDescription result = {};
+	result.binding = 0;
+	result.stride = sizeof(Vertex);
+	result.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+
+	return result;
+}
+
 VulkanBackend::VulkanBackend()
 	: m_instance(VK_NULL_HANDLE)
 	, m_surface(VK_NULL_HANDLE)
 	, m_current_frame(0)
 	, m_command_pool(VK_NULL_HANDLE)
 	, m_command_buffers()
+	, m_vertex_buffer(VK_NULL_HANDLE)
+	, m_vertex_buffer_memory(VK_NULL_HANDLE)
 	, m_image_available_semaphores()
 	, m_render_finished_semaphores()
 	, m_in_flight_fences()
@@ -223,8 +264,7 @@ VulkanBackend::VulkanBackend()
 
 	create_info.flags |= VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
 
-	if (VkResult result = vkCreateInstance(&create_info, nullptr, &m_instance); result != VK_SUCCESS)
-	{
+	if (VkResult result = vkCreateInstance(&create_info, nullptr, &m_instance); result != VK_SUCCESS) {
 		dev::LogMgr::get_singleton().print("[VULKAN] Result: %d", result);
 		WVN_ERROR("[VULKAN] Failed to create instance.");
 	}
@@ -238,7 +278,8 @@ VulkanBackend::VulkanBackend()
 
 	// create surface
 	if (bool result = Root::get_singleton().current_system_backend()->vk_create_surface(m_instance, &m_surface); !result) {
-		WVN_ERROR("[VULKAN] Failed to create surface.");
+		dev::LogMgr::get_singleton().print("[VULKAN] Result: %d", result);
+		WVN_ERROR("[VULKAN:DEBUG] Failed to create surface.");
 	}
 
 	enumerate_physical_devices();
@@ -252,6 +293,7 @@ VulkanBackend::VulkanBackend()
 	create_graphics_pipeline();
 	create_swap_chain_framebuffers();
 	create_command_pool(phys_idx);
+	create_vertex_buffer();
 	create_command_buffers();
 	create_sync_objects();
 
@@ -265,6 +307,9 @@ VulkanBackend::~VulkanBackend()
 	// //
 
 	clean_up_swap_chain();
+
+	vkDestroyBuffer(m_logical_data.device, m_vertex_buffer, nullptr);
+	vkFreeMemory(m_logical_data.device, m_vertex_buffer_memory, nullptr);
 
 	vkDestroyPipeline(m_logical_data.device, m_graphics_pipeline, nullptr);
 	vkDestroyPipelineLayout(m_logical_data.device, m_pipeline_layout, nullptr);
@@ -516,14 +561,17 @@ void VulkanBackend::create_graphics_pipeline()
 	VulkanShader* vk_temp_shader = static_cast<VulkanShader*>(temp_shader.get());
 	//////// debug /////////
 
+	auto binding_desc = get_vertex_binding_description();
+	auto attribs_desc = get_vertex_attribute_description();
+
 	VkPipelineShaderStageCreateInfo shader_stages[2] = { vk_temp_shader->vert_info, vk_temp_shader->frag_info };
 
 	VkPipelineVertexInputStateCreateInfo vertex_input_state_create_info = {};
 	vertex_input_state_create_info.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-	vertex_input_state_create_info.vertexBindingDescriptionCount = 0;
-	vertex_input_state_create_info.pVertexBindingDescriptions = nullptr;
-	vertex_input_state_create_info.vertexAttributeDescriptionCount = 0;
-	vertex_input_state_create_info.pVertexAttributeDescriptions = nullptr;
+	vertex_input_state_create_info.vertexBindingDescriptionCount = 1;
+	vertex_input_state_create_info.pVertexBindingDescriptions = &binding_desc;
+	vertex_input_state_create_info.vertexAttributeDescriptionCount = attribs_desc.size();
+	vertex_input_state_create_info.pVertexAttributeDescriptions = attribs_desc.data();
 
 	VkPipelineInputAssemblyStateCreateInfo input_assembly_state_create_info = {};
 	input_assembly_state_create_info.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
@@ -804,57 +852,58 @@ void VulkanBackend::create_sync_objects()
 	dev::LogMgr::get_singleton().print("[VULKAN] Created sync objects!");
 }
 
-void VulkanBackend::record_command_buffer(VkCommandBuffer cmd_buf, u32 img_idx)
+u32 VulkanBackend::find_memory_type(u32 filter, VkMemoryPropertyFlags properties)
 {
-	VkCommandBufferBeginInfo command_buffer_begin_info = {};
-	command_buffer_begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-	command_buffer_begin_info.flags = 0;
-	command_buffer_begin_info.pInheritanceInfo = nullptr;
+	VkPhysicalDeviceMemoryProperties memory_properties = {};
+	vkGetPhysicalDeviceMemoryProperties(m_physical_data.device, &memory_properties);
 
-	if (VkResult result = vkBeginCommandBuffer(cmd_buf, &command_buffer_begin_info); result != VK_SUCCESS) {
-		dev::LogMgr::get_singleton().print("[VULKAN] Result: %d", result);
-		WVN_ERROR("[VULKAN:DEBUG] Failed to begin recording command buffer.");
+	for (u32 i = 0; i < memory_properties.memoryTypeCount; i++) {
+		if ((filter & (1 << i)) && ((memory_properties.memoryTypes[i].propertyFlags & properties) == properties)) {
+			return i;
+		}
 	}
 
-	VkClearValue clear_colour = { .color = { .float32 = {
-		0.0f, 0.0f, 0.0f, 1.0f
-	}}};
+	WVN_ERROR("[VULKAN:DEBUG] Failed to find suitable memory type.");
+}
 
-	VkRenderPassBeginInfo render_pass_begin_info = {};
-	render_pass_begin_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-	render_pass_begin_info.renderPass = m_render_pass;
-	render_pass_begin_info.framebuffer = m_swap_chain_framebuffers[img_idx];
-	render_pass_begin_info.renderArea.offset = { 0, 0 };
-	render_pass_begin_info.renderArea.extent = m_swap_chain_extent;
-	render_pass_begin_info.clearValueCount = 1;
-	render_pass_begin_info.pClearValues = &clear_colour;
+void VulkanBackend::create_vertex_buffer()
+{
+	VkBufferCreateInfo buffer_create_info = {};
+	buffer_create_info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+	buffer_create_info.size = sizeof(VERTICES[0]) * ARRAY_LENGTH(VERTICES);
+	buffer_create_info.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+	buffer_create_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-	vkCmdBeginRenderPass(cmd_buf, &render_pass_begin_info, VK_SUBPASS_CONTENTS_INLINE);
-
-	vkCmdBindPipeline(cmd_buf, VK_PIPELINE_BIND_POINT_GRAPHICS, m_graphics_pipeline);
-
-	VkViewport viewport = {};
-	viewport.x = 0.0f;
-	viewport.y = 0.0f;
-	viewport.width = static_cast<float>(m_swap_chain_extent.width);
-	viewport.height = static_cast<float>(m_swap_chain_extent.height);
-	viewport.minDepth = 0.0f;
-	viewport.maxDepth = 1.0f;
-	vkCmdSetViewport(cmd_buf, 0, 1, &viewport);
-
-	VkRect2D scissor = {};
-	scissor.offset = { 0, 0 };
-	scissor.extent = m_swap_chain_extent;
-	vkCmdSetScissor(cmd_buf, 0, 1, &scissor);
-
-	vkCmdDraw(cmd_buf, 3, 1, 0, 0);
-
-	vkCmdEndRenderPass(cmd_buf);
-
-	if (VkResult result = vkEndCommandBuffer(cmd_buf); result != VK_SUCCESS) {
+	if (VkResult result = vkCreateBuffer(m_logical_data.device, &buffer_create_info, nullptr, &m_vertex_buffer); result != VK_SUCCESS) {
 		dev::LogMgr::get_singleton().print("[VULKAN] Result: %d", result);
-		WVN_ERROR("[VULKAN:DEBUG] Failed to record command buffer.");
+		WVN_ERROR("[VULKAN:DEBUG] Failed to create vertex buffer.");
 	}
+
+	VkMemoryRequirements memory_requirements = {};
+	vkGetBufferMemoryRequirements(m_logical_data.device, m_vertex_buffer, &memory_requirements);
+
+	VkMemoryAllocateInfo memory_allocate_info = {};
+	memory_allocate_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+	memory_allocate_info.allocationSize = memory_requirements.size;
+	memory_allocate_info.memoryTypeIndex = find_memory_type(
+		memory_requirements.memoryTypeBits,
+		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+	);
+
+	if (VkResult result = vkAllocateMemory(m_logical_data.device, &memory_allocate_info, nullptr, &m_vertex_buffer_memory); result != VK_SUCCESS) {
+		dev::LogMgr::get_singleton().print("[VULKAN] Result: %d", result);
+		WVN_ERROR("[VULKAN:DEBUG] Failed to allocate memory for vertex buffer.");
+	}
+
+	vkBindBufferMemory(m_logical_data.device, m_vertex_buffer, m_vertex_buffer_memory, 0);
+
+	void* data = nullptr;
+
+	vkMapMemory(m_logical_data.device, m_vertex_buffer_memory, 0, buffer_create_info.size, 0, &data);
+	mem::copy(data, VERTICES, buffer_create_info.size);
+	vkUnmapMemory(m_logical_data.device, m_vertex_buffer_memory);
+
+	dev::LogMgr::get_singleton().print("[VULKAN] Created vertex buffer!");
 }
 
 // abstract function that generates a "usability" or "goodness value" of a given device
@@ -868,13 +917,16 @@ u32 VulkanBackend::assign_physical_device_usability(
 	u32 result = 0;
 
 	bool adequate_swap_chain = false;
-	bool is_correct_device = false;//properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU; // note, isn't my M1 chip integrated graphics! this may cause issues so look here first!!!!!!!!!!!
-	bool has_required_features = false;//features.geometryShader;
 	bool has_required_extensions = check_device_extension_support(device);
 	bool indices_complete = find_queue_families(device).is_complete();
 
-	if (is_correct_device)     { result += 1; }
-	if (has_required_features) { result += 1; }
+	if (properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) {
+		result += 1;
+	}
+
+	if (features.geometryShader) {
+		result += 1;
+	}
 
 	if (has_required_extensions) {
 		SwapChainSupportDetails swap_chain_support_details = query_swap_chain_support(device);
@@ -1080,10 +1132,7 @@ Ref<Mesh> VulkanBackend::create_mesh()
 
 void VulkanBackend::wait_for_sync()
 {
-}
-
-void VulkanBackend::clear(const Colour& colour)
-{
+	vkWaitForFences(m_logical_data.device, 1, &m_in_flight_fences[m_current_frame], VK_TRUE, UINT64_MAX);
 }
 
 void VulkanBackend::on_window_resize(int width, int height)
@@ -1091,12 +1140,9 @@ void VulkanBackend::on_window_resize(int width, int height)
 	m_is_framebuffer_resized = true;
 }
 
-// temporary function while I learn how tf vulkan actually works lol
-void VulkanBackend::debug_render()
+void VulkanBackend::render(const RenderPass& pass)
 {
 	u32 img_idx;
-
-	vkWaitForFences(m_logical_data.device, 1, &m_in_flight_fences[m_current_frame], VK_TRUE, UINT64_MAX);
 
 	if (VkResult result = vkAcquireNextImageKHR(m_logical_data.device, m_swap_chain, UINT64_MAX, m_image_available_semaphores[m_current_frame], VK_NULL_HANDLE, &img_idx); result == VK_ERROR_OUT_OF_DATE_KHR) {
 		rebuild_swap_chain();
@@ -1106,10 +1152,95 @@ void VulkanBackend::debug_render()
 		WVN_ERROR("[VULKAN:DEBUG] Failed to acquire next image in swap chain.");
 	}
 
-	vkResetFences(m_logical_data.device, 1, &m_in_flight_fences[m_current_frame]);
+	VkCommandBuffer& current_buffer = m_command_buffers[m_current_frame];
 
-	vkResetCommandBuffer(m_command_buffers[m_current_frame], 0);
-	record_command_buffer(m_command_buffers[m_current_frame], img_idx);
+	vkResetFences(m_logical_data.device, 1, &m_in_flight_fences[m_current_frame]);
+	vkResetCommandBuffer(current_buffer, 0);
+
+	// render pass stuff
+	{
+		VkCommandBufferBeginInfo command_buffer_begin_info = {};
+		command_buffer_begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+		command_buffer_begin_info.flags = 0;
+		command_buffer_begin_info.pInheritanceInfo = nullptr;
+
+		if (VkResult result = vkBeginCommandBuffer(current_buffer, &command_buffer_begin_info); result != VK_SUCCESS) {
+			dev::LogMgr::get_singleton().print("[VULKAN] Result: %d", result);
+			WVN_ERROR("[VULKAN:DEBUG] Failed to begin recording command buffer.");
+		}
+
+		VkClearValue clear_colour = {};
+		pass.clear_colour.premultiplied().export_to_float(clear_colour.color.float32);
+
+		VkRenderPassBeginInfo render_pass_begin_info = {};
+		render_pass_begin_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+		render_pass_begin_info.renderPass = m_render_pass;
+		render_pass_begin_info.framebuffer = m_swap_chain_framebuffers[img_idx];
+		render_pass_begin_info.renderArea.offset = { 0, 0 };
+		render_pass_begin_info.renderArea.extent = m_swap_chain_extent;
+		render_pass_begin_info.clearValueCount = 1;
+		render_pass_begin_info.pClearValues = &clear_colour;
+
+		VkViewport viewport = {};
+
+		if (pass.viewport.has_value())
+		{
+			const auto& pass_viewport = pass.viewport.value();
+
+			viewport.x = pass_viewport.x;
+			viewport.y = pass_viewport.y;
+			viewport.width = pass_viewport.w;
+			viewport.height = pass_viewport.h;
+			viewport.minDepth = 0.0f;
+			viewport.maxDepth = 1.0f;
+		}
+		else
+		{
+			viewport.x = 0.0f;
+			viewport.y = 0.0f;
+			viewport.width = static_cast<float>(m_swap_chain_extent.width);
+			viewport.height = static_cast<float>(m_swap_chain_extent.height);
+			viewport.minDepth = 0.0f;
+			viewport.maxDepth = 1.0f;
+		}
+
+		VkRect2D scissor = {};
+
+		if (pass.scissor.has_value())
+		{
+			const auto& pass_scissor = pass.scissor.value();
+
+			scissor.offset.x = pass_scissor.x;
+			scissor.offset.y = pass_scissor.y;
+			scissor.extent.width = pass_scissor.w;
+			scissor.extent.height = pass_scissor.h;
+		}
+		else
+		{
+			scissor.offset = { 0, 0 };
+			scissor.extent = m_swap_chain_extent;
+		}
+
+		vkCmdBeginRenderPass(current_buffer, &render_pass_begin_info, VK_SUBPASS_CONTENTS_INLINE);
+		{
+			vkCmdBindPipeline(current_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_graphics_pipeline);
+
+			vkCmdSetViewport(current_buffer, 0, 1, &viewport);
+			vkCmdSetScissor(current_buffer, 0, 1, &scissor);
+
+			VkBuffer vertex_buffers[] = { m_vertex_buffer };
+			VkDeviceSize offsets[] = { 0 };
+			vkCmdBindVertexBuffers(current_buffer, 0, 1, vertex_buffers, offsets);
+
+			vkCmdDraw(current_buffer, ARRAY_LENGTH(VERTICES), 1, 0, 0);
+		}
+		vkCmdEndRenderPass(current_buffer);
+
+		if (VkResult result = vkEndCommandBuffer(current_buffer); result != VK_SUCCESS) {
+			dev::LogMgr::get_singleton().print("[VULKAN] Result: %d", result);
+			WVN_ERROR("[VULKAN:DEBUG] Failed to record command buffer.");
+		}
+	}
 
 	VkSemaphore wait_semaphores[] = { m_image_available_semaphores[m_current_frame]};
 	VkPipelineStageFlags wait_stages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
@@ -1121,13 +1252,13 @@ void VulkanBackend::debug_render()
 	submit_info.pWaitSemaphores = wait_semaphores;
 	submit_info.pWaitDstStageMask = wait_stages;
 	submit_info.commandBufferCount = 1;
-	submit_info.pCommandBuffers = &m_command_buffers[m_current_frame];
+	submit_info.pCommandBuffers = &current_buffer;
 	submit_info.signalSemaphoreCount = 1;
 	submit_info.pSignalSemaphores = signal_semaphores;
 
 	if (VkResult result = vkQueueSubmit(m_queues.graphics_queue, 1, &submit_info, m_in_flight_fences[m_current_frame]); result != VK_SUCCESS) {
 		dev::LogMgr::get_singleton().print("[VULKAN] Result: %d", result);
-		WVN_ERROR("[VULKAN:DEBUG] Failed to submit draw command buffer.");
+		WVN_ERROR("Failed to submit draw command to buffer.");
 	}
 
 	VkSwapchainKHR swapchains[] = { m_swap_chain };
@@ -1149,8 +1280,4 @@ void VulkanBackend::debug_render()
 	}
 
 	m_current_frame = (m_current_frame + 1) % MAX_FRAMES_IN_FLIGHT;
-}
-
-void VulkanBackend::render(const RenderPass& pass)
-{
 }

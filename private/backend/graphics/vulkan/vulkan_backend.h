@@ -93,14 +93,9 @@ namespace wvn::gfx
 
 		RendererProperties properties() override;
 
-		// debug //
-		void debug_render() override;
-		// debug //
-
 		void render(const RenderPass& pass) override;
 
 		void wait_for_sync() override;
-		void clear(const Colour& colour = Colour::empty()) override;
 
 		void on_window_resize(int width, int height) override;
 
@@ -118,13 +113,13 @@ namespace wvn::gfx
 		void create_command_pool(const QueueFamilyIdx& phys_idx);
 		void create_command_buffers();
 		void create_sync_objects();
+		void create_vertex_buffer();
 
 		void create_image_views();
 		void clean_up_swap_chain();
 		void rebuild_swap_chain();
 		void create_swap_chain_framebuffers();
 
-		void record_command_buffer(VkCommandBuffer cmd_buf, u32 img_idx);
 		u32 assign_physical_device_usability(VkPhysicalDevice device, VkPhysicalDeviceProperties properties, VkPhysicalDeviceFeatures features, bool* essentials_completed);
 		QueueFamilyIdx find_queue_families(VkPhysicalDevice device);
 		bool check_device_extension_support(VkPhysicalDevice device);
@@ -133,6 +128,7 @@ namespace wvn::gfx
 		VkPresentModeKHR choose_swap_present_mode(const Vector<VkPresentModeKHR>& available_present_modes);
 		VkExtent2D choose_swap_extent(const VkSurfaceCapabilitiesKHR& capabilities);
 		VkShaderModule create_shader_module(const Vector<char>& source);
+		u32 find_memory_type(u32 filter, VkMemoryPropertyFlags properties);
 
 		// core
 		VkInstance m_instance;
@@ -142,6 +138,10 @@ namespace wvn::gfx
 		// commands
 		VkCommandPool m_command_pool;
 		Vector<VkCommandBuffer> m_command_buffers;
+
+		// vertex
+		VkBuffer m_vertex_buffer;
+		VkDeviceMemory m_vertex_buffer_memory;
 
 		// sync
 		Vector<VkSemaphore> m_image_available_semaphores;
