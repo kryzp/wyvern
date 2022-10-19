@@ -26,7 +26,7 @@ Complex Complex::zeta(const Complex& s, unsigned iter)
 	Complex result = Complex::zero();
 
 	for (int n = 1; n <= iter; n++) {
-		result += Complex(1.0) / Complex::pow(static_cast<double>(n), s);
+		result += Complex::one() / Complex::pow(static_cast<double>(n), s);
 	}
 
 	return result;
@@ -34,10 +34,10 @@ Complex Complex::zeta(const Complex& s, unsigned iter)
 
 Complex Complex::gamma(const Complex& z)
 {
-	return fact(z - Complex(1.0));
+	return factorial(z - Complex::one());
 }
 
-Complex Complex::fact(const Complex& z)
+Complex Complex::factorial(const Complex& z)
 {
 	const double DIST = 10.0 + (z.magnitude_squared() / 2.0);
 	constexpr double DX = 0.01;
@@ -53,6 +53,10 @@ Complex Complex::fact(const Complex& z)
 
 Complex Complex::pow(const Complex& z, const Complex& p)
 {
+	// i am so proud of this
+	// it took so long to figure out the maths behind this
+	// super interesting though!
+
 	if (z == Complex::zero())
 		return Complex::zero();
 
@@ -208,11 +212,11 @@ Complex Complex::operator * (const Complex& other) const
 
 Complex Complex::operator / (const Complex& other) const
 {
-	double divisor = (other.real * other.real) + (other.imag * other.imag);
+	double mag_sqr = other.magnitude_squared();
 
 	return Complex(
-		((this->real * other.real) + (this->imag * other.imag)) / divisor,
-		((this->imag * other.real) - (this->real * other.imag)) / divisor
+		((this->real * other.real) + (this->imag * other.imag)) / mag_sqr,
+		((this->imag * other.real) - (this->real * other.imag)) / mag_sqr
 	);
 }
 

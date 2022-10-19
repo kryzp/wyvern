@@ -75,7 +75,9 @@ add_library(${PROJECT_NAME}
 
 	private/backend/system/sdl2/sdl2_backend.cpp
 
-	private/backend/graphics/vulkan/vulkan_backend.cpp
+	private/backend/graphics/vulkan/vk_backend.cpp
+	private/backend/graphics/vulkan/vk_buffer.cpp
+	private/backend/graphics/vulkan/vk_util.cpp
 	private/backend/graphics/vulkan/vk_shader.cpp
 	private/backend/graphics/vulkan/vk_texture.cpp
 	private/backend/graphics/vulkan/vk_mesh.cpp

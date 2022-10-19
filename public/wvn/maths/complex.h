@@ -20,7 +20,7 @@ namespace wvn
 
 		static Complex zeta(const Complex& s, unsigned iter = 48);
 		static Complex gamma(const Complex& z);
-		static Complex fact(const Complex& z);
+		static Complex factorial(const Complex& z);
 
 		static Complex pow(const Complex& z, const Complex& p);
 		static Complex exp(const Complex& b);

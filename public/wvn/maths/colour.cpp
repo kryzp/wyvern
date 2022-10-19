@@ -106,6 +106,7 @@ Colour Colour::lerp(const Colour& from, const Colour& to, float amount)
 	);
 }
 
+/*
 u32 Colour::pack() const
 {
 	return (
@@ -115,6 +116,7 @@ u32 Colour::pack() const
 		a << 0
 	);
 }
+*/
 
 void Colour::premultiply()
 {

@@ -37,6 +37,7 @@ namespace wvn
 			};
 
 			u8 data[4];
+			u32 packed;
 		};
 
 		Colour();
@@ -55,8 +56,6 @@ namespace wvn
 
 		static Colour from_hsv(float hue, float sat, float val, u8 alpha = 255);
 		static Colour lerp(const Colour& from, const Colour& to, float amount);
-
-		u32 pack() const;
 
 		void premultiply();
 		Colour premultiplied() const;

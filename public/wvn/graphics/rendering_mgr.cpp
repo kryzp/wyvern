@@ -25,7 +25,12 @@ void RenderingMgr::render_scene()
 	time += 1.0f / 500.0f;
 
 	RenderPass pass = {
-		.clear_colour = Colour((CalcF::cos(time * 4.0f) + 1.0f) * 0.5f * 255.0f, (CalcF::sin(time * 3.14159f) + 1.0f) * 0.5f * 255.0f, (CalcF::sin(time * 7.3f + 3.0f) + 1.0f) * 0.5f * 255.0f, 255)
+		.clear_colour = Colour::black()/*Colour(
+			(CalcF::cos(time * 4.0f) + 1.0f) * 0.5f * 255.0f,
+			(CalcF::sin(time * 3.14159f) + 1.0f) * 0.5f * 255.0f,
+			(CalcF::sin(time * 7.3f + 3.0f) + 1.0f) * 0.5f * 255.0f,
+			255
+		)*/
 	};
 
 	renderer->render(pass);

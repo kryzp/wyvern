@@ -3,7 +3,7 @@
 // Thank. You. So. Much.
 // I love Vulkan. Thamk u Khronos (tm) (c) (r) uwu
 
-#include <backend/graphics/vulkan/vulkan_backend.h>
+#include <backend/graphics/vulkan/vk_backend.h>
 
 #include <wvn/root.h>
 #include <wvn/system/system_backend.h>
@@ -23,9 +23,14 @@ using namespace wvn::gfx;
 
 // TEMP //
 static Vertex VERTICES[] = {
-	{ {  0.0f, -0.5f }, { 1.0f, 0.0f, 0.0f } },
-	{ {  0.5f,  0.5f }, { 0.0f, 1.0f, 0.0f } },
+	{ { -0.5f, -0.5f }, { 1.0f, 0.0f, 0.0f } },
+	{ {  0.5f, -0.5f }, { 0.0f, 1.0f, 0.0f } },
+	{ {  0.5f,  0.5f }, { 1.0f, 1.0f, 0.0f } },
 	{ { -0.5f,  0.5f }, { 0.0f, 0.0f, 1.0f } },
+};
+
+static u16 INDICES[] = {
+	0, 1, 2, 2, 3, 0
 };
 // TEMP //
 
@@ -195,8 +200,8 @@ VulkanBackend::VulkanBackend()
 	, m_current_frame(0)
 	, m_command_pool(VK_NULL_HANDLE)
 	, m_command_buffers()
-	, m_vertex_buffer(VK_NULL_HANDLE)
-	, m_vertex_buffer_memory(VK_NULL_HANDLE)
+	, m_staging_buffer()
+	, m_vertex_buffer()
 	, m_image_available_semaphores()
 	, m_render_finished_semaphores()
 	, m_in_flight_fences()
@@ -294,6 +299,7 @@ VulkanBackend::VulkanBackend()
 	create_swap_chain_framebuffers();
 	create_command_pool(phys_idx);
 	create_vertex_buffer();
+	create_index_buffer();
 	create_command_buffers();
 	create_sync_objects();
 
@@ -308,8 +314,8 @@ VulkanBackend::~VulkanBackend()
 
 	clean_up_swap_chain();
 
-	vkDestroyBuffer(m_logical_data.device, m_vertex_buffer, nullptr);
-	vkFreeMemory(m_logical_data.device, m_vertex_buffer_memory, nullptr);
+	m_index_buffer.clean_up();
+	m_vertex_buffer.clean_up();
 
 	vkDestroyPipeline(m_logical_data.device, m_graphics_pipeline, nullptr);
 	vkDestroyPipelineLayout(m_logical_data.device, m_pipeline_layout, nullptr);
@@ -436,8 +442,8 @@ void VulkanBackend::create_logical_device(const QueueFamilyIdx& phys_idx)
 
 	vkGetDeviceQueue(m_logical_data.device, phys_idx.graphics_family.value(), 0, &m_queues.graphics_queue);
 	vkGetDeviceQueue(m_logical_data.device, phys_idx.present_family.value(),  0, &m_queues.present_queue);
-//	vkGetDeviceQueue(m_logical_data.device, phys_idx.compute_family.value(),  0, &m_queues.compute_queue);
-//	vkGetDeviceQueue(m_logical_data.device, phys_idx.transfer_family.value(), 0, &m_queues.transfer_queue);
+	vkGetDeviceQueue(m_logical_data.device, phys_idx.compute_family.value(),  0, &m_queues.compute_queue);
+	vkGetDeviceQueue(m_logical_data.device, phys_idx.transfer_family.value(), 0, &m_queues.transfer_queue);
 
 	dev::LogMgr::get_singleton().print("[VULKAN] Created a logical device!");
 }
@@ -852,58 +858,56 @@ void VulkanBackend::create_sync_objects()
 	dev::LogMgr::get_singleton().print("[VULKAN] Created sync objects!");
 }
 
-u32 VulkanBackend::find_memory_type(u32 filter, VkMemoryPropertyFlags properties)
-{
-	VkPhysicalDeviceMemoryProperties memory_properties = {};
-	vkGetPhysicalDeviceMemoryProperties(m_physical_data.device, &memory_properties);
-
-	for (u32 i = 0; i < memory_properties.memoryTypeCount; i++) {
-		if ((filter & (1 << i)) && ((memory_properties.memoryTypes[i].propertyFlags & properties) == properties)) {
-			return i;
-		}
-	}
-
-	WVN_ERROR("[VULKAN:DEBUG] Failed to find suitable memory type.");
-}
-
 void VulkanBackend::create_vertex_buffer()
 {
-	VkBufferCreateInfo buffer_create_info = {};
-	buffer_create_info.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-	buffer_create_info.size = sizeof(VERTICES[0]) * ARRAY_LENGTH(VERTICES);
-	buffer_create_info.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
-	buffer_create_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+	VkDeviceSize buffer_size = sizeof(VERTICES[0]) * ARRAY_LENGTH(VERTICES);
 
-	if (VkResult result = vkCreateBuffer(m_logical_data.device, &buffer_create_info, nullptr, &m_vertex_buffer); result != VK_SUCCESS) {
-		dev::LogMgr::get_singleton().print("[VULKAN] Result: %d", result);
-		WVN_ERROR("[VULKAN:DEBUG] Failed to create vertex buffer.");
-	}
-
-	VkMemoryRequirements memory_requirements = {};
-	vkGetBufferMemoryRequirements(m_logical_data.device, m_vertex_buffer, &memory_requirements);
-
-	VkMemoryAllocateInfo memory_allocate_info = {};
-	memory_allocate_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-	memory_allocate_info.allocationSize = memory_requirements.size;
-	memory_allocate_info.memoryTypeIndex = find_memory_type(
-		memory_requirements.memoryTypeBits,
+	m_staging_buffer.create(
+		m_logical_data.device, m_physical_data.device,
+		buffer_size,
+		VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
 		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
 	);
 
-	if (VkResult result = vkAllocateMemory(m_logical_data.device, &memory_allocate_info, nullptr, &m_vertex_buffer_memory); result != VK_SUCCESS) {
-		dev::LogMgr::get_singleton().print("[VULKAN] Result: %d", result);
-		WVN_ERROR("[VULKAN:DEBUG] Failed to allocate memory for vertex buffer.");
-	}
+	m_staging_buffer.send_data(VERTICES);
 
-	vkBindBufferMemory(m_logical_data.device, m_vertex_buffer, m_vertex_buffer_memory, 0);
+	m_vertex_buffer.create(
+		m_logical_data.device, m_physical_data.device,
+		buffer_size,
+		VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
+	);
 
-	void* data = nullptr;
-
-	vkMapMemory(m_logical_data.device, m_vertex_buffer_memory, 0, buffer_create_info.size, 0, &data);
-	mem::copy(data, VERTICES, buffer_create_info.size);
-	vkUnmapMemory(m_logical_data.device, m_vertex_buffer_memory);
+	m_staging_buffer.copy_to(m_vertex_buffer, m_command_pool, m_queues.graphics_queue);
+	m_staging_buffer.clean_up();
 
 	dev::LogMgr::get_singleton().print("[VULKAN] Created vertex buffer!");
+}
+
+void VulkanBackend::create_index_buffer()
+{
+	VkDeviceSize buffer_size = sizeof(INDICES[0]) * ARRAY_LENGTH(INDICES);
+
+	m_staging_buffer.create(
+		m_logical_data.device, m_physical_data.device,
+		buffer_size,
+		VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+	);
+
+	m_staging_buffer.send_data(INDICES);
+
+	m_index_buffer.create(
+		m_logical_data.device, m_physical_data.device,
+		buffer_size,
+		VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
+	);
+
+	m_staging_buffer.copy_to(m_index_buffer, m_command_pool, m_queues.graphics_queue);
+	m_staging_buffer.clean_up();
+
+	dev::LogMgr::get_singleton().print("[VULKAN] Created index buffer!");
 }
 
 // abstract function that generates a "usability" or "goodness value" of a given device
@@ -963,15 +967,15 @@ QueueFamilyIdx VulkanBackend::find_queue_families(VkPhysicalDevice device)
 			continue;
 		}
 
-//		if ((queue_families[i].queueFlags & VK_QUEUE_COMPUTE_BIT) && !result.compute_family.has_value()) {
-//			result.compute_family = i;
-//			continue;
-//		}
+		if ((queue_families[i].queueFlags & VK_QUEUE_COMPUTE_BIT) && !result.compute_family.has_value()) {
+			result.compute_family = i;
+			continue;
+		}
 
-//		if ((queue_families[i].queueFlags & VK_QUEUE_TRANSFER_BIT) && !result.transfer_family.has_value()) {
-//			result.transfer_family = i;
-//			continue;
-//		}
+		if ((queue_families[i].queueFlags & VK_QUEUE_TRANSFER_BIT) && !result.transfer_family.has_value()) {
+			result.transfer_family = i;
+			continue;
+		}
 
 		VkBool32 present_support = VK_FALSE;
 		vkGetPhysicalDeviceSurfaceSupportKHR(device, i, m_surface, &present_support);
@@ -1230,11 +1234,13 @@ void VulkanBackend::render(const RenderPass& pass)
 			vkCmdSetViewport(current_buffer, 0, 1, &viewport);
 			vkCmdSetScissor(current_buffer, 0, 1, &scissor);
 
-			VkBuffer vertex_buffers[] = { m_vertex_buffer };
+			VkBuffer vertex_buffers[] = { m_vertex_buffer.buffer() };
 			VkDeviceSize offsets[] = { 0 };
-			vkCmdBindVertexBuffers(current_buffer, 0, 1, vertex_buffers, offsets);
 
-			vkCmdDraw(current_buffer, ARRAY_LENGTH(VERTICES), 1, 0, 0);
+			vkCmdBindVertexBuffers(current_buffer, 0, 1, vertex_buffers, offsets);
+			vkCmdBindIndexBuffer(current_buffer, m_index_buffer.buffer(), 0, VK_INDEX_TYPE_UINT16);
+
+			vkCmdDrawIndexed(current_buffer, ARRAY_LENGTH(INDICES), 1, 0, 0, 0);
 		}
 		vkCmdEndRenderPass(current_buffer);
 
@@ -1274,7 +1280,8 @@ void VulkanBackend::render(const RenderPass& pass)
 	present_info.pImageIndices = &img_idx;
 	present_info.pResults = nullptr;
 
-	if (VkResult result = vkQueuePresentKHR(m_queues.present_queue, &present_info); result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
+	if (VkResult result = vkQueuePresentKHR(m_queues.present_queue, &present_info); result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || m_is_framebuffer_resized) {
+		m_is_framebuffer_resized = false;
 		rebuild_swap_chain();
 	} else if (result != VK_SUCCESS) {
 		dev::LogMgr::get_singleton().print("[VULKAN] Result: %d", result);

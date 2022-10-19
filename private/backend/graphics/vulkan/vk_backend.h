@@ -8,22 +8,24 @@
 #include <wvn/util/types.h>
 #include <wvn/graphics/renderer_backend.h>
 
+#include <backend/graphics/vulkan/vk_buffer.h>
+
 namespace wvn::gfx
 {
 	struct QueueFamilyIdx
 	{
 		Optional<u32> graphics_family;
 		Optional<u32> present_family;
-//		Optional<u32> compute_family;
-//		Optional<u32> transfer_family;
+		Optional<u32> compute_family;
+		Optional<u32> transfer_family;
 
 		constexpr bool is_complete() const
 		{
 			return (
 				graphics_family &&
-				present_family// &&
-//				compute_family &&
-//				transfer_family
+				present_family &&
+				compute_family &&
+				transfer_family
 			);
 		}
 
@@ -32,28 +34,21 @@ namespace wvn::gfx
 			// todo: store/cache this??
 			const u32 g = graphics_family.value();
 			const u32 p = present_family.value();
-//			const u32 c = compute_family.value();
-//			const u32 t = transfer_family.value();
+			const u32 c = compute_family.value();
+			const u32 t = transfer_family.value();
 
 			return (
-				(g != p)
+				(g != p) && (g != t) && (t != p) && (t != c) && (g != c) && (p != c)
 			);
-
-//			return (
-//				(g != p && g != c && g != t) &&
-//				(p != g && p != c && p != t) &&
-//				(c != g && c != p && c != t) &&
-//				(t != g && t != c && t != p)
-//			);
 		}
 
 		const Vector<u32> package() const
 		{
 			return {
 				graphics_family.value(),
-				present_family.value()//,
-//				compute_family.value(),
-//				transfer_family.value()
+				present_family.value(),
+				compute_family.value(),
+				transfer_family.value()
 			};
 		}
 	};
@@ -62,8 +57,8 @@ namespace wvn::gfx
 	{
 		VkQueue graphics_queue;
 		VkQueue present_queue;
-//		VkQueue compute_queue;
-//		VkQueue transfer_queue;
+		VkQueue compute_queue;
+		VkQueue transfer_queue;
 	};
 
 	struct LogicalDeviceData
@@ -114,6 +109,7 @@ namespace wvn::gfx
 		void create_command_buffers();
 		void create_sync_objects();
 		void create_vertex_buffer();
+		void create_index_buffer();
 
 		void create_image_views();
 		void clean_up_swap_chain();
@@ -123,12 +119,13 @@ namespace wvn::gfx
 		u32 assign_physical_device_usability(VkPhysicalDevice device, VkPhysicalDeviceProperties properties, VkPhysicalDeviceFeatures features, bool* essentials_completed);
 		QueueFamilyIdx find_queue_families(VkPhysicalDevice device);
 		bool check_device_extension_support(VkPhysicalDevice device);
+
 		SwapChainSupportDetails query_swap_chain_support(VkPhysicalDevice device);
 		VkSurfaceFormatKHR choose_swap_surface_format(const Vector<VkSurfaceFormatKHR>& available_surface_formats);
 		VkPresentModeKHR choose_swap_present_mode(const Vector<VkPresentModeKHR>& available_present_modes);
 		VkExtent2D choose_swap_extent(const VkSurfaceCapabilitiesKHR& capabilities);
+
 		VkShaderModule create_shader_module(const Vector<char>& source);
-		u32 find_memory_type(u32 filter, VkMemoryPropertyFlags properties);
 
 		// core
 		VkInstance m_instance;
@@ -139,9 +136,10 @@ namespace wvn::gfx
 		VkCommandPool m_command_pool;
 		Vector<VkCommandBuffer> m_command_buffers;
 
-		// vertex
-		VkBuffer m_vertex_buffer;
-		VkDeviceMemory m_vertex_buffer_memory;
+		// vertex stuff
+		VulkanBuffer m_staging_buffer;
+		VulkanBuffer m_vertex_buffer;
+		VulkanBuffer m_index_buffer;
 
 		// sync
 		Vector<VkSemaphore> m_image_available_semaphores;

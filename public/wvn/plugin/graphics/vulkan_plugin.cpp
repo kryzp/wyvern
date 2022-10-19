@@ -1,5 +1,5 @@
 #include <wvn/plugin/graphics/vulkan_plugin.h>
-#include <backend/graphics/vulkan/vulkan_backend.h>
+#include <backend/graphics/vulkan/vk_backend.h>
 #include <wvn/root.h>
 
 using namespace wvn;
