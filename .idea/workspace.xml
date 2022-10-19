@@ -18,22 +18,8 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f7c9d8f6-3073-4d14-bdb7-2af3181d6545" name="Changes" comment="Updated logo.png">
-      <change afterPath="$PROJECT_DIR$/private/backend/graphics/vulkan/vk_buffer.cpp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/private/backend/graphics/vulkan/vk_buffer.h" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/private/backend/graphics/vulkan/vk_util.cpp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/private/backend/graphics/vulkan/vk_util.h" afterDir="false" />
+    <list default="true" id="f7c9d8f6-3073-4d14-bdb7-2af3181d6545" name="Changes" comment="Upgraded to the [ S Q U A R E ].">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CMakeLists.txt" beforeDir="false" afterPath="$PROJECT_DIR$/CMakeLists.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/private/backend/graphics/vulkan/vulkan_backend.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/private/backend/graphics/vulkan/vk_backend.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/private/backend/graphics/vulkan/vulkan_backend.h" beforeDir="false" afterPath="$PROJECT_DIR$/private/backend/graphics/vulkan/vk_backend.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/wvn/graphics/rendering_mgr.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/graphics/rendering_mgr.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/wvn/maths/colour.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/maths/colour.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/wvn/maths/colour.h" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/maths/colour.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/wvn/maths/complex.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/maths/complex.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/wvn/maths/complex.h" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/maths/complex.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/wvn/plugin/graphics/vulkan_plugin.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/plugin/graphics/vulkan_plugin.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/quick_todo.txt" beforeDir="false" afterPath="$PROJECT_DIR$/quick_todo.txt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -213,7 +199,8 @@
       <workItem from="1665945531972" duration="1625000" />
       <workItem from="1666039881020" duration="25901000" />
       <workItem from="1666171946845" duration="3225000" />
-      <workItem from="1666177172392" duration="4572000" />
+      <workItem from="1666177172392" duration="5022000" />
+      <workItem from="1666182800557" duration="1000" />
     </task>
     <task id="LOCAL-00001" summary="Working on Actor System.">
       <created>1662415127833</created>
@@ -411,7 +398,14 @@
       <option name="project" value="LOCAL" />
       <updated>1666123461863</updated>
     </task>
-    <option name="localTasksCounter" value="29" />
+    <task id="LOCAL-00029" summary="Upgraded to the [ S Q U A R E ].">
+      <created>1666182223928</created>
+      <option name="number" value="00029" />
+      <option name="presentableId" value="LOCAL-00029" />
+      <option name="project" value="LOCAL" />
+      <updated>1666182223928</updated>
+    </task>
+    <option name="localTasksCounter" value="30" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -429,7 +423,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Starting on Vulkan and SDL2 backends." />
     <MESSAGE value="Added Complex::i()." />
     <MESSAGE value="More Vulkan progress." />
     <MESSAGE value="Quick detour to semi-fix the Complex::pow function (still doesn't work for roots)" />
@@ -454,7 +447,8 @@
     <MESSAGE value="Vertex buffers." />
     <MESSAGE value="Implemented basic input managing." />
     <MESSAGE value="Updated logo.png" />
-    <option name="LAST_COMMIT_MESSAGE" value="Updated logo.png" />
+    <MESSAGE value="Upgraded to the [ S Q U A R E ]." />
+    <option name="LAST_COMMIT_MESSAGE" value="Upgraded to the [ S Q U A R E ]." />
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />
