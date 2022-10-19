@@ -4,6 +4,9 @@
 
 namespace wvn::io
 {
+	/*
+	 * Memory-specialized stream.
+	 */
 	class MemoryStream : public Stream
 	{
 	public:
@@ -12,6 +15,9 @@ namespace wvn::io
 		MemoryStream& open(void* memory, u64 length);
 	};
 
+	/*
+	 * Const-memory-specialized stream.
+	 */
 	class ConstMemoryStream : public Stream
 	{
 	public:

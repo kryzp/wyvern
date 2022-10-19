@@ -8,6 +8,7 @@
 #include <wvn/util/types.h>
 #include <wvn/graphics/renderer_backend.h>
 
+#include <backend/graphics/vulkan/vk_shader.h>
 #include <backend/graphics/vulkan/vk_buffer.h>
 
 namespace wvn::gfx
@@ -86,7 +87,7 @@ namespace wvn::gfx
 		VulkanBackend();
 		~VulkanBackend() override;
 
-		RendererProperties properties() override;
+		RendererBackendProperties properties() override;
 
 		void render(const RenderPass& pass) override;
 
@@ -94,10 +95,10 @@ namespace wvn::gfx
 
 		void on_window_resize(int width, int height) override;
 
-		Ref<Texture> create_texture(u32 width, u32 height) override;
-		Ref<Shader> create_shader(const Vector<char>& vert_source, const Vector<char>& frag_source) override;
-		Ref<RenderTarget> create_render_target(u32 width, u32 height) override;
-		Ref<Mesh> create_mesh() override;
+		Texture* create_texture(u32 width, u32 height) override;
+		Shader* create_shader(const Vector<char>& vert_source, const Vector<char>& frag_source) override;
+		RenderTarget* create_render_target(u32 width, u32 height) override;
+		Mesh* create_mesh() override;
 
 	private:
 		void enumerate_physical_devices();
@@ -164,6 +165,10 @@ namespace wvn::gfx
 		QueueData m_queues;
 		LogicalDeviceData m_logical_data;
 		PhysicalDeviceData m_physical_data;
+
+		// TEMP //
+		VulkanShader* m_temp_shader;
+		// TEMP //
 
 #if WVN_DEBUG
 		VkDebugUtilsMessengerEXT m_debug_messenger;

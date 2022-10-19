@@ -14,7 +14,7 @@ Shader::~Shader()
 {
 }
 
-Ref<Shader> Shader::create(const char* vert, const char* frag)
+Shader* Shader::create(const char* vert, const char* frag)
 {
 	WVN_ASSERT(vert, "Vertex path must not be null.");
 	WVN_ASSERT(frag, "Fragment path must not be null.");

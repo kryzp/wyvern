@@ -5,6 +5,9 @@
 
 namespace wvn::gfx
 {
+	/*
+	 * Represents a vertex that can be drawn to the screen.
+	 */
 	struct Vertex
 	{
 		Vec2F pos;

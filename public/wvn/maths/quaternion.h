@@ -4,6 +4,12 @@ namespace wvn
 {
 	template <typename T> struct Vec3;
 
+	/*
+	 * Used for representing rotations via a 4D hypersphere.
+	 * Yeah.
+	 *
+	 * Euler angles are just cringe /shrug
+	 */
 	struct Quaternion
 	{
 		union

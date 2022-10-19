@@ -15,18 +15,26 @@ using VkSurfaceKHR = VkSurfaceKHR_T*;
 
 namespace wvn::sys
 {
-	struct SystemProperties
+	/*
+	 * Properties a system backend might have that are exclusive to itself.
+	 */
+	struct SystemBackendProperties
 	{
 		bool temp;
 	};
 
+	/*
+	 * System backend that can be implemented by specific API's to
+	 * disconnect them from being directly connected to the actual game
+	 * engine, effectively acting as an interface.
+	 */
 	class SystemBackend
 	{
 	public:
 		SystemBackend() = default;
 		virtual ~SystemBackend() = default;
 
-		virtual SystemProperties properties() = 0;
+		virtual SystemBackendProperties properties() = 0;
 
 		virtual void poll_events() = 0;
 

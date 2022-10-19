@@ -4,6 +4,9 @@
 
 namespace wvn::gfx
 {
+	/*
+	 * Responsible for the management of meshes.
+	 */
 	class MeshMgr : public Singleton<MeshMgr>
 	{
 		WVN_DEF_SINGLETON(MeshMgr);

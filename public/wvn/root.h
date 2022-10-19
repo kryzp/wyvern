@@ -2,6 +2,7 @@
 
 #include <wvn/container/vector.h>
 #include <wvn/util/singleton.h>
+#include <wvn/maths/random.h>
 
 // todo: replace with custom implementation
 #include <functional>
@@ -25,7 +26,6 @@ namespace wvn
 	namespace dev { class LogMgr; class Console; }
 	namespace plug { class Plugin; }
 	class InputMgr;
-	class Random;
 
 	struct Config
 	{
@@ -83,6 +83,8 @@ namespace wvn
 
 		void add_plugin(plug::Plugin* plugin);
 
+		Random<> random;
+
 	private:
 		void install_plugins();
 		void uninstall_plugins();
@@ -98,8 +100,6 @@ namespace wvn
 		InputMgr* m_input_mgr;
 		dev::LogMgr* m_log_mgr;
 		dev::Console* m_console;
-
-		Random* m_random;
 
 		sys::SystemBackend* m_system_backend;
 		gfx::RendererBackend* m_rendering_backend;

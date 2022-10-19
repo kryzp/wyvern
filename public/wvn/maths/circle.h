@@ -4,6 +4,9 @@
 
 namespace wvn
 {
+	/*
+	 * Representation of a circle.
+	 */
 	struct Circle
 	{
 		union

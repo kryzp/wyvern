@@ -1,6 +1,7 @@
 #include <wvn/graphics/rendering_mgr.h>
 #include <wvn/graphics/renderer_backend.h>
 #include <wvn/root.h>
+#include <wvn/devenv/log_mgr.h>
 
 using namespace wvn;
 using namespace wvn::gfx;
@@ -9,10 +10,12 @@ WVN_IMPL_SINGLETON(RenderingMgr);
 
 RenderingMgr::RenderingMgr()
 {
+	dev::LogMgr::get_singleton().print("[RENDERING] Initialized!");
 }
 
 RenderingMgr::~RenderingMgr()
 {
+	dev::LogMgr::get_singleton().print("[RENDERING] Destroyed!");
 }
 
 void RenderingMgr::render_scene()

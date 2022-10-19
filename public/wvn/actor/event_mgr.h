@@ -6,6 +6,10 @@
 
 namespace wvn::act
 {
+	/*
+	 * Manages the flow of events in the actor system, dispatching
+	 * them to all actors effectively.
+	 */
 	class EventMgr : public Singleton<EventMgr>
 	{
 		WVN_DEF_SINGLETON(EventMgr);

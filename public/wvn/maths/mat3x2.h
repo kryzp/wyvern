@@ -5,9 +5,15 @@ namespace wvn
 	template <typename T> struct Vec2;
 	struct Mat4x4;
 
-	// special matrix used for 2D transformations
-	// mathematically this doesnt actually make sense
-
+	/*
+	 * Special matrix used for representing 2D transformations.
+	 * This mathematically doesn't actually make sense because the
+	 * naming is slightly dishonest.
+	 *
+	 * This is actually a 2x2 2D transformation matrix along with a
+	 * 1x2 part representing the "offset" or "position", that gets
+	 * transformed individually.
+	 */
 	struct Mat3x2
 	{
 		union

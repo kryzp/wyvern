@@ -5,6 +5,9 @@
 
 namespace wvn
 {
+	/*
+	 * Generic calculator-wrapper for maths.
+	 */
 	template <typename T>
 	class Calc
 	{

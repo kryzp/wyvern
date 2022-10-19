@@ -4,6 +4,9 @@
 
 namespace wvn
 {
+	/*
+	 * Representation of a line between two points.
+	 */
 	struct Line
 	{
 		Vec2F a;

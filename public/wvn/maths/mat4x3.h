@@ -1,14 +1,19 @@
 #pragma once
 
-// TODO:
-// OK THIS IS GETTING OUT OF HAND
-// template based Matrix<R, C> structure?
-
 namespace wvn
 {
 	template <typename T> struct Vec3;
 	struct Quaternion;
 
+	/*
+	 * Special matrix used for representing 3D transformations.
+	 * This mathematically doesn't actually make sense because the
+	 * naming is slightly dishonest.
+	 *
+	 * This is actually a 3x3 3D transformation matrix along with a
+	 * 1x3 part representing the "offset" or "position", that gets
+	 * transformed individually.
+	 */
 	struct Mat4x3
 	{
 		union

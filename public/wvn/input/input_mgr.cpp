@@ -1,4 +1,5 @@
 #include <wvn/input/input_mgr.h>
+#include <wvn/devenv/log_mgr.h>
 
 using namespace wvn;
 using namespace wvn::inp;
@@ -10,10 +11,12 @@ InputMgr::InputMgr()
 	, m_next_state()
 	, m_prev_state()
 {
+	dev::LogMgr::get_singleton().print("[INPUT] Initialized!");
 }
 
 InputMgr::~InputMgr()
 {
+	dev::LogMgr::get_singleton().print("[INPUT] Destroyed!");
 }
 
 void InputMgr::update()

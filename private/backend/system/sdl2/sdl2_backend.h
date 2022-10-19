@@ -12,7 +12,7 @@ namespace wvn::sys
 		SDL2Backend();
 		~SDL2Backend() override;
 
-		SystemProperties properties() override;
+		SystemBackendProperties properties() override;
 
 		void poll_events() override;
 

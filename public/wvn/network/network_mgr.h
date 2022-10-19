@@ -17,6 +17,10 @@ namespace wvn::net
 		NET_NOT_READY
 	};
 
+	/*
+	 * Manages the network and generally acts as an
+	 * interface for the network.
+	 */
 	class NetworkMgr : public Singleton<NetworkMgr>
 	{
 		WVN_DEF_SINGLETON(NetworkMgr);

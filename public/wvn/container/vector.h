@@ -9,6 +9,9 @@
 
 namespace wvn
 {
+	/*
+	 * Dynamically sized array.
+	 */
 	template <typename T>
 	class Vector
 	{

@@ -6,6 +6,10 @@
 
 namespace wvn
 {
+	/*
+	 * Wrapper around a c-style array that provides some
+	 * utility functions and makes them easier to work with.
+	 */
 	template <typename T, u64 TSize>
 	class Array
 	{

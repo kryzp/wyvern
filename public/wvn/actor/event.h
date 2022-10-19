@@ -49,6 +49,9 @@ namespace wvn::act
 		};
 	};
 
+	/*
+	 * Event that can be passed between different actors.
+	 */
 	struct Event
 	{
 		String type;

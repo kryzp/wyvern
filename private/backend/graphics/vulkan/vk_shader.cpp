@@ -29,6 +29,11 @@ VulkanShader::VulkanShader(
 
 VulkanShader::~VulkanShader()
 {
+	clean_up();
+}
+
+void VulkanShader::clean_up()
+{
 	// reverse order !!
 	vkDestroyShaderModule(device, frag_module, nullptr);
 	vkDestroyShaderModule(device, vert_module, nullptr);

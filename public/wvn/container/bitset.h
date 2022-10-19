@@ -5,6 +5,10 @@
 
 namespace wvn
 {
+	/*
+	 * A wrapper around a memory efficient array of booleans that
+	 * can be toggled on and off.
+	 */
 	template <u64 TSize>
 	class Bitset
 	{

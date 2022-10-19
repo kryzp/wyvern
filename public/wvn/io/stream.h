@@ -4,14 +4,17 @@
 
 namespace wvn::io
 {
+	/*
+	 * Representation of a generic stream of data.
+	 */
 	class Stream
 	{
 	public:
 		Stream();
 		virtual ~Stream();
 
-		virtual void read(void* buffer, s64 length) const;
-		virtual void write(void* data, s64 length) const;
+		virtual void read(void* buffer, u64 length) const;
+		virtual void write(void* data, u64 length) const;
 		virtual void seek(s64 offset) const;
 		virtual void close();
 		virtual s64 position() const;

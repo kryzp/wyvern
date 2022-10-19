@@ -10,6 +10,9 @@ namespace wvn::io
 		ENDIANNESS_MAX
 	};
 
+	/*
+	 * Utility for querying the endianness of the system.
+	 */
 	namespace endian
 	{
 		Endianness get_endianness();

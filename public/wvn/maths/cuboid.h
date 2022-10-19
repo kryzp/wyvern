@@ -5,6 +5,9 @@
 
 namespace wvn
 {
+	/*
+	 * Representation of a cuboid.
+	 */
 	template <typename T>
 	struct Cuboid
 	{

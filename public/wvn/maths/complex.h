@@ -1,9 +1,13 @@
 #pragma once
 
-// idk why i made this it serves like negative purpose
-
 namespace wvn
 {
+	/*
+	 * Useless in the actual engine but still pretty neat!
+	 *
+	 * Wrapper around complex numbers. Allows for complex arithmetic
+	 * and other maths-based things.
+	 */
 	struct Complex
 	{
 		double real;

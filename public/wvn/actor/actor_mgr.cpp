@@ -1,5 +1,6 @@
 #include <wvn/actor/actor_mgr.h>
 #include <wvn/actor/actor.h>
+#include <wvn/devenv/log_mgr.h>
 
 using namespace wvn;
 using namespace wvn::act;
@@ -13,6 +14,7 @@ ActorMgr::ActorMgr()
 	, m_free_ids(64)
 	, m_unique_id(Actor::INVALID_ID + 1)
 {
+	dev::LogMgr::get_singleton().print("[ACTOR] Initialized!");
 }
 
 ActorMgr::~ActorMgr()
@@ -29,6 +31,8 @@ ActorMgr::~ActorMgr()
 
 	m_free_ids.clear();
 	m_unique_id = Actor::INVALID_ID;
+
+	dev::LogMgr::get_singleton().print("[ACTOR] Destroyed!");
 }
 
 void ActorMgr::tick()

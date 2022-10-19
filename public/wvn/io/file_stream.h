@@ -5,6 +5,9 @@
 
 namespace wvn::io
 {
+	/*
+	 * File-specialized stream.
+	 */
 	class FileStream : public Stream
 	{
 	public:

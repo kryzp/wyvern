@@ -2,6 +2,10 @@
 
 namespace wvn
 {
+	/*
+	 * Used for when you have a type that you wish to enable
+	 * or disable and this cannot be inferred from its current state.
+	 */
 	template <typename T>
 	class Optional
 	{

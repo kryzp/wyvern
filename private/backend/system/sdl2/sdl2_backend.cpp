@@ -50,9 +50,9 @@ SDL2Backend::~SDL2Backend()
 	dev::LogMgr::get_singleton().print("[SDL2] Destroyed!");
 }
 
-SystemProperties SDL2Backend::properties()
+SystemBackendProperties SDL2Backend::properties()
 {
-	SystemProperties properties = {};
+	SystemBackendProperties properties = {};
 	properties.temp = false;
 
 	return properties;

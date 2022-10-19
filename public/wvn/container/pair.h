@@ -2,6 +2,9 @@
 
 namespace wvn
 {
+	/*
+	 * Pair of two different types.
+	 */
 	template <typename TFirst, typename TSecond>
 	struct Pair
 	{

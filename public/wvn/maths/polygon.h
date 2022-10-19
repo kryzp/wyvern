@@ -6,6 +6,9 @@
 
 namespace wvn
 {
+	/*
+	 * Representation of a polygon as a list of vertices.
+	 */
 	struct Polygon
 	{
 		Vector<Vec2F> vertices;

@@ -6,6 +6,9 @@
 
 namespace wvn::net
 {
+	/*
+	 * Base class for representing, storing and manipulating a socket.
+	 */
 	class Socket
 	{
 	public:
@@ -13,6 +16,9 @@ namespace wvn::net
 		virtual ~Socket() = default;
 	};
 
+	/*
+	 * TCP-Specialized socket.
+	 */
 	class TCPSocket : public Socket
 	{
 	public:
@@ -23,6 +29,9 @@ namespace wvn::net
 		NetworkCallback recv(byte* data, u64 size, u64* bytes_recieved = nullptr);
 	};
 
+	/*
+	 * UDP-Specialized socket
+	 */
 	class UDPSocket : public Socket
 	{
 	public:

@@ -4,6 +4,10 @@
 
 namespace wvn
 {
+	/*
+	 * Queue of types to which you can add
+	 * new objects or pick the first one out of the queue.
+	 */
 	template <typename T>
 	class Queue
 	{

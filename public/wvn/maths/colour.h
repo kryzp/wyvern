@@ -4,7 +4,14 @@
 
 namespace wvn
 {
-	// generally used for rendering but not much use otherwise
+	/*
+	 * Generally used just when finally rendering to the screen as often
+	 * graphics API's require a floating-point colour instead of a 32bit
+	 * one.
+	 *
+	 * Not advised to be used for storing data about images and the like
+	 * as its size is 3x that of the other colour type.
+	 */
 	struct DisplayColour
 	{
 		union
@@ -23,7 +30,9 @@ namespace wvn
 		DisplayColour(float r, float g, float b);
 	};
 
-	// the chad colour
+	/*
+	 * Used for representing a 32-bit (0-255 per colour) colour.
+	 */
 	struct Colour
 	{
 		union

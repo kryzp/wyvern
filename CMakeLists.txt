@@ -19,7 +19,7 @@ add_library(${PROJECT_NAME}
 	public/wvn/audio/sound.cpp
 
 	public/wvn/input/input_mgr.cpp
-	public/wvn/input/v_button.cpp
+	public/wvn/input/v_key.cpp
 
 	public/wvn/animation/animation_mgr.cpp
 
@@ -66,7 +66,6 @@ add_library(${PROJECT_NAME}
 	public/wvn/maths/polygon.cpp
 	public/wvn/maths/quad.cpp
 	public/wvn/maths/quaternion.cpp
-	public/wvn/maths/random.cpp
 	public/wvn/maths/timer.cpp
 	public/wvn/maths/triangle.cpp
 

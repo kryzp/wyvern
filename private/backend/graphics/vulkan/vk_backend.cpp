@@ -45,7 +45,8 @@ static const char* DEVICE_EXTENSIONS[] = {
 
 static VkDynamicState DYNAMIC_STATES[] = {
 	VK_DYNAMIC_STATE_VIEWPORT,
-	VK_DYNAMIC_STATE_SCISSOR
+	VK_DYNAMIC_STATE_SCISSOR,
+	VK_DYNAMIC_STATE_BLEND_CONSTANTS
 };
 
 static constexpr u32 MAX_FRAMES_IN_FLIGHT = 2;
@@ -218,6 +219,7 @@ VulkanBackend::VulkanBackend()
 	, m_queues()
 	, m_logical_data()
 	, m_physical_data()
+	, m_temp_shader(nullptr)
 #if WVN_DEBUG
 	, m_debug_messenger()
 #endif
@@ -317,6 +319,8 @@ VulkanBackend::~VulkanBackend()
 	m_index_buffer.clean_up();
 	m_vertex_buffer.clean_up();
 
+	m_temp_shader->clean_up();
+
 	vkDestroyPipeline(m_logical_data.device, m_graphics_pipeline, nullptr);
 	vkDestroyPipelineLayout(m_logical_data.device, m_pipeline_layout, nullptr);
 	vkDestroyRenderPass(m_logical_data.device, m_render_pass, nullptr);
@@ -343,9 +347,9 @@ VulkanBackend::~VulkanBackend()
 	dev::LogMgr::get_singleton().print("[VULKAN] Destroyed!");
 }
 
-RendererProperties VulkanBackend::properties()
+RendererBackendProperties VulkanBackend::properties()
 {
-	RendererProperties properties = {};
+	RendererBackendProperties properties = {};
 	properties.origin_bottom_left = false;
 
 	return properties;
@@ -563,14 +567,13 @@ void VulkanBackend::create_graphics_pipeline()
 	vert_fs.read(vert_source.data(), vert_fs.size());
 	frag_fs.read(frag_source.data(), frag_fs.size());
 
-	Ref<Shader> temp_shader = create_shader(vert_source, frag_source);
-	VulkanShader* vk_temp_shader = static_cast<VulkanShader*>(temp_shader.get());
+	m_temp_shader = static_cast<VulkanShader*>(create_shader(vert_source, frag_source));
 	//////// debug /////////
 
 	auto binding_desc = get_vertex_binding_description();
 	auto attribs_desc = get_vertex_attribute_description();
 
-	VkPipelineShaderStageCreateInfo shader_stages[2] = { vk_temp_shader->vert_info, vk_temp_shader->frag_info };
+	VkPipelineShaderStageCreateInfo shader_stages[2] = { m_temp_shader->vert_info, m_temp_shader->frag_info };
 
 	VkPipelineVertexInputStateCreateInfo vertex_input_state_create_info = {};
 	vertex_input_state_create_info.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
@@ -1113,25 +1116,25 @@ VkShaderModule VulkanBackend::create_shader_module(const Vector<char>& source)
 	return module;
 }
 
-Ref<Texture> VulkanBackend::create_texture(u32 width, u32 height)
+Texture* VulkanBackend::create_texture(u32 width, u32 height)
 {
 	return nullptr;
 }
 
-Ref<Shader> VulkanBackend::create_shader(const Vector<char>& vert_source, const Vector<char>& frag_source)
+Shader* VulkanBackend::create_shader(const Vector<char>& vert_source, const Vector<char>& frag_source)
 {
 	VkShaderModule vert_module = create_shader_module(vert_source);
 	VkShaderModule frag_module = create_shader_module(frag_source);
 
-	return create_ref<VulkanShader>(vert_module, frag_module, m_logical_data.device);
+	return new VulkanShader(vert_module, frag_module, m_logical_data.device);
 }
 
-Ref<RenderTarget> VulkanBackend::create_render_target(u32 width, u32 height)
+RenderTarget* VulkanBackend::create_render_target(u32 width, u32 height)
 {
 	return nullptr;
 }
 
-Ref<Mesh> VulkanBackend::create_mesh()
+Mesh* VulkanBackend::create_mesh()
 {
 	return nullptr;
 }

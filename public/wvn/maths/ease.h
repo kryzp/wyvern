@@ -6,6 +6,10 @@
 
 namespace wvn
 {
+	/*
+	 * Generic utility functions for easing from 0->1 over
+	 * a time value 't'
+	 */
 	template <typename T>
 	class Ease
 	{

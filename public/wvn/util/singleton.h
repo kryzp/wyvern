@@ -15,6 +15,10 @@ private:
 
 namespace wvn
 {
+	/*
+	 * Singleton class to be inherited by all types that wish
+	 * to be a singleton.
+	 */
 	template <class T>
 	class Singleton
 	{

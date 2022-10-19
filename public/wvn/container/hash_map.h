@@ -9,6 +9,10 @@
 
 namespace wvn
 {
+	/*
+	 * Dictionary structure that uses a hash function
+	 * to index the different elements inside of it.
+	 */
 	template <typename TKey, typename TValue>
 	class HashMap
 	{

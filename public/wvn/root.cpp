@@ -28,6 +28,7 @@ WVN_IMPL_SINGLETON(Root);
 Root::Root(const Config& cfg)
 	: m_config(cfg)
 	, m_running(true)
+	, random()
 {
 	m_log_mgr = new dev::LogMgr();
 	m_console = new dev::Console();
@@ -45,7 +46,7 @@ Root::Root(const Config& cfg)
 	m_network_mgr 	= new net::NetworkMgr();
 	m_animation_mgr = new anim::AnimationMgr();
 
-	m_random = new Random(cfg.random_seed == 0 ? std::time(nullptr) : cfg.random_seed);
+	random.regen_seed(cfg.random_seed == 0 ? std::time(nullptr) : cfg.random_seed);
 
 	// update window
 	{
@@ -91,8 +92,6 @@ Root::~Root()
 
 	if (m_config.on_destroy)
 		m_config.on_destroy();
-
-	delete Random::get_singleton_ptr();
 
 	delete anim::AnimationMgr::get_singleton_ptr();
 	delete net::NetworkMgr::get_singleton_ptr();

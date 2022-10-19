@@ -4,6 +4,9 @@
 
 namespace wvn::net
 {
+	/*
+	 * Wrapper around the ip address of a device.
+	 */
 	class IpAddress
 	{
 	public:

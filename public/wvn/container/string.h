@@ -5,6 +5,9 @@
 
 namespace wvn
 {
+	/*
+	 * Generic-sized c-style string wrapper.
+	 */
 	template <u64 TSize>
 	class Str
 	{

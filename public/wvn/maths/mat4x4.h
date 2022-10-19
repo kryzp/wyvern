@@ -8,6 +8,10 @@ namespace wvn
 	template <typename T> struct Vec3;
 	using Vec3F = Vec3<float>;
 
+	/*
+	 * Generic 4x4 matrix.
+	 * Useful for camera / projection based transformations.
+	 */
 	struct Mat4x4
 	{
 		union

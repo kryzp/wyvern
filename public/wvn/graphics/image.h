@@ -2,6 +2,9 @@
 
 namespace wvn::gfx
 {
+	/*
+	 * Bitmap image wrapper.
+	 */
 	class Image
 	{
 	public:

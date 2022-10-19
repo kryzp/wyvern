@@ -2,6 +2,9 @@
 
 namespace wvn
 {
+	/*
+	 * List in which each element or node points to the next node.
+	 */
 	template <typename T>
 	class LinkedList
 	{

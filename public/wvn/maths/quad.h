@@ -5,6 +5,9 @@
 
 namespace wvn
 {
+	/*
+	 * Representation of a quad, a shape between 4 points.
+	 */
 	struct Quad
 	{
 		Vec2F a;

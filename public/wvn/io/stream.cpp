@@ -17,12 +17,12 @@ Stream::~Stream()
 	}
 }
 
-void Stream::read(void* buffer, s64 length) const
+void Stream::read(void* buffer, u64 length) const
 {
 	Root::get_singleton().current_system_backend()->stream_read(p_stream, buffer, length);
 }
 
-void Stream::write(void* data, s64 length) const
+void Stream::write(void* data, u64 length) const
 {
 	Root::get_singleton().current_system_backend()->stream_write(p_stream, data, length);
 }

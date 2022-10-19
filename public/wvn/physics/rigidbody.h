@@ -16,6 +16,12 @@ namespace wvn::phys
 		COLLISION_DET_CONTINUOUS
 	};
 
+	/*
+	 * RigidBody that holds the physics data required to
+	 * actually calculate the physics such as mass, drag, position
+	 * rotation, the stress tensor, etc... hmm yes yes maths-y
+	 * maths physics yes I know what I'm talking about.
+	 */
 	class RigidBody
 	{
 		enum Flags

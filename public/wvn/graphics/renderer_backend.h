@@ -16,18 +16,26 @@
 
 namespace wvn::gfx
 {
-	struct RendererProperties
+	/*
+	 * Properties a rendering backend might have that are exclusive to itself.
+	 */
+	struct RendererBackendProperties
 	{
 		bool origin_bottom_left;
 	};
 
+	/*
+	 * Renderer backend that can be implemented by specific API's to
+	 * disconnect them from being directly connected to the actual game
+	 * engine, effectively acting as an interface.
+	 */
 	class RendererBackend
 	{
 	public:
 		RendererBackend() = default;
 		virtual ~RendererBackend() = default;
 
-		virtual RendererProperties properties() = 0;
+		virtual RendererBackendProperties properties() = 0;
 
 		virtual void render(const RenderPass& pass) = 0;
 
@@ -35,9 +43,9 @@ namespace wvn::gfx
 
 		virtual void on_window_resize(int width, int height) = 0;
 
-		virtual Ref<Texture> create_texture(u32 width, u32 height) = 0;
-		virtual Ref<Shader> create_shader(const Vector<char>& vert_source, const Vector<char>& frag_source) = 0;
-		virtual Ref<RenderTarget> create_render_target(u32 width, u32 height) = 0;
-		virtual Ref<Mesh> create_mesh() = 0;
+		virtual Texture* create_texture(u32 width, u32 height) = 0;
+		virtual Shader* create_shader(const Vector<char>& vert_source, const Vector<char>& frag_source) = 0;
+		virtual RenderTarget* create_render_target(u32 width, u32 height) = 0;
+		virtual Mesh* create_mesh() = 0;
 	};
 }

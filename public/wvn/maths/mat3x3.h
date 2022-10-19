@@ -2,6 +2,9 @@
 
 namespace wvn
 {
+	/*
+	 * Generic 3x3 matrix.
+	 */
 	class Mat3x3
 	{
 		union

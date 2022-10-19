@@ -10,6 +10,9 @@ namespace wvn::act
 
 	using ActorID = u32;
 
+	/*
+	 * Base class for all actors in the game world.
+	 */
 	class Actor
 	{
 		friend class ActorHandle;

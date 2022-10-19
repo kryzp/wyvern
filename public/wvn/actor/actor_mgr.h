@@ -13,6 +13,9 @@
 
 namespace wvn::act
 {
+	/*
+	 * Manages actors in the game world.
+	 */
 	class ActorMgr : public Singleton<ActorMgr>
 	{
 		WVN_DEF_SINGLETON(ActorMgr);

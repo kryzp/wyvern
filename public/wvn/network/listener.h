@@ -6,6 +6,9 @@
 
 namespace wvn::net
 {
+	/*
+	 * Base class for network listeners.
+	 */
 	class Listener
 	{
 	public:
@@ -13,6 +16,9 @@ namespace wvn::net
 		virtual ~Listener() = default;
 	};
 
+	/*
+	 * Listener for TCP.
+	 */
 	class TCPListener : public Listener
 	{
 	public:

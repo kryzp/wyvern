@@ -12,6 +12,8 @@ namespace wvn::gfx
 		VulkanShader(VkShaderModule vert, VkShaderModule frag, VkDevice device);
 		~VulkanShader() override;
 
+		void clean_up() override;
+
 		VkShaderModule vert_module;
 		VkShaderModule frag_module;
 

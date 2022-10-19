@@ -4,11 +4,14 @@
 #include <wvn/input/keyboard.h>
 #include <wvn/input/mouse.h>
 #include <wvn/input/joystick.h>
-#include <wvn/input/v_button.h>
+#include <wvn/input/v_key.h>
 #include <wvn/maths/vec2.h>
 
 namespace wvn
 {
+	/*
+	 * Manages input in the program.
+	 */
 	class InputMgr : public Singleton<InputMgr>
 	{
 		WVN_DEF_SINGLETON(InputMgr);

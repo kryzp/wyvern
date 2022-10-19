@@ -2,6 +2,9 @@
 
 namespace wvn::plug
 {
+	/*
+	 * Base "plugin"
+	 */
 	class Plugin
 	{
 	public:

@@ -15,9 +15,9 @@ OpenALBackend::~OpenALBackend()
 	dev::LogMgr::get_singleton().print("[OPENAL] Destroyed!");
 }
 
-AudioProperties OpenALBackend::properties()
+AudioBackendProperties OpenALBackend::properties()
 {
-	AudioProperties properties = {};
+	AudioBackendProperties properties = {};
 	properties.temp = false;
 
 	return properties;

@@ -5,10 +5,14 @@
 #include <wvn/input/keyboard.h>
 #include <wvn/input/mouse.h>
 #include <wvn/input/joystick.h>
-#include <wvn/input/v_button.h>
+#include <wvn/input/v_key.h>
 
 namespace wvn::inp
 {
+	/*
+	 * Represents a "virtual key", a collection of keyboard, mouse and joystick keys
+	 * that all can be treated as a single key so it can all be queried at once.
+	 */
 	class VirtualKey
 	{
 	public:
