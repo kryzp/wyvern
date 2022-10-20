@@ -14,8 +14,10 @@ TCPListener::~TCPListener()
 
 NetworkCallback TCPListener::listen(u64 port)
 {
+	return NET_FINISHED;
 }
 
 NetworkCallback TCPListener::accept(const TCPSocket& socket)
 {
+	return NET_FINISHED;
 }

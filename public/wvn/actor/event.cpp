@@ -6,23 +6,25 @@
 using namespace wvn;
 using namespace wvn::act;
 
-void Event::send(const ActorHandle& reciever)
+void Event::send(const ActorHandle& handle)
 {
-	this->reciever = reciever;
+	WVN_ASSERT(handle.is_valid(), "[EVENT:DEBUG] Receiver of event must be valid.");
+
+	this->receiver = handle;
 
 	Event* dcopy = deep_copy();
 	EventMgr::get_singleton().enqueue_event(dcopy);
 }
 
-void Event::send(const Actor* reciever)
+void Event::send(const Actor* actor)
 {
-	ActorHandle handle(reciever);
+	ActorHandle handle(actor);
 	send(handle);
 }
 
 void Event::dispatch()
 {
-	reciever->on_event(*this);
+	receiver->on_event(*this);
 }
 
 Event* Event::deep_copy()
@@ -30,7 +32,7 @@ Event* Event::deep_copy()
 	Event* dcopy = new Event();
 	dcopy->type = this->type;
 	dcopy->args = this->args;
-	dcopy->reciever = this->reciever;
+	dcopy->receiver = this->receiver;
 
 	return dcopy;
 }
@@ -131,6 +133,15 @@ void Event::append_f64(const String& name, f64 val)
 	EventValue eval;
 	eval.type = EventValue::ARG_TYPE_F64;
 	eval.f64 = val;
+
+	this->args.insert(Pair(name, eval));
+}
+
+void Event::append_bool(const wvn::String& name, bool val)
+{
+	EventValue eval;
+	eval.type = EventValue::ARG_TYPE_BOOL;
+	eval.boolean = val;
 
 	this->args.insert(Pair(name, eval));
 }

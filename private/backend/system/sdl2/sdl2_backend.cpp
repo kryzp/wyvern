@@ -36,7 +36,7 @@ SDL2Backend::SDL2Backend()
 	m_window = SDL_CreateWindow(cfg.name, 0, 0, cfg.width, cfg.height, flags);
 
 	if (!m_window) {
-		WVN_ERROR("Failed to create window.");
+		WVN_ERROR("[SDL2] Failed to create window.");
 	}
 
 	dev::LogMgr::get_singleton().print("[SDL2] Initialized!");

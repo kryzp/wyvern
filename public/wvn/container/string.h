@@ -94,7 +94,7 @@ namespace wvn
 	Str<TSize>::Str(const char* str)
 		: m_length(cstr::length(str))
 	{
-		WVN_ASSERT(m_length < (TSize - 1), "Length must not exceed maximum size"); // -1 for '\0'
+		WVN_ASSERT(m_length < (TSize - 1), "[STRING:DEBUG] Length must not exceed maximum size."); // -1 for '\0'
 
 		m_buf = new char[TSize];
 		cstr::copy(m_buf, str, m_length);
@@ -104,7 +104,7 @@ namespace wvn
 	template <u64 TSize>
 	Str<TSize>::Str(const Str& other)
 	{
-		WVN_ASSERT(other.m_length < (TSize - 1), "Length must not exceed maximum size");
+		WVN_ASSERT(other.m_length < (TSize - 1), "[STRING:DEBUG] Length must not exceed maximum size.");
 
 		m_buf = new char[TSize];
 
@@ -117,7 +117,7 @@ namespace wvn
 	template <u64 TSize>
 	Str<TSize>::Str(Str&& other) noexcept
 	{
-		WVN_ASSERT(other.m_length < (TSize - 1), "Length must not exceed maximum size");
+		WVN_ASSERT(other.m_length < (TSize - 1), "[STRING:DEBUG] Length must not exceed maximum size.");
 
 		m_buf = new char[TSize];
 
@@ -131,7 +131,7 @@ namespace wvn
 	template <u64 TSize>
 	Str<TSize>& Str<TSize>::operator = (const Str& other)
 	{
-		WVN_ASSERT(other.m_length < (TSize - 1), "Length must not exceed maximum size");
+		WVN_ASSERT(other.m_length < (TSize - 1), "[STRING:DEBUG] Length must not exceed maximum size.");
 
 		if (!m_buf)
 			m_buf = new char[TSize];
@@ -149,7 +149,7 @@ namespace wvn
 	template <u64 TSize>
 	Str<TSize>& Str<TSize>::operator = (Str&& other) noexcept
 	{
-		WVN_ASSERT(other.m_length < (TSize - 1), "Length must not exceed maximum size");
+		WVN_ASSERT(other.m_length < (TSize - 1), "[STRING:DEBUG] Length must not exceed maximum size");
 
 		if (!m_buf)
 			m_buf = new char[TSize];
@@ -210,7 +210,7 @@ namespace wvn
 	template <u64 TSize>
 	Str<TSize>& Str<TSize>::append(const Str<TSize>& str)
 	{
-		WVN_ASSERT((m_length + str.m_length) < (TSize - 1), "Final length must not exceed maximum size");
+		WVN_ASSERT((m_length + str.m_length) < (TSize - 1), "[STRING:DEBUG] Final length must not exceed maximum size.");
 
 		m_length += str.length();
 		cstr::cncat(m_buf, str.m_buf, str.length());
@@ -361,23 +361,19 @@ namespace wvn
 	template <u64 TSize>
 	int Str<TSize>::index_of(const Str& str) const
 	{
-		WVN_ASSERT(m_length >= str.m_length, "String to check for must not be larger than the string getting checked");
+		WVN_ASSERT(m_length >= str.m_length, "[STRING:DEBUG] String to check for must not be larger than the string getting checked.");
 
-		for (unsigned i = 0; i < m_length - str.m_length; i++)
+		for (unsigned i = 0; i <= m_length - str.m_length; i++)
 		{
-			bool cont = false;
+			unsigned j = 0;
 
-			for (unsigned j = 0; j < str.m_length; j++)
-			{
-				if (m_buf[i+j] != str[j])
-				{
-					cont = true;
-					break;
-				}
+			while (j < str.m_length && m_buf[i+j] == str[j]) {
+				j++;
 			}
 
-			if (!cont)
-				return i;
+			if (j == str.m_length) {
+				return static_cast<int>(i);
+			}
 		}
 
 		return -1;
@@ -386,23 +382,19 @@ namespace wvn
 	template <u64 TSize>
 	int Str<TSize>::last_index_of(const Str<TSize>& str) const
 	{
-		WVN_ASSERT(m_length >= str.m_length, "String to check for must not be larger than the string getting checked");
+		WVN_ASSERT(m_length >= str.m_length, "[STRING:DEBUG] String to check for must not be larger than the string getting checked.");
 
 		for (unsigned i = m_length - str.m_length; i > 0; i--)
 		{
-			bool cont = false;
+			unsigned j = 0;
 
-			for (unsigned j = 0; j < str.m_length; j++)
-			{
-				if (m_buf[i+j] != str[j])
-				{
-					cont = true;
-					break;
-				}
+			while (j < str.m_length && m_buf[i+j] == str[j]) {
+				j++;
 			}
 
-			if (!cont)
-				return i;
+			if (j == str.m_length) {
+				return static_cast<int>(i);
+			}
 		}
 
 		return -1;
@@ -441,14 +433,14 @@ namespace wvn
 	template <u64 TSize>
 	char& Str<TSize>::operator [] (u64 idx)
 	{
-		WVN_ASSERT(idx < m_length, "Index must not be more than the length of the string");
+		WVN_ASSERT(idx < m_length, "[STRING:DEBUG] Index must not be more than the length of the string.");
 		return m_buf[idx];
 	}
 
 	template <u64 TSize>
 	char Str<TSize>::operator [] (u64 idx) const
 	{
-		WVN_ASSERT(idx < m_length, "Index must not be more than the length of the string");
+		WVN_ASSERT(idx < m_length, "[STRING:DEBUG] Index must not be more than the length of the string.");
 		return m_buf[idx];
 	}
 

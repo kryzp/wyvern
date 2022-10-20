@@ -8,6 +8,9 @@
 
 namespace wvn::act
 {
+	/*
+	 * Represents a value that can be passed into an event.
+	 */
 	struct EventValue
 	{
 		enum ArgType
@@ -25,6 +28,7 @@ namespace wvn::act
 			ARG_TYPE_F32,
 			ARG_TYPE_F64,
 
+			ARG_TYPE_BOOL,
 			ARG_TYPE_CHAR
 		};
 
@@ -45,21 +49,23 @@ namespace wvn::act
 			f32 f32;
 			f64 f64;
 
+			bool boolean;
 			char character;
 		};
 	};
 
 	/*
-	 * Event that can be passed between different actors.
+	 * Event that can be passed to the event
+	 * manager which dispatches it.
 	 */
 	struct Event
 	{
 		String type;
 		HashMap<String, EventValue> args;
-		ActorHandle reciever;
+		ActorHandle receiver;
 
-		void send(const ActorHandle& reciever);
-		void send(const Actor* reciever);
+		void send(const ActorHandle& handle);
+		void send(const Actor* actor);
 		void dispatch();
 		Event* deep_copy();
 
@@ -80,6 +86,7 @@ namespace wvn::act
 		void append_f32(const String& name, f32 val);
 		void append_f64(const String& name, f64 val);
 
+		void append_bool(const String& name, bool val);
 		void append_char(const String& name, char val);
 	};
 }

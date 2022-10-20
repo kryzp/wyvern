@@ -375,7 +375,7 @@ namespace wvn
 			b = b->next;
 		}
 
-		WVN_ERROR("Could not find bucket matching key");
+		WVN_ERROR("[HASHMAP:DEBUG] Could not find bucket matching key.");
 	}
 
 	template <typename TKey, typename TValue>
@@ -391,7 +391,7 @@ namespace wvn
 			b = b->next;
 		}
 
-		WVN_ERROR("Could not find bucket matching key");
+		WVN_ERROR("[HASHMAP:DEBUG] Could not find bucket matching key.");
 	}
 
 	template <typename TKey, typename TValue>

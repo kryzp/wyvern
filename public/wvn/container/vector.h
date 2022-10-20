@@ -350,7 +350,7 @@ namespace wvn
     template <typename T>
     void Vector<T>::expand(u64 amount)
     {
-        WVN_ASSERT(amount > 0, "Expand amount must be higher than 0");
+        WVN_ASSERT(amount > 0, "[VECTOR:DEBUG] Expand amount must be higher than 0");
 
         allocate(m_size + amount);
 

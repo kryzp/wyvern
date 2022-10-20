@@ -125,7 +125,7 @@ namespace wvn
 	template <u64 TSize>
 	Bitset<TSize>& Bitset<TSize>::enable(u64 idx)
 	{
-		WVN_ASSERT(idx >= 0 && idx < TSize, "Index must be within range of the bitset");
+		WVN_ASSERT(idx >= 0 && idx < TSize, "[BITSET:DEBUG] Index must be within range of the bitset.");
 		m_bytes[idx/8] |= (1 << idx);
 		return *this;
 	}
@@ -133,7 +133,7 @@ namespace wvn
 	template <u64 TSize>
 	Bitset<TSize>& Bitset<TSize>::disable(u64 idx)
 	{
-		WVN_ASSERT(idx >= 0 && idx < TSize, "Index must be within range of the bitset");
+		WVN_ASSERT(idx >= 0 && idx < TSize, "[BITSET:DEBUG] Index must be within range of the bitset.");
 		m_bytes[idx/8] &= ~(1 << idx);
 		return *this;
 	}
@@ -141,7 +141,7 @@ namespace wvn
 	template <u64 TSize>
 	Bitset<TSize>& Bitset<TSize>::toggle(u64 idx)
 	{
-		WVN_ASSERT(idx >= 0 && idx < TSize, "Index must be within range of the bitset");
+		WVN_ASSERT(idx >= 0 && idx < TSize, "[BITSET:DEBUG] Index must be within range of the bitset.");
 		m_bytes[idx/8] ^= (1 << idx);
 		return *this;
 	}
@@ -149,7 +149,7 @@ namespace wvn
 	template <u64 TSize>
 	Bitset<TSize>& Bitset<TSize>::set(u64 idx, bool mode)
 	{
-		WVN_ASSERT(idx >= 0 && idx < TSize, "Index must be within range of the bitset");
+		WVN_ASSERT(idx >= 0 && idx < TSize, "[BITSET:DEBUG] Index must be within range of the bitset.");
 		if (mode) m_bytes[idx/8] |= (1 << idx);
 		else m_bytes[idx/8] &= ~(1 << idx);
 		return *this;
@@ -158,14 +158,14 @@ namespace wvn
 	template <u64 TSize>
 	bool Bitset<TSize>::on(u64 idx) const
 	{
-		WVN_ASSERT(idx >= 0 && idx < TSize, "Index must be within range of the bitset");
+		WVN_ASSERT(idx >= 0 && idx < TSize, "[BITSET:DEBUG] Index must be within range of the bitset.");
 		return (m_bytes[idx/8] & (1 << idx)) != 0;
 	}
 
 	template <u64 TSize>
 	bool Bitset<TSize>::on_only(u64 idx) const
 	{
-		WVN_ASSERT(idx >= 0 && idx < TSize, "Index must be within range of the bitset");
+		WVN_ASSERT(idx >= 0 && idx < TSize, "[BITSET:DEBUG] Index must be within range of the bitset.");
 		return (m_bytes[idx/8] & (1 << idx)) == idx;
 	}
 

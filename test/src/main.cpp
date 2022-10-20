@@ -1,4 +1,5 @@
 #include <wvn/root.h>
+#include <wvn/container/string.h>
 
 int main(int argc, char** argv)
 {

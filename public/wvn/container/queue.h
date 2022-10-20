@@ -49,7 +49,7 @@ namespace wvn
 		: mc_capacity(capacity)
 		, m_size(0)
 	{
-		WVN_ASSERT(capacity > 0, "Initial capacity must be greater than 0");
+		WVN_ASSERT(capacity > 0, "[QUEUE:DEBUG] Initial capacity must be greater than 0.");
 
 		m_front = new T[mc_capacity];
 	}
@@ -155,7 +155,7 @@ namespace wvn
 	template <typename T>
 	T* Queue<T>::push(const T& item)
 	{
-		WVN_ASSERT(m_size < mc_capacity, "m_size must not be greater than max capacity");
+		WVN_ASSERT(m_size < mc_capacity, "[QUEUE:DEBUG] m_size must not be greater than max capacity.");
 
 		m_size++;
 		new (m_front + m_size - 1) T(std::move(item));
@@ -165,7 +165,7 @@ namespace wvn
 	template <typename T>
 	T Queue<T>::pop()
 	{
-		WVN_ASSERT(m_size > 0, "m_size must not be 0");
+		WVN_ASSERT(m_size > 0, "[QUEUE:DEBUG] m_size must not be 0.");
 
 		m_size--;
 		return *(m_front + m_size);

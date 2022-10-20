@@ -69,7 +69,7 @@ Mat4x4 Mat4x4::create_orthographic_ext(float left, float right, float bottom, fl
 
 Mat4x4 Mat4x4::create_projection(float fov, float aspect, float near, float far)
 {
-    WVN_ASSERT(fov > 0 && aspect != 0, "FOV must be greater than 0 and aspect must not be 0");
+    WVN_ASSERT(fov > 0 && aspect != 0, "[MAT4X4:DEBUG] FOV must be greater than 0 and aspect must not be 0.");
 
     Mat4x4 result;
 

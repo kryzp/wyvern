@@ -2,7 +2,6 @@
 #include <wvn/actor/actor.h>
 #include <wvn/actor/actor_mgr.h>
 #include <wvn/actor/event.h>
-#include <wvn/system/window_mgr.h>
 #include <wvn/container/string.h>
 
 #include <iostream>
@@ -57,7 +56,7 @@ public:
 		{
 			case SID("EventType0"):
 				std::cout << "Damage: " << pack.damage << std::endl;
-				std::cout << "thing: " << pack.type << std::endl;
+				std::cout << "Type: " << pack.type << std::endl;
 				return true;
 
 			default:
@@ -93,15 +92,7 @@ int main()
 	{
 		Ball* ball0 = wvn::act::ActorMgr::get_singleton().create<Ball>();
 		ball0->add_flag(ACT_FLAG_0);
-		ball0->name = "Ball 0";
-
-		Ball* ball1 = wvn::act::ActorMgr::get_singleton().create<Ball>();
-		ball1->add_flag(ACT_FLAG_1);
-		ball1->name = "Ball 1";
-
-		Ball* ball2 = wvn::act::ActorMgr::get_singleton().create<Ball>();
-		ball2->add_flag(ACT_FLAG_2);
-		ball2->name = "Ball 2";
+		ball0->name = "Ball";
 	}
 
 	wvn::Root::get_singleton().run();

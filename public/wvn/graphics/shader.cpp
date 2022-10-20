@@ -16,14 +16,14 @@ Shader::~Shader()
 
 Shader* Shader::create(const char* vert, const char* frag)
 {
-	WVN_ASSERT(vert, "Vertex path must not be null.");
-	WVN_ASSERT(frag, "Fragment path must not be null.");
+	WVN_ASSERT(vert, "[SHADER:DEBUG] Vertex path must not be null.");
+	WVN_ASSERT(frag, "[SHADER:DEBUG] Fragment path must not be null.");
 
 	io::FileStream vert_fs = io::FileStream(vert, "r");
 	io::FileStream frag_fs = io::FileStream(frag, "r");
 
-	WVN_ASSERT(vert_fs.size() > 0, "Vertex file must not be empty.");
-	WVN_ASSERT(frag_fs.size() > 0, "Fragment file must not be empty.");
+	WVN_ASSERT(vert_fs.size() > 0, "[SHADER:DEBUG] Vertex file must not be empty.");
+	WVN_ASSERT(frag_fs.size() > 0, "[SHADER:DEBUG] Fragment file must not be empty.");
 
 	Vector<char> vert_source;
 	Vector<char> frag_source;

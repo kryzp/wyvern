@@ -279,7 +279,7 @@ VulkanBackend::VulkanBackend()
 #if WVN_DEBUG
 	if (VkResult result = debug_create_debug_utils_messenger_ext(m_instance, &debug_create_info, nullptr, &m_debug_messenger); result != VK_SUCCESS) {
 		dev::LogMgr::get_singleton().print("[VULKAN:DEBUG] Result: %d", result);
-		WVN_ERROR("[VULKAN:DEBUG] Failed to create debug messenger");
+		WVN_ERROR("[VULKAN:DEBUG] Failed to create debug messenger.");
 	}
 #endif
 
@@ -555,8 +555,8 @@ void VulkanBackend::create_graphics_pipeline()
 	io::FileStream vert_fs = io::FileStream("/Users/kryzp/Documents/Projects/wyvern/test/res/vert.spv", "r");
 	io::FileStream frag_fs = io::FileStream("/Users/kryzp/Documents/Projects/wyvern/test/res/frag.spv", "r");
 
-	WVN_ASSERT(vert_fs.size() > 0, "Vertex file must not be empty.");
-	WVN_ASSERT(frag_fs.size() > 0, "Fragment file must not be empty.");
+	WVN_ASSERT(vert_fs.size() > 0, "[VULKAN:DEBUG] Vertex file must not be empty.");
+	WVN_ASSERT(frag_fs.size() > 0, "[VULKAN:DEBUG] Fragment file must not be empty.");
 
 	Vector<char> vert_source;
 	Vector<char> frag_source;
