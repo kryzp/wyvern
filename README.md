@@ -2,7 +2,7 @@
 
 ![](https://github.com/kryzp/wyvern/blob/master/images/logo.png)
 
-beeg yoshi size engine
+3D Engine / Playground for learning stuff.
 
 ### Features Checklist / Todo list pretty much
 - [ ] Actor System
