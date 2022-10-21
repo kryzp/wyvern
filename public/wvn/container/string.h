@@ -12,6 +12,86 @@ namespace wvn
 	class Str
 	{
 	public:
+		class Iterator
+		{
+			friend class Str<TSize>;
+
+		public:
+			Iterator() : m_char(nullptr) { }
+			Iterator(char* c) : m_char(c) { }
+			~Iterator() = default;
+			char& operator * () const { return *m_char; }
+			char* operator -> () const { return &(*m_char); }
+			Iterator& operator ++ () { m_char++; return *this; }
+			Iterator& operator -- () { m_char--; return *this; }
+			Iterator& operator ++ (int) { m_char++; return *this; }
+			Iterator& operator -- (int) { m_char--; return *this; }
+			bool operator == (const Iterator& other) const { return this->m_char == other.m_char; }
+			bool operator != (const Iterator& other) const { return this->m_char != other.m_char; }
+		private:
+			char* m_char;
+		};
+
+		class ConstIterator
+		{
+			friend class Str<TSize>;
+
+		public:
+			ConstIterator() : m_char(nullptr) { }
+			ConstIterator(const char* c) : m_char(c) { }
+			~ConstIterator() = default;
+			const char& operator * () const { return *m_char; }
+			const char* operator -> () const { return &(*m_char); }
+			ConstIterator& operator ++ () { m_char++; return *this; }
+			ConstIterator& operator -- () { m_char--; return *this; }
+			ConstIterator& operator ++ (int) { m_char++; return *this; }
+			ConstIterator& operator -- (int) { m_char--; return *this; }
+			bool operator == (const ConstIterator& other) const { return this->m_char == other.m_char; }
+			bool operator != (const ConstIterator& other) const { return this->m_char != other.m_char; }
+		private:
+			const char* m_char;
+		};
+
+		class ReverseIterator
+		{
+			friend class Str<TSize>;
+
+		public:
+			ReverseIterator() : m_char(nullptr) { }
+			ReverseIterator(char* c) : m_char(c) { }
+			~ReverseIterator() = default;
+			char& operator * () const { return *m_char; }
+			char* operator -> () const { return &(*m_char); }
+			ReverseIterator& operator ++ () { m_char--; return *this; }
+			ReverseIterator& operator -- () { m_char++; return *this; }
+			ReverseIterator& operator ++ (int) { m_char--; return *this; }
+			ReverseIterator& operator -- (int) { m_char++; return *this; }
+			bool operator == (const ReverseIterator& other) const { return this->m_char == other.m_char; }
+			bool operator != (const ReverseIterator& other) const { return this->m_char != other.m_char; }
+		private:
+			char* m_char;
+		};
+
+		class ReverseConstIterator
+		{
+			friend class Str<TSize>;
+
+		public:
+			ReverseConstIterator() : m_char(nullptr) { }
+			ReverseConstIterator(const char* c) : m_char(c) { }
+			~ReverseConstIterator() = default;
+			const char& operator * () const { return *m_char; }
+			const char* operator -> () const { return &(*m_char); }
+			ReverseConstIterator& operator ++ () { m_char--; return *this; }
+			ReverseConstIterator& operator -- () { m_char++; return *this; }
+			ReverseConstIterator& operator ++ (int) { m_char--; return *this; }
+			ReverseConstIterator& operator -- (int) { m_char++; return *this; }
+			bool operator == (const ReverseConstIterator& other) const { return this->m_char == other.m_char; }
+			bool operator != (const ReverseConstIterator& other) const { return this->m_char != other.m_char; }
+		private:
+			const char* m_char;
+		};
+
 		Str();
 		Str(const char* str);
 
@@ -22,11 +102,6 @@ namespace wvn
 		Str& operator = (Str&& other) noexcept;
 
 		~Str();
-
-		char* begin();
-		const char* begin() const;
-		char* end();
-		const char* end() const;
 
 		void clear();
 		bool empty() const;
@@ -57,14 +132,32 @@ namespace wvn
 		void pop_front();
 		void pop_back();
 
+		Iterator begin();
+		ConstIterator begin() const;
+		Iterator end();
+		ConstIterator end() const;
+
+		ReverseIterator rbegin();
+		ReverseConstIterator rbegin() const;
+		ReverseIterator rend();
+		ReverseConstIterator rend() const;
+
+		ConstIterator cbegin() const;
+		ConstIterator cend() const;
+		ReverseConstIterator rcbegin() const;
+		ReverseConstIterator rcend() const;
+
 		char* c_str();
 		const char* c_str() const;
 
 		u64 length() const;
 		constexpr u64 size() const;
 
+		char* at(u64 idx);
+		const char* at(u64 idx) const;
+
 		char& operator [] (u64 idx);
-		char operator [] (u64 idx) const;
+		const char& operator [] (u64 idx) const;
 
 		bool operator == (const Str& other) const;
 		bool operator != (const Str& other) const;
@@ -171,30 +264,6 @@ namespace wvn
 	}
 
 	template <u64 TSize>
-	char* Str<TSize>::begin()
-	{
-		return m_buf;
-	}
-
-	template <u64 TSize>
-	const char* Str<TSize>::begin() const
-	{
-		return m_buf;
-	}
-
-	template <u64 TSize>
-	char* Str<TSize>::end()
-	{
-		return m_buf + m_length - 1;
-	}
-
-	template <u64 TSize>
-	const char* Str<TSize>::end() const
-	{
-		return m_buf + m_length - 1;
-	}
-
-	template <u64 TSize>
 	void Str<TSize>::clear()
 	{
 		mem::set(m_buf, 0, m_length);
@@ -246,6 +315,78 @@ namespace wvn
 	{
 		m_length--;
 		m_buf[m_length] = '\0';
+	}
+
+	template <u64 TSize>
+	typename Str<TSize>::Iterator Str<TSize>::begin()
+	{
+		return Iterator(m_buf);
+	}
+
+	template <u64 TSize>
+	typename Str<TSize>::ConstIterator Str<TSize>::begin() const
+	{
+		return ConstIterator(m_buf);
+	}
+
+	template <u64 TSize>
+	typename Str<TSize>::Iterator Str<TSize>::end()
+	{
+		return Iterator(m_buf + m_length);
+	}
+
+	template <u64 TSize>
+	typename Str<TSize>::ConstIterator Str<TSize>::end() const
+	{
+		return ConstIterator(m_buf + m_length);
+	}
+
+	template <u64 TSize>
+	typename Str<TSize>::ReverseIterator Str<TSize>::rbegin()
+	{
+		return ReverseIterator(m_buf + m_length - 1);
+	}
+
+	template <u64 TSize>
+	typename Str<TSize>::ReverseConstIterator Str<TSize>::rbegin() const
+	{
+		return ReverseConstIterator(m_buf + m_length - 1);
+	}
+
+	template <u64 TSize>
+	typename Str<TSize>::ReverseIterator Str<TSize>::rend()
+	{
+		return ReverseIterator(m_buf - 1);
+	}
+
+	template <u64 TSize>
+	typename Str<TSize>::ReverseConstIterator Str<TSize>::rend() const
+	{
+		return ReverseConstIterator(m_buf - 1);
+	}
+
+	template <u64 TSize>
+	typename Str<TSize>::ConstIterator Str<TSize>::cbegin() const
+	{
+		return ConstIterator(m_buf);
+	}
+
+	template <u64 TSize>
+	typename Str<TSize>::ConstIterator Str<TSize>::cend() const
+	{
+		return ConstIterator(m_buf + m_length);
+	}
+
+	template <u64 TSize>
+	typename Str<TSize>::ReverseConstIterator Str<TSize>::rcbegin() const
+	{
+		return ReverseConstIterator(m_buf + m_length - 1);
+	}
+
+	template <u64 TSize>
+	typename Str<TSize>::ReverseConstIterator Str<TSize>::rcend() const
+	{
+		return ReverseConstIterator(m_buf - 1);
 	}
 
 	template <u64 TSize>
@@ -431,6 +572,20 @@ namespace wvn
 	}
 
 	template <u64 TSize>
+	char* Str<TSize>::at(u64 idx)
+	{
+		WVN_ASSERT(idx < m_length, "[STRING:DEBUG] Index must not be more than the length of the string.");
+		return m_buf[idx];
+	}
+
+	template <u64 TSize>
+	const char* Str<TSize>::at(u64 idx) const
+	{
+		WVN_ASSERT(idx < m_length, "[STRING:DEBUG] Index must not be more than the length of the string.");
+		return m_buf[idx];
+	}
+
+	template <u64 TSize>
 	char& Str<TSize>::operator [] (u64 idx)
 	{
 		WVN_ASSERT(idx < m_length, "[STRING:DEBUG] Index must not be more than the length of the string.");
@@ -438,7 +593,7 @@ namespace wvn
 	}
 
 	template <u64 TSize>
-	char Str<TSize>::operator [] (u64 idx) const
+	const char& Str<TSize>::operator [] (u64 idx) const
 	{
 		WVN_ASSERT(idx < m_length, "[STRING:DEBUG] Index must not be more than the length of the string.");
 		return m_buf[idx];

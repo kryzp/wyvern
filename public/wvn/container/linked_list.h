@@ -63,6 +63,9 @@ namespace wvn
 		Iterator end();
 		ConstIterator end() const;
 
+		ConstIterator cbegin() const;
+		ConstIterator cend() const;
+
 		Node* first;
 		Node* last;
 	};
@@ -176,6 +179,18 @@ namespace wvn
 
 	template <typename T>
 	typename LinkedList<T>::ConstIterator LinkedList<T>::end() const
+	{
+		return ConstIterator(nullptr);
+	}
+
+	template <typename T>
+	typename LinkedList<T>::ConstIterator LinkedList<T>::cbegin() const
+	{
+		return ConstIterator(first);
+	}
+
+	template <typename T>
+	typename LinkedList<T>::ConstIterator LinkedList<T>::cend() const
 	{
 		return ConstIterator(nullptr);
 	}

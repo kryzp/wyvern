@@ -85,7 +85,8 @@ int main()
 		cfg.flags =
 			wvn::Config::FLAG_CURSOR_VISIBLE |
 			wvn::Config::FLAG_VSYNC |
-			wvn::Config::FLAG_RESIZABLE;
+			wvn::Config::FLAG_RESIZABLE |
+			wvn::Config::FLAG_CENTRE_WINDOW;
 	}
 
 	new wvn::Root(cfg);

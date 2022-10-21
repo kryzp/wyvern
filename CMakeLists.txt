@@ -121,7 +121,7 @@ if (OPENAL_ENABLED)
 	add_compile_definitions(WVN_USE_OPENAL)
 endif()
 
-add_executable(wvn_test test/src/ffff.cpp)
+add_executable(wvn_test test/src/main.cpp)
 target_include_directories(wvn_test PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/public)
 target_link_libraries(wvn_test PUBLIC ${PROJECT_NAME})
 

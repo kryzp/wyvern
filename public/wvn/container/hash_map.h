@@ -11,7 +11,7 @@ namespace wvn
 {
 	/*
 	 * Dictionary structure that uses a hash function
-	 * to index the different elements inside of it.
+	 * to index the different elements inside it.
 	 */
 	template <typename TKey, typename TValue>
 	class HashMap
@@ -98,6 +98,9 @@ namespace wvn
 		ConstIterator begin() const;
 		Iterator end();
 		ConstIterator end() const;
+
+		ConstIterator cbegin() const;
+		ConstIterator cend() const;
 
 		TValue& operator [] (const TKey& idx);
 		const TValue& operator [] (const TKey& idx) const;
@@ -391,7 +394,7 @@ namespace wvn
 			b = b->next;
 		}
 
-		WVN_ERROR("[HASHMAP:DEBUG] Could not find bucket matching key.");
+		WVN_ERROR("[HASHMAP:DEBUG] Could not find element matching key.");
 	}
 
 	template <typename TKey, typename TValue>
@@ -508,6 +511,18 @@ namespace wvn
 
 	template <typename TKey, typename TValue>
 	typename HashMap<TKey, TValue>::ConstIterator HashMap<TKey, TValue>::end() const
+	{
+		return ConstIterator(nullptr);
+	}
+
+	template <typename TKey, typename TValue>
+	typename HashMap<TKey, TValue>::ConstIterator HashMap<TKey, TValue>::cbegin() const
+	{
+		return ConstIterator(first());
+	}
+
+	template <typename TKey, typename TValue>
+	typename HashMap<TKey, TValue>::ConstIterator HashMap<TKey, TValue>::cend() const
 	{
 		return ConstIterator(nullptr);
 	}

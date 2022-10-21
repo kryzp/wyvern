@@ -157,8 +157,13 @@ namespace wvn
 		ReverseIterator rend();
 		ReverseConstIterator rend() const;
 
-		T* at(u64 idx);
-        const T* at(u64 idx) const;
+		ConstIterator cbegin() const;
+		ConstIterator cend() const;
+		ReverseConstIterator rcbegin() const;
+		ReverseConstIterator rcend() const;
+
+		T& at(u64 idx);
+        const T& at(u64 idx) const;
 
         T& operator [] (u64 idx);
         const T& operator [] (u64 idx) const;
@@ -569,16 +574,40 @@ namespace wvn
 		return ReverseConstIterator(m_buf - 1);
 	}
 
+	template <typename T>
+	typename Vector<T>::ConstIterator Vector<T>::cbegin() const
+	{
+		return ConstIterator(m_buf);
+	}
+
+	template <typename T>
+	typename Vector<T>::ConstIterator Vector<T>::cend() const
+	{
+		return ConstIterator(m_buf + m_size);
+	}
+
+	template <typename T>
+	typename Vector<T>::ReverseConstIterator Vector<T>::rcbegin() const
+	{
+		return ReverseConstIterator(m_buf + m_size - 1);
+	}
+
+	template <typename T>
+	typename Vector<T>::ReverseConstIterator Vector<T>::rcend() const
+	{
+		return ReverseConstIterator(m_buf - 1);
+	}
+
     template <typename T>
-    T* Vector<T>::at(u64 idx)
+    T& Vector<T>::at(u64 idx)
     {
-        return m_buf + idx;
+        return m_buf[idx];
     }
 
     template <typename T>
-    const T* Vector<T>::at(u64 idx) const
+    const T& Vector<T>::at(u64 idx) const
     {
-        return m_buf + idx;
+        return m_buf[idx];
     }
 
     template <typename T>
