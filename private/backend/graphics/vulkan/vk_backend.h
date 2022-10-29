@@ -11,6 +11,8 @@
 #include <backend/graphics/vulkan/vk_shader.h>
 #include <backend/graphics/vulkan/vk_buffer.h>
 
+#include <wvn/maths/mat4x4.h>
+
 // note: currently, this is INCREDIBLY BLOATED
 // and INCREDIBLY useless for actual rendering
 // there are lots of variables that need to be abstracted

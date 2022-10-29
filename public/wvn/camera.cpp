@@ -4,7 +4,7 @@ using namespace wvn;
 
 Camera::Camera()
 	: transform(1.0f)
-	, up(),
+	, up()
 	, direction()
 {
 }

@@ -18,26 +18,7 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f7c9d8f6-3073-4d14-bdb7-2af3181d6545" name="Changes" comment="Added iterators to string container.">
-      <change afterPath="$PROJECT_DIR$/public/wvn/camera.cpp" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/wvn/camera.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/CMakeLists.txt" beforeDir="false" afterPath="$PROJECT_DIR$/CMakeLists.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/private/backend/graphics/vulkan/vk_backend.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/private/backend/graphics/vulkan/vk_backend.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/private/backend/graphics/vulkan/vk_backend.h" beforeDir="false" afterPath="$PROJECT_DIR$/private/backend/graphics/vulkan/vk_backend.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/private/backend/graphics/vulkan/vk_buffer.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/private/backend/graphics/vulkan/vk_buffer.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/private/backend/graphics/vulkan/vk_buffer.h" beforeDir="false" afterPath="$PROJECT_DIR$/private/backend/graphics/vulkan/vk_buffer.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/wvn/container/vector.h" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/container/vector.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/wvn/maths/calc.h" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/maths/calc.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/wvn/maths/complex.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/maths/complex.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/wvn/maths/mat3x2.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/maths/mat3x2.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/wvn/maths/mat3x2.h" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/maths/mat3x2.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/wvn/maths/mat4x3.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/maths/mat4x3.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/wvn/maths/mat4x3.h" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/maths/mat4x3.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/wvn/root.h" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/root.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/res/shader.vert" beforeDir="false" afterPath="$PROJECT_DIR$/test/res/shader.vert" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/test/src/main.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/test/src/main.cpp" afterDir="false" />
-    </list>
+    <list default="true" id="f7c9d8f6-3073-4d14-bdb7-2af3181d6545" name="Changes" comment="Kind of adding camera not finished but like 1/4 way there." />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -109,6 +90,11 @@
     </key>
   </component>
   <component name="RunManager" selected="CMake Application.wyvern">
+    <configuration default="true" type="CLionExternalRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true">
+      <method v="2">
+        <option name="CLION.EXTERNAL.BUILD" enabled="true" />
+      </method>
+    </configuration>
     <configuration name="wvn_test" type="CMakeRunConfiguration" factoryName="Application" REDIRECT_INPUT="false" ELEVATE="false" USE_EXTERNAL_CONSOLE="false" PASS_PARENT_ENVS_2="true" PROJECT_NAME="wyvern" TARGET_NAME="wvn_test" CONFIG_NAME="Debug" RUN_TARGET_PROJECT_NAME="wyvern" RUN_TARGET_NAME="wvn_test">
       <method v="2">
         <option name="com.jetbrains.cidr.execution.CidrBuildBeforeRunTaskProvider$BuildBeforeRunTask" enabled="true" />
@@ -229,7 +215,7 @@
       <workItem from="1666377196693" duration="3249000" />
       <workItem from="1666723147045" duration="4166000" />
       <workItem from="1666868985230" duration="604000" />
-      <workItem from="1667043170704" duration="1000" />
+      <workItem from="1667043170704" duration="96000" />
     </task>
     <task id="LOCAL-00001" summary="Working on Actor System.">
       <created>1662415127833</created>
@@ -462,7 +448,14 @@
       <option name="project" value="LOCAL" />
       <updated>1666380486588</updated>
     </task>
-    <option name="localTasksCounter" value="34" />
+    <task id="LOCAL-00034" summary="Kind of adding camera not finished but like 1/4 way there.">
+      <created>1667043241781</created>
+      <option name="number" value="00034" />
+      <option name="presentableId" value="LOCAL-00034" />
+      <option name="project" value="LOCAL" />
+      <updated>1667043241781</updated>
+    </task>
+    <option name="localTasksCounter" value="35" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -480,7 +473,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="99% finished the complex number implementation." />
     <MESSAGE value="Forgot a semi-colon :/ ." />
     <MESSAGE value="Ok so for whatever reason the ERASE function of the Vector&lt;T&gt; class was completely broken yet all my code seemed to work with it not even working... What the hell? How? What? I don't... Whatever it's fixed now." />
     <MESSAGE value="More Vulkan progress..." />
@@ -505,7 +497,8 @@
     <MESSAGE value="Annotated most classes/structs to give an overview of their functions." />
     <MESSAGE value="Made grammar and such more consistent." />
     <MESSAGE value="Added iterators to string container." />
-    <option name="LAST_COMMIT_MESSAGE" value="Added iterators to string container." />
+    <MESSAGE value="Kind of adding camera not finished but like 1/4 way there." />
+    <option name="LAST_COMMIT_MESSAGE" value="Kind of adding camera not finished but like 1/4 way there." />
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />
