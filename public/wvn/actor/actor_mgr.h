@@ -5,11 +5,9 @@
 #include <wvn/container/vector.h>
 #include <wvn/container/hash_map.h>
 #include <wvn/container/queue.h>
+#include <wvn/container/function.h>
 
 #include <wvn/actor/actor.h>
-
-// todo: create custom implementation
-#include <functional>
 
 namespace wvn::act
 {
@@ -38,10 +36,10 @@ namespace wvn::act
 		bool is_valid(const ActorHandle& act);
 		Actor* fetch(const ActorHandle& act);
 
-		void foreach(const std::function<void(ActorHandle&)>& fn);
-		void foreach(u64 mask, const std::function<void(ActorHandle&)>& fn);
-		void foreach_stoppable(const std::function<bool(ActorHandle&)>& fn);
-		void foreach_stoppable(u64 mask, const std::function<bool(ActorHandle&)>& fn);
+		void foreach(const Function<void(ActorHandle&)>& fn);
+		void foreach(u64 mask, const Function<void(ActorHandle&)>& fn);
+		void foreach_stoppable(const Function<bool(ActorHandle&)>& fn);
+		void foreach_stoppable(u64 mask, const Function<bool(ActorHandle&)>& fn);
 
 	private:
 		void resolve_initializing();

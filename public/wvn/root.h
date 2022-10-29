@@ -1,12 +1,10 @@
 #pragma once
 
 #include <wvn/container/vector.h>
+#include <wvn/container/function.h>
 #include <wvn/util/singleton.h>
 #include <wvn/maths/random.h>
 //#include <wvn/camera.h>
-
-// todo: replace with custom implementation
-#include <functional>
 
 namespace wvn
 {
@@ -49,10 +47,10 @@ namespace wvn
 		u64 random_seed = 0;
 		WindowMode window_mode = WINDOW_MODE_WINDOWED;
 
-		std::function<void(void)> on_init = nullptr;
-		std::function<void(void)> on_exit = nullptr;
-		std::function<void(void)> on_destroy = nullptr;
-		std::function<void(const char*)> on_log = nullptr;
+		Function<void(void)> on_init = nullptr;
+		Function<void(void)> on_exit = nullptr;
+		Function<void(void)> on_destroy = nullptr;
+		Function<void(const char*)> on_log = nullptr;
 
 		constexpr bool has_flag(ConfigFlag flag) const { return flags & flag; }
 	};
@@ -71,7 +69,7 @@ namespace wvn
 		float fps() const;
 		bool is_running() const;
 
-		const Config& config();
+        const Config& config();
 
 		sys::SystemBackend* current_system_backend();
 		void set_system_backend(sys::SystemBackend* backend);
