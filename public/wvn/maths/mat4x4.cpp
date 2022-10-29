@@ -1,10 +1,10 @@
 #include <wvn/maths/mat4x4.h>
 #include <wvn/maths/mat3x2.h>
 #include <wvn/maths/mat4x3.h>
-
 #include <wvn/maths/vec3.h>
-#include <wvn/util/assert.h>
 #include <wvn/maths/calc.h>
+
+#include <wvn/util/assert.h>
 
 using namespace wvn;
 
@@ -13,6 +13,14 @@ Mat4x4::Mat4x4()
 	, m21(0), m22(0), m23(0), m24(0)
 	, m31(0), m32(0), m33(0), m34(0)
 	, m41(0), m42(0), m43(0), m44(0)
+{
+}
+
+Mat4x4::Mat4x4(const Mat4x4& other)
+	: m11(other.m11), m12(other.m12), m13(other.m13), m14(other.m14)
+	, m21(other.m21), m22(other.m22), m23(other.m23), m24(other.m24)
+	, m31(other.m31), m32(other.m32), m33(other.m33), m34(other.m34)
+	, m41(other.m41), m42(other.m42), m43(other.m43), m44(other.m44)
 {
 }
 
@@ -71,9 +79,9 @@ Mat4x4 Mat4x4::create_projection(float fov, float aspect, float near, float far)
 {
     WVN_ASSERT(fov > 0 && aspect != 0, "[MAT4X4:DEBUG] FOV must be greater than 0 and aspect must not be 0.");
 
-    Mat4x4 result;
+    Mat4x4 result = Mat4x4::identity();
 
-	float tan_theta_over_2 = CalcF::tan(fov * CalcF::PI / 360.0f);
+	float tan_theta_over_2 = CalcF::tan(fov * CalcF::DEG2RAD * 0.5f);
 
 	result.m11 = 1.0f / tan_theta_over_2;
 	result.m22 = aspect / tan_theta_over_2;
@@ -121,7 +129,7 @@ Mat4x4 Mat4x4::create_rotation(float angle, Vec3F axis)
 
 	float sin_theta = CalcF::sin(angle);
 	float cos_theta = CalcF::cos(angle);
-	float cos_inv = 1.0f - cos_theta;
+	float cos_inv   = 1.0f - cos_theta;
 
 	return Mat4x4(
 		(axis.x * axis.x * cos_inv) + cos_theta,
@@ -351,4 +359,3 @@ const Mat4x4& Mat4x4::identity()
 
 	return IDENTITY;
 }
-

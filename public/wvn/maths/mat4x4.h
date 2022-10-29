@@ -1,12 +1,11 @@
 #pragma once
 
+#include <wvn/maths/vec3.h>
+
 namespace wvn
 {
 	struct Mat3x2;
 	struct Mat4x3;
-
-	template <typename T> struct Vec3;
-	using Vec3F = Vec3<float>;
 
 	/*
 	 * Generic 4x4 matrix.
@@ -41,7 +40,7 @@ namespace wvn
 		static const Mat4x4& identity();
 
 		static Mat4x4 from_mat3x2(const Mat3x2& mat);
-		static Mat4x4 from_mat4x4(const Mat4x3& mat);
+		static Mat4x4 from_mat4x3(const Mat4x3& mat);
 
 		static Mat4x4 create_translation(float x, float y, float z);
 		static Mat4x4 create_rotation(float angle, Vec3F axis);

@@ -16,7 +16,7 @@
 // note: currently, this is INCREDIBLY BLOATED
 // and INCREDIBLY useless for actual rendering
 // there are lots of variables that need to be abstracted
-// out and things that need to be moved into seperate
+// out and things that need to be moved into separate
 // manager type objects. currently, it is just this way
 // while i get a basic scene going and learn the ropes of
 // vulkan rendering.
@@ -129,6 +129,7 @@ namespace wvn::gfx
 		void create_vertex_buffer();
 		void create_index_buffer();
 		void create_descriptor_set_layout();
+		void create_uniform_buffers();
 
 		void create_image_views();
 		void clean_up_swap_chain();
@@ -159,6 +160,7 @@ namespace wvn::gfx
 		VulkanBuffer m_staging_buffer;
 		VulkanBuffer m_vertex_buffer;
 		VulkanBuffer m_index_buffer;
+		Vector<VulkanBuffer> m_uniform_buffers;
 
 		// sync
 		Vector<VkSemaphore> m_image_available_semaphores;

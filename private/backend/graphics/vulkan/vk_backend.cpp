@@ -11,6 +11,7 @@
 #include <wvn/graphics/render_pass.h>
 #include <wvn/graphics/vertex.h>
 #include <wvn/container/array.h>
+#include <wvn/maths/vec3.h>
 
 #include <backend/graphics/vulkan/vk_shader.h>
 
@@ -203,6 +204,8 @@ VulkanBackend::VulkanBackend()
 	, m_command_buffers()
 	, m_staging_buffer()
 	, m_vertex_buffer()
+	, m_index_buffer()
+	, m_uniform_buffers()
 	, m_image_available_semaphores()
 	, m_render_finished_semaphores()
 	, m_in_flight_fences()
@@ -304,6 +307,7 @@ VulkanBackend::VulkanBackend()
 	create_command_pool(phys_idx);
 	create_vertex_buffer();
 	create_index_buffer();
+	create_uniform_buffers();
 	create_command_buffers();
 	create_sync_objects();
 
@@ -318,16 +322,20 @@ VulkanBackend::~VulkanBackend()
 
 	clean_up_swap_chain();
 
+	vkDestroyPipeline(m_logical_data.device, m_graphics_pipeline, nullptr);
+	vkDestroyPipelineLayout(m_logical_data.device, m_pipeline_layout, nullptr);
+	vkDestroyRenderPass(m_logical_data.device, m_render_pass, nullptr);
+
+	for (u64 i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+		m_uniform_buffers[i].clean_up();
+	}
+
 	vkDestroyDescriptorSetLayout(m_logical_data.device, m_descriptor_set_layout, nullptr);
 
 	m_index_buffer.clean_up();
 	m_vertex_buffer.clean_up();
 
 	m_temp_shader->clean_up();
-
-	vkDestroyPipeline(m_logical_data.device, m_graphics_pipeline, nullptr);
-	vkDestroyPipelineLayout(m_logical_data.device, m_pipeline_layout, nullptr);
-	vkDestroyRenderPass(m_logical_data.device, m_render_pass, nullptr);
 
 	for (u32 i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
 		vkDestroyFence(m_logical_data.device, m_in_flight_fences[i], nullptr);
@@ -789,6 +797,7 @@ void VulkanBackend::rebuild_swap_chain()
 	while (Root::get_singleton().current_system_backend()->get_draw_size() == Vec2I::zero()) { }
 
 	vkDeviceWaitIdle(m_logical_data.device);
+
 	clean_up_swap_chain();
 
 	QueueFamilyIdx phys_idx = find_queue_families(m_physical_data.device);
@@ -885,6 +894,21 @@ void VulkanBackend::create_descriptor_set_layout()
 	}
 
 	dev::LogMgr::get_singleton().print("[VULKAN] Created descriptor set layout!");
+}
+
+void VulkanBackend::create_uniform_buffers()
+{
+	VkDeviceSize buffer_size = sizeof(UniformBufferObject);
+	m_uniform_buffers.resize(MAX_FRAMES_IN_FLIGHT);
+
+	for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+		m_uniform_buffers[i].create(
+			m_logical_data.device, m_physical_data.device,
+			buffer_size,
+			VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+		);
+	}
 }
 
 void VulkanBackend::create_vertex_buffer()
@@ -1175,6 +1199,8 @@ void VulkanBackend::on_window_resize(int width, int height)
 	m_is_framebuffer_resized = true;
 }
 
+static float g_timer = 0.0f;
+
 void VulkanBackend::render(const RenderPass& pass)
 {
 	u32 img_idx;
@@ -1191,6 +1217,18 @@ void VulkanBackend::render(const RenderPass& pass)
 
 	vkResetFences(m_logical_data.device, 1, &m_in_flight_fences[m_current_frame]);
 	vkResetCommandBuffer(current_buffer, 0);
+
+	// update uniform buffer
+	{
+		g_timer += CalcF::TAU * 0.1f;
+
+		UniformBufferObject ubo = {};
+		ubo.model = Mat4x4::create_rotation(g_timer, Vec3F(0.0f, 0.0f, 1.0f));
+		ubo.view  = Mat4x4::create_lookat(Vec3F(2.0f, 2.0f, 2.0f), Vec3F(0.0f, 0.0f, 0.0f), Vec3F(0.0f, 0.0f, 1.0f));
+		ubo.proj  = Mat4x4::create_projection(45.0f, m_swap_chain_extent.width / static_cast<float>(m_swap_chain_extent.height), 0.1f, 10.0f);
+
+		m_uniform_buffers[m_current_frame].send_data(&ubo);
+	}
 
 	// render pass stuff
 	{

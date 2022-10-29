@@ -18,14 +18,17 @@
     </configurations>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f7c9d8f6-3073-4d14-bdb7-2af3181d6545" name="Changes" comment="Fixed some error messages.">
-      <change afterPath="$PROJECT_DIR$/public/wvn/container/function.h" afterDir="false" />
+    <list default="true" id="f7c9d8f6-3073-4d14-bdb7-2af3181d6545" name="Changes" comment="Implemented custom Function type.">
+      <change afterPath="$PROJECT_DIR$/public/wvn/time/date_time.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/public/wvn/time/tick_span.h" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/public/wvn/time/tick_time.h" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/wvn/actor/actor_mgr.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/actor/actor_mgr.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/wvn/actor/actor_mgr.h" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/actor/actor_mgr.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/wvn/maths/polygon.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/maths/polygon.cpp" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/wvn/maths/polygon.h" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/maths/polygon.h" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/public/wvn/root.h" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/root.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/private/backend/graphics/vulkan/vk_backend.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/private/backend/graphics/vulkan/vk_backend.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/private/backend/graphics/vulkan/vk_backend.h" beforeDir="false" afterPath="$PROJECT_DIR$/private/backend/graphics/vulkan/vk_backend.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/wvn/maths/mat4x4.cpp" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/maths/mat4x4.cpp" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/wvn/maths/mat4x4.h" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/maths/mat4x4.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/wvn/maths/vec3.h" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/maths/vec3.h" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/wvn/time/.gitkeep" beforeDir="false" afterPath="$PROJECT_DIR$/public/wvn/time/date_span.h" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -219,7 +222,7 @@
       <workItem from="1666723147045" duration="4166000" />
       <workItem from="1666868985230" duration="604000" />
       <workItem from="1667043170704" duration="245000" />
-      <workItem from="1667069985552" duration="6361000" />
+      <workItem from="1667069985552" duration="10783000" />
     </task>
     <task id="LOCAL-00001" summary="Working on Actor System.">
       <created>1662415127833</created>
@@ -466,7 +469,14 @@
       <option name="project" value="LOCAL" />
       <updated>1667043403772</updated>
     </task>
-    <option name="localTasksCounter" value="36" />
+    <task id="LOCAL-00036" summary="Implemented custom Function type.">
+      <created>1667077028974</created>
+      <option name="number" value="00036" />
+      <option name="presentableId" value="LOCAL-00036" />
+      <option name="project" value="LOCAL" />
+      <updated>1667077028974</updated>
+    </task>
+    <option name="localTasksCounter" value="37" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -484,7 +494,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Ok so for whatever reason the ERASE function of the Vector&lt;T&gt; class was completely broken yet all my code seemed to work with it not even working... What the hell? How? What? I don't... Whatever it's fixed now." />
     <MESSAGE value="More Vulkan progress..." />
     <MESSAGE value="Uncommented a line I commented out during debugging." />
     <MESSAGE value="Work on the system backend." />
@@ -509,7 +518,19 @@
     <MESSAGE value="Added iterators to string container." />
     <MESSAGE value="Kind of adding camera not finished but like 1/4 way there." />
     <MESSAGE value="Fixed some error messages." />
-    <option name="LAST_COMMIT_MESSAGE" value="Fixed some error messages." />
+    <MESSAGE value="Implemented custom Function type." />
+    <option name="LAST_COMMIT_MESSAGE" value="Implemented custom Function type." />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="com.jetbrains.cidr.execution.debugger.OCBreakpointType">
+          <url>file://$PROJECT_DIR$/private/backend/graphics/vulkan/vk_backend.cpp</url>
+          <line>333</line>
+          <option name="timeStamp" value="4" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />
