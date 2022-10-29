@@ -46,6 +46,11 @@ Mat3x2::Mat3x2(
 {
 }
 
+Vec2F Mat3x2::position() const
+{
+	return Vec2F(m31, m32);
+}
+
 float* Mat3x2::value_ptr()
 {
 	return &m11;

@@ -210,6 +210,7 @@ VulkanBackend::VulkanBackend()
 	, m_render_pass(VK_NULL_HANDLE)
 	, m_pipeline_layout(VK_NULL_HANDLE)
 	, m_graphics_pipeline(VK_NULL_HANDLE)
+	, m_descriptor_set_layout(VK_NULL_HANDLE)
 	, m_swap_chain(VK_NULL_HANDLE)
 	, m_swap_chain_images()
 	, m_swap_chain_image_views()
@@ -297,6 +298,7 @@ VulkanBackend::VulkanBackend()
 	create_swap_chain(phys_idx);
 	create_image_views();
 	create_render_pass();
+	create_descriptor_set_layout();
 	create_graphics_pipeline();
 	create_swap_chain_framebuffers();
 	create_command_pool(phys_idx);
@@ -315,6 +317,8 @@ VulkanBackend::~VulkanBackend()
 	// //
 
 	clean_up_swap_chain();
+
+	vkDestroyDescriptorSetLayout(m_logical_data.device, m_descriptor_set_layout, nullptr);
 
 	m_index_buffer.clean_up();
 	m_vertex_buffer.clean_up();
@@ -658,8 +662,8 @@ void VulkanBackend::create_graphics_pipeline()
 
 	VkPipelineLayoutCreateInfo pipeline_layout_create_info = {};
 	pipeline_layout_create_info.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-	pipeline_layout_create_info.setLayoutCount = 0;
-	pipeline_layout_create_info.pSetLayouts = nullptr;
+	pipeline_layout_create_info.setLayoutCount = 1;
+	pipeline_layout_create_info.pSetLayouts = &m_descriptor_set_layout;
 	pipeline_layout_create_info.pushConstantRangeCount = 0;
 	pipeline_layout_create_info.pPushConstantRanges = nullptr;
 
@@ -859,6 +863,28 @@ void VulkanBackend::create_sync_objects()
 	}
 
 	dev::LogMgr::get_singleton().print("[VULKAN] Created sync objects!");
+}
+
+void VulkanBackend::create_descriptor_set_layout()
+{
+	VkDescriptorSetLayoutBinding ubo_binding = {};
+	ubo_binding.binding = 0;
+	ubo_binding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	ubo_binding.descriptorCount = 1;
+	ubo_binding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+	ubo_binding.pImmutableSamplers = nullptr;
+
+	VkDescriptorSetLayoutCreateInfo layout_create_info = {};
+	layout_create_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+	layout_create_info.bindingCount = 1;
+	layout_create_info.pBindings = &ubo_binding;
+
+	if (VkResult result = vkCreateDescriptorSetLayout(m_logical_data.device, &layout_create_info, nullptr, &m_descriptor_set_layout); result != VK_SUCCESS) {
+		dev::LogMgr::get_singleton().print("[VULKAN] Result: %d", result);
+		WVN_ERROR("[VULKAN:DEBUG] Failed to create descriptor set layout.");
+	}
+
+	dev::LogMgr::get_singleton().print("[VULKAN] Created descriptor set layout!");
 }
 
 void VulkanBackend::create_vertex_buffer()

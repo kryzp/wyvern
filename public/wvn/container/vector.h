@@ -316,13 +316,13 @@ namespace wvn
         if (capacity > m_capacity)
         {
             // 8 is just a nice number since vectors this small likely will have lots of rapid push/pop action
-            u64 newsize = CalcF::max(8, m_capacity);
+            u64 new_capacity = Calc<u64>::max(8, m_capacity);
             
-            while (newsize < capacity)
-                newsize *= 2;
+            while (new_capacity < capacity)
+				new_capacity *= 2;
 
-		    T* new_buf = (T*)::operator new (sizeof(T) * newsize);
-			mem::set(new_buf, 0, sizeof(T) * newsize);
+		    T* new_buf = (T*)::operator new (sizeof(T) * new_capacity);
+			mem::set(new_buf, 0, sizeof(T) * new_capacity);
 
             for (int i = 0; i < m_size; i++)
             {
@@ -336,7 +336,7 @@ namespace wvn
 		        ::operator delete (m_buf, sizeof(T) * m_capacity);
 
             m_buf = new_buf;
-            m_capacity = newsize;
+            m_capacity = new_capacity;
         }
     }
 

@@ -49,6 +49,8 @@ namespace wvn
 		static Mat3x2 create_translation(const Vec2<float>& translation);
 		static Mat3x2 create_transform(const Vec2<float>& position, float rotation, const Vec2<float>& scale, const Vec2<float>& origin);
 
+		Vec2<float> position() const;
+
 		float* value_ptr();
         const float* value_ptr() const;
 

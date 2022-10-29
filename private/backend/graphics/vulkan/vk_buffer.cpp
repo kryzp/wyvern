@@ -19,6 +19,11 @@ VulkanBuffer::VulkanBuffer()
 {
 }
 
+VulkanBuffer::~VulkanBuffer()
+{
+	clean_up();
+}
+
 void VulkanBuffer::create(VkDevice device, VkPhysicalDevice physical_device, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties)
 {
 	this->m_device = device;

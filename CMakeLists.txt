@@ -6,6 +6,7 @@ set(CMAKE_CXX_STANDARD 20)
 add_library(${PROJECT_NAME}
 
 	public/wvn/root.cpp
+	public/wvn/camera.cpp
 
 	public/wvn/util/types.cpp
 

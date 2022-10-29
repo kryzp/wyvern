@@ -11,8 +11,23 @@
 #include <backend/graphics/vulkan/vk_shader.h>
 #include <backend/graphics/vulkan/vk_buffer.h>
 
+// note: currently, this is INCREDIBLY BLOATED
+// and INCREDIBLY useless for actual rendering
+// there are lots of variables that need to be abstracted
+// out and things that need to be moved into seperate
+// manager type objects. currently, it is just this way
+// while i get a basic scene going and learn the ropes of
+// vulkan rendering.
+
 namespace wvn::gfx
 {
+	struct UniformBufferObject
+	{
+		Mat4x4 model;
+		Mat4x4 proj;
+		Mat4x4 view;
+	};
+
 	struct QueueFamilyIdx
 	{
 		Optional<u32> graphics_family;
@@ -111,6 +126,7 @@ namespace wvn::gfx
 		void create_sync_objects();
 		void create_vertex_buffer();
 		void create_index_buffer();
+		void create_descriptor_set_layout();
 
 		void create_image_views();
 		void clean_up_swap_chain();
@@ -152,6 +168,7 @@ namespace wvn::gfx
 		VkRenderPass m_render_pass;
 		VkPipelineLayout m_pipeline_layout;
 		VkPipeline m_graphics_pipeline;
+		VkDescriptorSetLayout m_descriptor_set_layout;
 
 		// swap chain
 		VkSwapchainKHR m_swap_chain;

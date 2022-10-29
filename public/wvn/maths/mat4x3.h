@@ -51,6 +51,8 @@ namespace wvn
 		static Mat4x3 create_translation(const Vec3<float>& translation);
 		static Mat4x3 create_transform(const Vec3<float>& position, const Quaternion& rotation, const Vec3<float>& scale, const Vec3<float>& origin);
 
+		Vec3<float> position() const;
+
 		float* value_ptr();
 		const float* value_ptr() const;
 

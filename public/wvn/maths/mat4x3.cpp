@@ -112,6 +112,11 @@ Mat4x3 Mat4x3::create_transform(
 	return mat;
 }
 
+Vec3F Mat4x3::position() const
+{
+	return Vec3F(m31, m32, m33);
+}
+
 float* Mat4x3::value_ptr()
 {
 	return &m11;

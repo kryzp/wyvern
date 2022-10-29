@@ -63,19 +63,16 @@ Complex Complex::pow(const Complex& z, const Complex& p)
 	if (p == Complex::zero())
 		return Complex::one();
 
-	double r = z.magnitude();
 	double theta = z.argument();
-	double lnr = CalcD::ln(r);
-	double exp0 = CalcD::exp(lnr   *  p.real);
-	double exp1 = CalcD::exp(theta * -p.imag);
+	double lnr = CalcD::ln(z.magnitude());
 
-	Complex part0 = Complex(exp0) *
+	Complex part0 = Complex(CalcD ::exp(lnr * p.real)) *
 		((Complex::one() * Complex::cos(lnr * p.imag)) +
 		 (Complex::i  () * Complex::sin(lnr * p.imag)));
 
-	Complex part1 = Complex(exp1) *
-		((Complex::one() * Complex::cos(theta * p.real)) +
-		 (Complex::i  () * Complex::sin(theta * p.real)));
+	Complex part1 = Complex(CalcD ::exp(theta * -p.imag)) *
+		((Complex::one() * Complex::cos(theta *  p.real)) +
+		 (Complex::i  () * Complex::sin(theta *  p.real)));
 
 	return part0 * part1;
 }
@@ -144,7 +141,7 @@ Complex Complex::tan(const Complex& z)
 	return sin(z) / cos(z);
 }
 
-// these are the only i didnt bother to actually derive myself
+// these are the only i didn't bother to actually derive myself
 // thanks wolfram alpha :)
 
 Complex Complex::asin(const Complex& z)

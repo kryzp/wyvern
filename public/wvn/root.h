@@ -3,6 +3,7 @@
 #include <wvn/container/vector.h>
 #include <wvn/util/singleton.h>
 #include <wvn/maths/random.h>
+#include <wvn/camera.h>
 
 // todo: replace with custom implementation
 #include <functional>

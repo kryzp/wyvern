@@ -8,7 +8,7 @@ namespace wvn::gfx
 	{
 	public:
 		VulkanBuffer();
-		~VulkanBuffer() = default;
+		~VulkanBuffer();
 
 		void create(VkDevice device, VkPhysicalDevice physical_device, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties);
 		void clean_up();
