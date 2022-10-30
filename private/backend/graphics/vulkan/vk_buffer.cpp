@@ -58,11 +58,19 @@ void VulkanBuffer::create(VkDevice device, VkPhysicalDevice physical_device, VkD
 
 	vkBindBufferMemory(m_device, m_buffer, m_memory, 0);
 }
-
 void VulkanBuffer::clean_up()
 {
+    if (m_buffer == VK_NULL_HANDLE &&
+        m_memory == VK_NULL_HANDLE)
+    {
+        return;
+    }
+
 	vkDestroyBuffer(m_device, m_buffer, nullptr);
 	vkFreeMemory(m_device, m_memory, nullptr);
+
+    m_buffer = VK_NULL_HANDLE;
+    m_memory = VK_NULL_HANDLE;
 }
 
 void VulkanBuffer::send_data(const void* data)

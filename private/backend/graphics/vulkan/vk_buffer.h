@@ -38,3 +38,4 @@ namespace wvn::gfx
 		VkMemoryPropertyFlags m_properties;
 	};
 }
+
