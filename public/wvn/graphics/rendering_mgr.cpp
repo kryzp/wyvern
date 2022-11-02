@@ -30,8 +30,8 @@ void RenderingMgr::render_scene()
 	RenderPass pass = {
 		.clear_colour = Colour(
 			(CalcF::cos(time * 4.0f) + 1.0f) * 0.5f * 255.0f,
-			(CalcF::sin(time * 3.14159f) + 1.0f) * 0.5f * 255.0f,
-			(CalcF::sin(time * 7.3f + 3.0f) + 1.0f) * 0.5f * 255.0f,
+			(CalcF::sin(time * CalcF::PI) + 1.0f) * 0.5f * 255.0f,
+			(CalcF::sin(time * 2.0f + 3.0f) + 1.0f) * 0.5f * 255.0f,
 			255
 		)
 	};

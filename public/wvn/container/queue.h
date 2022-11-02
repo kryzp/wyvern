@@ -30,12 +30,13 @@ namespace wvn
 		void clear();
 		bool empty() const;
 		u64 size() const;
+		void swap(Queue& other);
 
 		T* push(const T& item);
 		T pop();
 
 		template <typename... Args>
-		void emplace(Args&&... args);
+		T& emplace(Args&&... args);
 
 	private:
 		const u64 mc_capacity;
@@ -107,8 +108,7 @@ namespace wvn
 	template <typename T>
 	Queue<T>::~Queue()
 	{
-		delete[] m_front;
-		m_size = 0;
+		clear();
 	}
 
 	template <typename T>
@@ -138,6 +138,10 @@ namespace wvn
 	template <typename T>
 	void Queue<T>::clear()
 	{
+		delete[] m_front;
+
+		m_size = 0;
+		m_front = nullptr;
 	}
 
 	template <typename T>
@@ -150,6 +154,19 @@ namespace wvn
 	u64 Queue<T>::size() const
 	{
 		return m_size;
+	}
+
+	template <typename T>
+	void Queue<T>::swap(Queue<T>& other)
+	{
+		T*  t_front = m_front;
+		u64 t_size  = m_size;
+
+		m_front = other.m_front;
+		m_size  = other.m_size;
+
+		other.m_front = t_front;
+		other.m_size  = t_size;
 	}
 
 	template <typename T>
@@ -173,10 +190,10 @@ namespace wvn
 
 	template <typename T>
 	template <typename... Args>
-	void Queue<T>::emplace(Args&&... args)
+	T& Queue<T>::emplace(Args&&... args)
 	{
 		m_size++;
 		new (m_front + m_size - 1) T(std::forward<Args>(args)...);
-		return &m_front[m_size - 1];
+		return m_front[m_size - 1];
 	}
 }

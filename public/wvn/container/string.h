@@ -162,7 +162,7 @@ namespace wvn
 		bool operator == (const Str& other) const;
 		bool operator != (const Str& other) const;
 
-		Str operator + (const Str& rhs) const;
+		Str operator + (const Str& other) const;
 		Str& operator += (const Str& other);
 
 		explicit operator char* ();

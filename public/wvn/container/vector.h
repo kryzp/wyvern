@@ -97,9 +97,10 @@ namespace wvn
 		};
 
         Vector();
-        
+
         Vector(std::initializer_list<T> data);
         Vector(u64 initial_capacity);
+        Vector(u64 initial_capacity, const T& initial_element);
 		Vector(T* buf, u64 length);
 		Vector(const Iterator& begin, const Iterator& end);
 
@@ -159,8 +160,8 @@ namespace wvn
 
 		ConstIterator cbegin() const;
 		ConstIterator cend() const;
-		ReverseConstIterator rcbegin() const;
-		ReverseConstIterator rcend() const;
+		ReverseConstIterator crbegin() const;
+		ReverseConstIterator crend() const;
 
 		T& at(u64 idx);
         const T& at(u64 idx) const;
@@ -189,8 +190,9 @@ namespace wvn
         allocate(data.size());
         m_size = data.size();
 
-        for (u64 i = 0; i < m_size; i++)
+        for (u64 i = 0; i < m_size; i++) {
             new (m_buf + i) T(data.begin()[i]);
+        }
     }
 
     template <typename T>
@@ -200,8 +202,21 @@ namespace wvn
         allocate(initial_capacity);
         m_size = initial_capacity;
 
-        for (u64 i = 0; i < m_capacity; i++)
+        for (u64 i = 0; i < m_capacity; i++) {
             new (m_buf + i) T();
+        }
+    }
+
+    template <typename T>
+    Vector<T>::Vector(u64 initial_capacity, const T& initial_element)
+        : Vector()
+    {
+        allocate(initial_capacity);
+        m_size = initial_capacity;
+
+        for (u64 i = 0; i < m_capacity; i++) {
+            new (m_buf + i) T(initial_element);
+        }
     }
 
 	template <typename T>
@@ -211,8 +226,9 @@ namespace wvn
 		allocate(length);
 		m_size = length;
 
-		for (u64 i = 0; i < length; i++)
+		for (u64 i = 0; i < length; i++) {
 			new (m_buf + i) T(buf[i]);
+        }
 	}
 
 	template <typename T>
@@ -222,8 +238,9 @@ namespace wvn
 		allocate(end.m_ptr - begin.m_ptr);
 		m_size = end.m_ptr - begin.m_ptr;
 
-		for (u64 i = 0; i < m_capacity; i++)
+		for (u64 i = 0; i < m_capacity; i++) {
 			new (m_buf + i) T(begin.m_ptr[i]);
+        }
 	}
 
     template <typename T>
@@ -236,11 +253,12 @@ namespace wvn
             clear();
             m_size = other.size();
 
-            for (int i = 0; i < other.m_capacity; i++)
+            for (int i = 0; i < other.m_capacity; i++) {
                 new (m_buf + i) T(other.m_buf[i]);
+            }
         }
     }
-    
+
     template <typename T>
     Vector<T>::Vector(Vector&& other) noexcept
 		: Vector()
@@ -318,22 +336,25 @@ namespace wvn
             // 8 is just a nice number since vectors this small likely will have lots of rapid push/pop action
             u64 new_capacity = Calc<u64>::max(8, m_capacity);
             
-            while (new_capacity < capacity)
+            while (new_capacity < capacity) {
 				new_capacity *= 2;
+            }
 
 		    T* new_buf = (T*)::operator new (sizeof(T) * new_capacity);
 			mem::set(new_buf, 0, sizeof(T) * new_capacity);
 
             for (int i = 0; i < m_size; i++)
             {
-                if (i < m_capacity)
+                if (i < m_capacity) {
                     new (new_buf+i) T(std::move(m_buf[i]));
+                }
 
                 m_buf[i].~T();
             }
 
-            if (m_buf)
+            if (m_buf) {
 		        ::operator delete (m_buf, sizeof(T) * m_capacity);
+            }
 
             m_buf = new_buf;
             m_capacity = new_capacity;
@@ -343,11 +364,11 @@ namespace wvn
     template <typename T>
     void Vector<T>::resize(u64 new_count)
     {
-        if (new_count < m_size)
+        if (new_count < m_size) {
             erase(new_count, m_size - new_count);
-
-        else if (new_count > m_size)
+        } else if (new_count > m_size) {
             expand(new_count - m_size);
+        }
 
 		m_size += new_count - m_size;
     }
@@ -359,8 +380,9 @@ namespace wvn
 
         allocate(m_size + amount);
 
-        for (int i = 0; i < amount; i++)
+        for (int i = 0; i < amount; i++) {
             new (m_buf + m_size + i) T();
+        }
     }
 
     template <typename T>
@@ -376,11 +398,13 @@ namespace wvn
 			return;
 		}
 
-		for (int i = 0; i < m_size - amount; i++)
+		for (int i = 0; i < m_size - amount; i++) {
 			m_buf[i + index] = std::move(m_buf[i + index + amount]);
+        }
 
-		for (int i = m_size - amount; i < m_size; i++)
+		for (int i = m_size - amount; i < m_size; i++) {
 			m_buf[i + index].~T();
+        }
 
 		m_size -= amount;
 	}
@@ -392,11 +416,13 @@ namespace wvn
 			return;
 		}
 
-		for (int i = 0; i < m_size - amount; i++)
+		for (int i = 0; i < m_size - amount; i++) {
 			*(it.m_ptr + i) = std::move(*(it.m_ptr + i + amount));
+        }
 
-		for (int i = m_size - amount; i < m_size; i++)
+		for (int i = m_size - amount; i < m_size; i++) {
 			it->~T();
+        }
 
 		m_size -= amount;
 	}
@@ -587,13 +613,13 @@ namespace wvn
 	}
 
 	template <typename T>
-	typename Vector<T>::ReverseConstIterator Vector<T>::rcbegin() const
+	typename Vector<T>::ReverseConstIterator Vector<T>::crbegin() const
 	{
 		return ReverseConstIterator(m_buf + m_size - 1);
 	}
 
 	template <typename T>
-	typename Vector<T>::ReverseConstIterator Vector<T>::rcend() const
+	typename Vector<T>::ReverseConstIterator Vector<T>::crend() const
 	{
 		return ReverseConstIterator(m_buf - 1);
 	}

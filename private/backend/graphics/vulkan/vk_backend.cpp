@@ -1,7 +1,7 @@
 
 // https://vulkan-tutorial.com
 // Thank. You. So. Much.
-// I love Vulkan. Thamk u Khronos (tm) (c) (r) uwu
+// I love Vulkan. Thank u Khronos (tm) (c) (r)
 
 #include <backend/graphics/vulkan/vk_backend.h>
 
@@ -214,6 +214,8 @@ VulkanBackend::VulkanBackend()
 	, m_pipeline_layout(VK_NULL_HANDLE)
 	, m_graphics_pipeline(VK_NULL_HANDLE)
 	, m_descriptor_set_layout(VK_NULL_HANDLE)
+    , m_descriptor_pool(VK_NULL_HANDLE)
+    , m_descriptor_sets()
 	, m_swap_chain(VK_NULL_HANDLE)
 	, m_swap_chain_images()
 	, m_swap_chain_image_views()
@@ -308,6 +310,8 @@ VulkanBackend::VulkanBackend()
 	create_vertex_buffer();
 	create_index_buffer();
 	create_uniform_buffers();
+    create_descriptor_pool();
+    create_descriptor_sets();
 	create_command_buffers();
 	create_sync_objects();
 
@@ -330,6 +334,7 @@ VulkanBackend::~VulkanBackend()
 		m_uniform_buffers[i].clean_up();
 	}
 
+	vkDestroyDescriptorPool(m_logical_data.device, m_descriptor_pool, nullptr);
 	vkDestroyDescriptorSetLayout(m_logical_data.device, m_descriptor_set_layout, nullptr);
 
 	m_index_buffer.clean_up();
@@ -630,7 +635,7 @@ void VulkanBackend::create_graphics_pipeline()
 	rasterization_state_create_info.polygonMode = VK_POLYGON_MODE_FILL;
 	rasterization_state_create_info.lineWidth = 1.0f;
 	rasterization_state_create_info.cullMode = VK_CULL_MODE_BACK_BIT;
-	rasterization_state_create_info.frontFace = VK_FRONT_FACE_CLOCKWISE;
+	rasterization_state_create_info.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 	rasterization_state_create_info.depthBiasEnable = VK_FALSE;
 	rasterization_state_create_info.depthBiasConstantFactor = 0.0f;
 	rasterization_state_create_info.depthBiasClamp = 0.0f;
@@ -909,6 +914,72 @@ void VulkanBackend::create_uniform_buffers()
 			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
 		);
 	}
+}
+
+void VulkanBackend::create_descriptor_pool()
+{
+    VkDescriptorPoolSize pool_size = {};
+    pool_size.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    pool_size.descriptorCount = static_cast<u32>(MAX_FRAMES_IN_FLIGHT);
+
+    VkDescriptorPoolCreateInfo pool_create_info = {};
+    pool_create_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+    pool_create_info.poolSizeCount = 1;
+    pool_create_info.pPoolSizes = &pool_size;
+    pool_create_info.maxSets = static_cast<u32>(MAX_FRAMES_IN_FLIGHT);
+
+    if (VkResult result = vkCreateDescriptorPool(m_logical_data.device, &pool_create_info, nullptr, &m_descriptor_pool); result != VK_SUCCESS) {
+        dev::LogMgr::get_singleton().print("[VULKAN] Result: %d", result);
+        WVN_ERROR("[VULKAN:DEBUG] Failed to create descriptor pool.");
+    }
+
+    dev::LogMgr::get_singleton().print("[VULKAN] Created descriptor pool!");
+}
+
+void VulkanBackend::create_descriptor_sets()
+{
+    m_descriptor_sets.resize(MAX_FRAMES_IN_FLIGHT);
+
+	VkDescriptorSetLayout* layouts = new VkDescriptorSetLayout[MAX_FRAMES_IN_FLIGHT];
+
+	for (u64 i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+		layouts[i] = m_descriptor_set_layout;
+	}
+
+    VkDescriptorSetAllocateInfo alloc_info = {};
+    alloc_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+    alloc_info.descriptorPool = m_descriptor_pool;
+    alloc_info.descriptorSetCount = static_cast<u32>(MAX_FRAMES_IN_FLIGHT);
+    alloc_info.pSetLayouts = layouts;
+
+    if (VkResult result = vkAllocateDescriptorSets(m_logical_data.device, &alloc_info, m_descriptor_sets.data()); result != VK_SUCCESS) {
+        dev::LogMgr::get_singleton().print("[VULKAN] Result: %d", result);
+        WVN_ERROR("[VULKAN:DEBUG] Failed to create descriptor pool.");
+    }
+
+	delete layouts;
+
+	for (u64 i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+		VkDescriptorBufferInfo descriptor_buffer_info = {};
+		descriptor_buffer_info.buffer = m_uniform_buffers[i].buffer();
+		descriptor_buffer_info.offset = 0;
+		descriptor_buffer_info.range = sizeof(UniformBufferObject);
+
+		VkWriteDescriptorSet descriptor_write = {};
+		descriptor_write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		descriptor_write.dstSet = m_descriptor_sets[i];
+		descriptor_write.dstBinding = 0;
+		descriptor_write.dstArrayElement = 0;
+		descriptor_write.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+		descriptor_write.descriptorCount = 1;
+		descriptor_write.pBufferInfo = &descriptor_buffer_info;
+		descriptor_write.pImageInfo = nullptr;
+		descriptor_write.pTexelBufferView = nullptr;
+
+		vkUpdateDescriptorSets(m_logical_data.device, 1, &descriptor_write, 0, nullptr);
+	}
+
+    dev::LogMgr::get_singleton().print("[VULKAN] Created descriptor sets!");
 }
 
 void VulkanBackend::create_vertex_buffer()
@@ -1199,7 +1270,7 @@ void VulkanBackend::on_window_resize(int width, int height)
 	m_is_framebuffer_resized = true;
 }
 
-static float g_timer = 0.0f;
+//static float g_timer = 0.0f;
 
 void VulkanBackend::render(const RenderPass& pass)
 {
@@ -1220,12 +1291,12 @@ void VulkanBackend::render(const RenderPass& pass)
 
 	// update uniform buffer
 	{
-		g_timer += CalcF::TAU * 0.1f;
+		//g_timer += CalcF::TAU * 0.05f;
 
 		UniformBufferObject ubo = {};
-		ubo.model = Mat4x4::create_rotation(g_timer, Vec3F(0.0f, 0.0f, 1.0f));
-		ubo.view  = Mat4x4::create_lookat(Vec3F(2.0f, 2.0f, 2.0f), Vec3F(0.0f, 0.0f, 0.0f), Vec3F(0.0f, 0.0f, 1.0f));
-		ubo.proj  = Mat4x4::create_projection(45.0f, m_swap_chain_extent.width / static_cast<float>(m_swap_chain_extent.height), 0.1f, 10.0f);
+		ubo.model = Mat4x4::identity();//Mat4x4::create_rotation(g_timer, Vec3F(0.0f, 0.0f, 1.0f));
+		ubo.view  = Mat4x4::identity();//Mat4x4::create_lookat(Vec3F(2.0f, 2.0f, 2.0f), Vec3F(0.0f, 0.0f, 0.0f), Vec3F(0.0f, 0.0f, 1.0f));
+		ubo.proj  = Mat4x4::identity();//Mat4x4::create_projection(45.0f, m_swap_chain_extent.width / static_cast<float>(m_swap_chain_extent.height), 0.1f, 10.0f);
 
 		m_uniform_buffers[m_current_frame].send_data(&ubo);
 	}
@@ -1306,6 +1377,8 @@ void VulkanBackend::render(const RenderPass& pass)
 
 			vkCmdBindVertexBuffers(current_buffer, 0, 1, vertex_buffers, offsets);
 			vkCmdBindIndexBuffer(current_buffer, m_index_buffer.buffer(), 0, VK_INDEX_TYPE_UINT16);
+
+			vkCmdBindDescriptorSets(current_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline_layout, 0, 1, &m_descriptor_sets[m_current_frame], 0, nullptr);
 
 			vkCmdDrawIndexed(current_buffer, ARRAY_LENGTH(INDICES), 1, 0, 0, 0);
 		}

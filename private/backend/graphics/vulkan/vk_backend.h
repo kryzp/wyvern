@@ -25,9 +25,9 @@ namespace wvn::gfx
 {
 	struct UniformBufferObject
 	{
-		Mat4x4 model;
-		Mat4x4 proj;
-		Mat4x4 view;
+		alignas(16) Mat4x4 model;
+		alignas(16) Mat4x4 proj;
+		alignas(16) Mat4x4 view;
 	};
 
 	struct QueueFamilyIdx
@@ -130,6 +130,8 @@ namespace wvn::gfx
 		void create_index_buffer();
 		void create_descriptor_set_layout();
 		void create_uniform_buffers();
+        void create_descriptor_pool();
+        void create_descriptor_sets();
 
 		void create_image_views();
 		void clean_up_swap_chain();
@@ -173,6 +175,8 @@ namespace wvn::gfx
 		VkPipelineLayout m_pipeline_layout;
 		VkPipeline m_graphics_pipeline;
 		VkDescriptorSetLayout m_descriptor_set_layout;
+        VkDescriptorPool m_descriptor_pool;
+        Vector<VkDescriptorSet> m_descriptor_sets;
 
 		// swap chain
 		VkSwapchainKHR m_swap_chain;

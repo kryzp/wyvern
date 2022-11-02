@@ -21,7 +21,7 @@ VulkanBuffer::VulkanBuffer()
 
 VulkanBuffer::~VulkanBuffer()
 {
-	clean_up();
+    clean_up();
 }
 
 void VulkanBuffer::create(VkDevice device, VkPhysicalDevice physical_device, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties)
@@ -75,9 +75,9 @@ void VulkanBuffer::clean_up()
 
 void VulkanBuffer::send_data(const void* data)
 {
-	void* mapped_data = nullptr;
-	vkMapMemory(m_device, m_memory, 0, m_size, 0, &mapped_data);
-	mem::copy(mapped_data, data, m_size);
+	void* mapped_address = nullptr;
+	vkMapMemory(m_device, m_memory, 0, m_size, 0, &mapped_address);
+	mem::copy(mapped_address, data, m_size);
 	vkUnmapMemory(m_device, m_memory);
 }
 
