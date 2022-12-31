@@ -21,6 +21,11 @@ Complex::Complex(double real, double imag)
 {
 }
 
+Complex::Complex(_Complex double cc)
+{
+	// todo lol
+}
+
 Complex Complex::zeta(const Complex& s, unsigned iter)
 {
 	Complex result = Complex::zero();

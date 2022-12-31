@@ -51,7 +51,7 @@ namespace wvn
 		static Mat4x4 create_orthographic(float width, float height, float near, float far);
 		static Mat4x4 create_orthographic_ext(float left, float right, float bottom, float top, float near, float far);
 
-        static Mat4x4 create_projection(float fov, float aspect, float near, float far);
+        static Mat4x4 create_perspective(float fov, float aspect, float near, float far);
 
 		float* value_ptr();
         const float* value_ptr() const;

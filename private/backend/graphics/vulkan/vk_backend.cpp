@@ -26,8 +26,8 @@ using namespace wvn::gfx;
 static Vertex VERTICES[] = {
 	{ { -0.5f, -0.5f }, { 1.0f, 0.0f, 0.0f } },
 	{ {  0.5f, -0.5f }, { 0.0f, 1.0f, 0.0f } },
-	{ {  0.5f,  0.5f }, { 1.0f, 1.0f, 0.0f } },
-	{ { -0.5f,  0.5f }, { 0.0f, 0.0f, 1.0f } },
+	{ {  0.5f,  0.5f }, { 0.0f, 0.0f, 1.0f } },
+	{ { -0.5f,  0.5f }, { 1.0f, 1.0f, 1.0f } },
 };
 
 static u16 INDICES[] = {
@@ -211,8 +211,8 @@ VulkanBackend::VulkanBackend()
 	, m_in_flight_fences()
 	, m_is_framebuffer_resized(false)
 	, m_render_pass(VK_NULL_HANDLE)
-	, m_pipeline_layout(VK_NULL_HANDLE)
 	, m_graphics_pipeline(VK_NULL_HANDLE)
+	, m_pipeline_layout(VK_NULL_HANDLE)
 	, m_descriptor_set_layout(VK_NULL_HANDLE)
     , m_descriptor_pool(VK_NULL_HANDLE)
     , m_descriptor_sets()
@@ -635,7 +635,7 @@ void VulkanBackend::create_graphics_pipeline()
 	rasterization_state_create_info.polygonMode = VK_POLYGON_MODE_FILL;
 	rasterization_state_create_info.lineWidth = 1.0f;
 	rasterization_state_create_info.cullMode = VK_CULL_MODE_BACK_BIT;
-	rasterization_state_create_info.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
+	rasterization_state_create_info.frontFace = VK_FRONT_FACE_CLOCKWISE;
 	rasterization_state_create_info.depthBiasEnable = VK_FALSE;
 	rasterization_state_create_info.depthBiasConstantFactor = 0.0f;
 	rasterization_state_create_info.depthBiasClamp = 0.0f;
@@ -920,13 +920,13 @@ void VulkanBackend::create_descriptor_pool()
 {
     VkDescriptorPoolSize pool_size = {};
     pool_size.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    pool_size.descriptorCount = static_cast<u32>(MAX_FRAMES_IN_FLIGHT);
+    pool_size.descriptorCount = MAX_FRAMES_IN_FLIGHT;
 
     VkDescriptorPoolCreateInfo pool_create_info = {};
     pool_create_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
     pool_create_info.poolSizeCount = 1;
     pool_create_info.pPoolSizes = &pool_size;
-    pool_create_info.maxSets = static_cast<u32>(MAX_FRAMES_IN_FLIGHT);
+    pool_create_info.maxSets = MAX_FRAMES_IN_FLIGHT;
 
     if (VkResult result = vkCreateDescriptorPool(m_logical_data.device, &pool_create_info, nullptr, &m_descriptor_pool); result != VK_SUCCESS) {
         dev::LogMgr::get_singleton().print("[VULKAN] Result: %d", result);
@@ -940,24 +940,19 @@ void VulkanBackend::create_descriptor_sets()
 {
     m_descriptor_sets.resize(MAX_FRAMES_IN_FLIGHT);
 
-	VkDescriptorSetLayout* layouts = new VkDescriptorSetLayout[MAX_FRAMES_IN_FLIGHT];
-
-	for (u64 i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-		layouts[i] = m_descriptor_set_layout;
-	}
+	Array<VkDescriptorSetLayout, MAX_FRAMES_IN_FLIGHT> layouts;
+	layouts.fill(m_descriptor_set_layout);
 
     VkDescriptorSetAllocateInfo alloc_info = {};
     alloc_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
     alloc_info.descriptorPool = m_descriptor_pool;
-    alloc_info.descriptorSetCount = static_cast<u32>(MAX_FRAMES_IN_FLIGHT);
-    alloc_info.pSetLayouts = layouts;
+    alloc_info.descriptorSetCount = MAX_FRAMES_IN_FLIGHT;
+    alloc_info.pSetLayouts = layouts.data();
 
     if (VkResult result = vkAllocateDescriptorSets(m_logical_data.device, &alloc_info, m_descriptor_sets.data()); result != VK_SUCCESS) {
         dev::LogMgr::get_singleton().print("[VULKAN] Result: %d", result);
         WVN_ERROR("[VULKAN:DEBUG] Failed to create descriptor pool.");
     }
-
-	delete layouts;
 
 	for (u64 i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
 		VkDescriptorBufferInfo descriptor_buffer_info = {};
@@ -1270,8 +1265,6 @@ void VulkanBackend::on_window_resize(int width, int height)
 	m_is_framebuffer_resized = true;
 }
 
-//static float g_timer = 0.0f;
-
 void VulkanBackend::render(const RenderPass& pass)
 {
 	u32 img_idx;
@@ -1286,20 +1279,21 @@ void VulkanBackend::render(const RenderPass& pass)
 
 	VkCommandBuffer& current_buffer = m_command_buffers[m_current_frame];
 
-	vkResetFences(m_logical_data.device, 1, &m_in_flight_fences[m_current_frame]);
-	vkResetCommandBuffer(current_buffer, 0);
-
 	// update uniform buffer
 	{
-		//g_timer += CalcF::TAU * 0.05f;
+		static float timer = 0.0f;
+		timer += CalcF::TAU * 0.0025f;
 
 		UniformBufferObject ubo = {};
-		ubo.model = Mat4x4::identity();//Mat4x4::create_rotation(g_timer, Vec3F(0.0f, 0.0f, 1.0f));
-		ubo.view  = Mat4x4::identity();//Mat4x4::create_lookat(Vec3F(2.0f, 2.0f, 2.0f), Vec3F(0.0f, 0.0f, 0.0f), Vec3F(0.0f, 0.0f, 1.0f));
-		ubo.proj  = Mat4x4::identity();//Mat4x4::create_projection(45.0f, m_swap_chain_extent.width / static_cast<float>(m_swap_chain_extent.height), 0.1f, 10.0f);
+		ubo.model = Mat4x4::create_rotation(timer * 90.0f * CalcF::DEG2RAD, Vec3F(0.0f, 0.0f, 1.0f));
+		ubo.view  = Mat4x4::create_lookat(Vec3F(2.0f, 2.0f, 2.0f), Vec3F(0.0f, 0.0f, 0.0f), Vec3F(0.0f, 0.0f, 1.0f));
+		ubo.proj  = Mat4x4::create_perspective(CalcF::DEG2RAD * 45.0f, (float)m_swap_chain_extent.width / (float)m_swap_chain_extent.height, 0.1f, 10.0f);
 
 		m_uniform_buffers[m_current_frame].send_data(&ubo);
 	}
+
+	vkResetFences(m_logical_data.device, 1, &m_in_flight_fences[m_current_frame]);
+	vkResetCommandBuffer(current_buffer, 0);
 
 	// render pass stuff
 	{

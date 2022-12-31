@@ -97,6 +97,7 @@ target_include_directories(${PROJECT_NAME}
 
 find_package(SDL2 REQUIRED)
 find_package(Vulkan REQUIRED)
+find_package(glm REQUIRED)
 
 set(SDL2_ENABLED true CACHE BOOL "Use SDL2 as the system implementation")
 set(VK_ENABLED true CACHE BOOL "Use Vulkan as the renderer implementation")
@@ -107,14 +108,11 @@ add_compile_definitions(WVN_DEBUG)
 
 if (SDL2_ENABLED)
 	add_compile_definitions(WVN_USE_SDL2)
-
 	target_link_libraries(${PROJECT_NAME} SDL2::SDL2)
 endif()
 
 if (VK_ENABLED)
 	add_compile_definitions(WVN_USE_VULKAN)
-
-	#target_include_directories(${PROJECT_NAME} PUBLIC ${Vulkan_INCLUDE_DIRS})
 	target_link_libraries(${PROJECT_NAME} Vulkan::Vulkan)
 endif()
 

@@ -1,6 +1,7 @@
 #version 450
 
 layout (location = 0) in vec3 frag_colour;
+
 layout (location = 0) out vec4 o_colour;
 
 void main()

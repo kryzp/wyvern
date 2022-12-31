@@ -25,9 +25,9 @@ namespace wvn::gfx
 {
 	struct UniformBufferObject
 	{
-		alignas(16) Mat4x4 model;
-		alignas(16) Mat4x4 proj;
-		alignas(16) Mat4x4 view;
+		Mat4x4 model;
+		Mat4x4 view;
+		Mat4x4 proj;
 	};
 
 	struct QueueFamilyIdx
@@ -49,7 +49,6 @@ namespace wvn::gfx
 
 		constexpr bool all_unique() const
 		{
-			// todo: store/cache this??
 			const u32 g = graphics_family.value();
 			const u32 p = present_family.value();
 			const u32 c = compute_family.value();
@@ -172,8 +171,8 @@ namespace wvn::gfx
 
 		// render pass
 		VkRenderPass m_render_pass;
-		VkPipelineLayout m_pipeline_layout;
 		VkPipeline m_graphics_pipeline;
+		VkPipelineLayout m_pipeline_layout;
 		VkDescriptorSetLayout m_descriptor_set_layout;
         VkDescriptorPool m_descriptor_pool;
         Vector<VkDescriptorSet> m_descriptor_sets;

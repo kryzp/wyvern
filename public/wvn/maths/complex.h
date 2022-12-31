@@ -4,7 +4,6 @@ namespace wvn
 {
 	/*
 	 * Useless in the actual engine but still pretty neat!
-	 *
 	 * Wrapper around complex numbers. Allows for complex arithmetic
 	 * and other maths-based things.
 	 */
@@ -16,6 +15,7 @@ namespace wvn
 		Complex();
 		Complex(double real);
 		Complex(double real, double imag);
+		Complex(_Complex double cc);
 		~Complex() = default;
 
 		static const Complex& zero();

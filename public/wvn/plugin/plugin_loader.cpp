@@ -16,6 +16,12 @@
 using namespace wvn;
 using namespace wvn::plug;
 
+/*
+ * Note:
+ * Plugin order *matters* here!
+ * System plugins are loaded first, then rendering, then finally audio.
+ */
+
 Vector<Plugin*> PluginLoader::load_plugins()
 {
 	Vector<Plugin*> plugins;

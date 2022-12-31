@@ -27,6 +27,7 @@ void RenderingMgr::render_scene()
 	static float time = 0.0f;
 	time += 1.0f / 500.0f;
 
+	/*
 	RenderPass pass = {
 		.clear_colour = Colour(
 			(CalcF::cos(time * 4.0f) + 1.0f) * 0.5f * 255.0f,
@@ -34,6 +35,11 @@ void RenderingMgr::render_scene()
 			(CalcF::sin(time * 2.0f + 3.0f) + 1.0f) * 0.5f * 255.0f,
 			255
 		)
+	};
+	 */
+
+	RenderPass pass = {
+		.clear_colour = Colour::black()
 	};
 
 	renderer->render(pass);

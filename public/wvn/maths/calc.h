@@ -21,7 +21,6 @@ namespace wvn
 		static T abs(T x);
 		static T mod(T x, T y);
 		static T sqrt(T x);
-		static T isqrt(T x);
 
 		static T pow(T x, T e);
 		static T exp(T x);
@@ -84,19 +83,13 @@ namespace wvn
 	template <typename T>
 	T Calc<T>::mod(T x, T y)
 	{
-		return std::fmod(x, y);
+		return std::fmodf(x, y);
 	}
 
 	template <typename T>
 	T Calc<T>::sqrt(T x)
 	{
 		return std::sqrt(x);
-	}
-
-	template <typename T>
-	T Calc<T>::isqrt(T x)
-	{
-		return 1.0 / std::sqrt(x);
 	}
 
 	template <typename T>

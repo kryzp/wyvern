@@ -65,8 +65,11 @@ Mat4x4 Mat4x4::create_orthographic_ext(float left, float right, float bottom, fl
 	Mat4x4 result = Mat4x4::identity();
 
 	result.m11 = 2.0f / (right - left);
+
 	result.m22 = 2.0f / (top - bottom);
+
 	result.m33 = 1.0f / (near - far);
+
 	result.m41 = (left + right) / (left - right);
 	result.m42 = (top + bottom) / (bottom - top);
 	result.m43 = near / (near - far);
@@ -75,20 +78,20 @@ Mat4x4 Mat4x4::create_orthographic_ext(float left, float right, float bottom, fl
 	return result;
 }
 
-Mat4x4 Mat4x4::create_projection(float fov, float aspect, float near, float far)
+Mat4x4 Mat4x4::create_perspective(float fov, float aspect, float near, float far)
 {
-    WVN_ASSERT(fov > 0 && aspect != 0, "[MAT4X4:DEBUG] FOV must be greater than 0 and aspect must not be 0.");
+    WVN_ASSERT(fov > 0, "[MAT4X4:DEBUG] FOV must be greater than 0.");
+	WVN_ASSERT(aspect != 0, "[MAT4X4:DEBUG] Aspect must not be 0.");
 
-    Mat4x4 result = Mat4x4::identity();
+    Mat4x4 result = Mat4x4(0.0f);
 
-	float tan_theta_over_2 = CalcF::tan(fov * CalcF::DEG2RAD * 0.5f);
+	const float tan_half_fov = CalcF::tan(fov / 2.0f);
 
-	result.m11 = 1.0f / tan_theta_over_2;
-	result.m22 = aspect / tan_theta_over_2;
-	result.m33 = (near + far) / (near - far);
+	result.m11 = 1.0f / (aspect * tan_half_fov);
+	result.m22 = 1.0f / (tan_half_fov);
+	result.m33 = - (far + near) / (far - near);
 	result.m34 = -1.0f;
-	result.m43 = (2.0f * near * far) / (near - far);
-	result.m44 = 0.0f;
+	result.m43 = -(2.0f * far * near) / (far - near);
 
 	return result;
 }
@@ -166,15 +169,15 @@ Mat4x4 Mat4x4::create_scale(float x, float y, float z)
 
 Mat4x4 Mat4x4::create_lookat(const Vec3F& eye, const Vec3F& centre, const Vec3F& up)
 {
-	Vec3F f = (centre - eye).normalized();
-	Vec3F s = Vec3F::cross(f, up).normalized();
-	Vec3F u = Vec3F::cross(s, f).normalized();
+	Vec3F p = (centre - eye).normalized();
+	Vec3F q = Vec3F::cross(p, up).normalized();
+	Vec3F r = Vec3F::cross(q, p);
 
 	return Mat4x4(
-		s.x, u.x, -f.x, 0,
-		s.y, u.y, -f.y, 0,
-		s.z, u.z, -f.z, 0,
-		-Vec3F::dot(s, eye), -Vec3F::dot(u, eye), Vec3F::dot(f, eye), 1
+		q.x, r.x, -p.x, 0.0f,
+		q.y, r.y, -p.y, 0.0f,
+		q.z, r.z, -p.z, 0.0f,
+		-Vec3F::dot(q, eye), -Vec3F::dot(r, eye), Vec3F::dot(p, eye), 1.0f
 	);
 }
 
