@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MAT4X4_H
+#define MAT4X4_H
 
 #include <wvn/maths/vec3.h>
 
@@ -7,7 +8,7 @@ namespace wvn
 	struct Mat3x2;
 	struct Mat4x3;
 
-	/*
+	/**
 	 * Generic 4x4 matrix.
 	 * Useful for camera / projection based transformations.
 	 */
@@ -29,7 +30,7 @@ namespace wvn
 
 		Mat4x4();
 		Mat4x4(const Mat4x4& other);
-		Mat4x4(float initial);
+		Mat4x4(float diag);
 		Mat4x4(
 			float m11, float m12, float m13, float m14,
 			float m21, float m22, float m23, float m24,
@@ -70,3 +71,5 @@ namespace wvn
 		float* operator [] (int idx);
 	};
 };
+
+#endif // MAT4X4_H

@@ -8,7 +8,7 @@ using namespace wvn::plug;
 void VulkanPlugin::install()
 {
 	m_backend = new gfx::VulkanBackend();
-	Root::get_singleton().set_rendering_backend(static_cast<gfx::VulkanBackend*>(m_backend));
+	Root::get_singleton()->set_rendering_backend(static_cast<gfx::VulkanBackend*>(m_backend));
 }
 
 void VulkanPlugin::uninstall()

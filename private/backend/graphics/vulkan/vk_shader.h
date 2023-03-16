@@ -1,18 +1,17 @@
-#pragma once
-
-#include <wvn/graphics/shader.h>
+#ifndef VK_SHADER_H
+#define VK_SHADER_H
 
 #include <vulkan/vulkan.h>
 
 namespace wvn::gfx
 {
-	class VulkanShader : public Shader
+	class VulkanShader
 	{
 	public:
 		VulkanShader(VkShaderModule vert, VkShaderModule frag, VkDevice device);
-		~VulkanShader() override;
+		~VulkanShader();
 
-		void clean_up() override;
+		void clean_up() const;
 
 		VkShaderModule vert_module;
 		VkShaderModule frag_module;
@@ -23,3 +22,5 @@ namespace wvn::gfx
 		VkDevice device;
 	};
 }
+
+#endif // VK_SHADER_H

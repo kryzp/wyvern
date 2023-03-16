@@ -1,20 +1,22 @@
-#pragma once
+#ifndef EVENT_H
+#define EVENT_H
 
 #include <wvn/util/types.h>
 #include <wvn/container/hash_map.h>
 #include <wvn/container/string.h>
-
 #include <wvn/actor/actor.h>
 
 namespace wvn::act
 {
-	/*
+	/**
 	 * Represents a value that can be passed into an event.
 	 */
-	struct EventValue
+	struct EventArg
 	{
 		enum ArgType
 		{
+			ARG_TYPE_NULL = 0,
+
 			ARG_TYPE_S8,
 			ARG_TYPE_S16,
 			ARG_TYPE_S32,
@@ -29,10 +31,12 @@ namespace wvn::act
 			ARG_TYPE_F64,
 
 			ARG_TYPE_BOOL,
-			ARG_TYPE_CHAR
+			ARG_TYPE_CHAR,
+
+			ARG_TYPE_STRING
 		};
 
-		ArgType type;
+		ArgType type = ARG_TYPE_NULL;
 
 		union
 		{
@@ -49,29 +53,44 @@ namespace wvn::act
 			f32 f32;
 			f64 f64;
 
-			bool boolean;
-			char character;
-		};
+			bool b8;
+			char c8;
+
+			const char* string;
+		}
+		data;
 	};
 
-	/*
+	class EventMgr;
+
+	/**
 	 * Event that can be passed to the event
 	 * manager which dispatches it.
 	 */
-	struct Event
+	class Event
 	{
-		String type;
-		HashMap<String, EventValue> args;
-		ActorHandle receiver;
+		friend class EventMgr;
+
+	public:
+		using Args = HashMap<String, EventArg>;
+
+		Event();
+		Event(const String& type);
+		Event(const String& type, const Args& args, const ActorHandle& recv);
 
 		void send(const ActorHandle& handle);
 		void send(const Actor* actor);
-		void dispatch();
-		Event* deep_copy();
+		bool dispatch();
 
+		ActorHandle receiver() const;
+		bool handled() const;
+
+		const String& type() const;
+		void type(const String& type);
+		bool is_type(const char* type) const;
 		u64 type_hash() const;
 
-		void append(const String& name, const EventValue& val);
+		void append(const String& name, const EventArg& val);
 
 		void append_s8(const String& name, s8 val);
 		void append_s16(const String& name, s16 val);
@@ -88,5 +107,15 @@ namespace wvn::act
 
 		void append_bool(const String& name, bool val);
 		void append_char(const String& name, char val);
+
+		void append_str(const String& name, const char* val);
+
+	private:
+		String m_type;
+		Args m_args;
+		ActorHandle m_receiver;
+		bool m_handled;
 	};
 }
+
+#endif // EVENT_H

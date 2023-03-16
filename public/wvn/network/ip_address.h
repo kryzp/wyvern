@@ -1,10 +1,11 @@
-#pragma once
+#ifndef IP_ADDRESS_H
+#define IP_ADDRESS_H
 
 #include <wvn/container/string.h>
 
 namespace wvn::net
 {
-	/*
+	/**
 	 * Wrapper around the ip address of a device.
 	 */
 	class IpAddress
@@ -16,3 +17,5 @@ namespace wvn::net
 		~IpAddress();
 	};
 }
+
+#endif // IP_ADDRESS_H

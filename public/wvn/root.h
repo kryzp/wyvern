@@ -1,9 +1,11 @@
-#pragma once
+#ifndef ROOT_H
+#define ROOT_H
 
 #include <wvn/container/vector.h>
 #include <wvn/container/function.h>
 #include <wvn/util/singleton.h>
 #include <wvn/maths/random.h>
+
 //#include <wvn/camera.h>
 
 namespace wvn
@@ -24,7 +26,8 @@ namespace wvn
 	namespace anim { class AnimationMgr; }
 	namespace dev { class LogMgr; class Console; }
 	namespace plug { class Plugin; }
-	class InputMgr;
+	namespace res { class ResourceMgr; }
+	namespace inp { class InputMgr; }
 
 	struct Config
 	{
@@ -68,16 +71,17 @@ namespace wvn
 
 		float fps() const;
 		bool is_running() const;
+		u64 ticks() const;
 
         const Config& config();
 
-		sys::SystemBackend* current_system_backend();
+		sys::SystemBackend* system_backend();
 		void set_system_backend(sys::SystemBackend* backend);
 
-		gfx::RendererBackend* current_renderer_backend();
+		gfx::RendererBackend* renderer_backend();
 		void set_rendering_backend(gfx::RendererBackend* backend);
 
-		sfx::AudioBackend* current_audio_backend();
+		sfx::AudioBackend* audio_backend();
 		void set_audio_backend(sfx::AudioBackend* backend);
 
 		void add_plugin(plug::Plugin* plugin);
@@ -88,6 +92,8 @@ namespace wvn
 		void install_plugins();
 		void uninstall_plugins();
 
+		float calc_delta_time();
+
 		phys::PhysicsMgr* m_physics_mgr;
 		act::ActorMgr* m_actor_mgr;
 		act::SceneMgr* m_scene_mgr;
@@ -96,7 +102,8 @@ namespace wvn
 		sfx::AudioMgr* m_audio_mgr;
 		net::NetworkMgr* m_network_mgr;
 		anim::AnimationMgr* m_animation_mgr;
-		InputMgr* m_input_mgr;
+		res::ResourceMgr* m_resource_mgr;
+		inp::InputMgr* m_input_mgr;
 		dev::LogMgr* m_log_mgr;
 		dev::Console* m_console;
 
@@ -110,3 +117,5 @@ namespace wvn
 		Vector<plug::Plugin*> m_plugins;
 	};
 }
+
+#endif // ROOT_H

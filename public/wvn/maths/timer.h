@@ -1,4 +1,5 @@
-#pragma once
+#ifndef TIMER_H
+#define TIMER_H
 
 #include <wvn/util/types.h>
 
@@ -29,3 +30,5 @@ namespace wvn
 		bool m_paused;
 	};
 }
+
+#endif // TIMER_H

@@ -24,11 +24,11 @@ Mat4x4::Mat4x4(const Mat4x4& other)
 {
 }
 
-Mat4x4::Mat4x4(float initial)
-	: m11(initial), m12(0), m13(0), m14(0)
-	, m21(0), m22(initial), m23(0), m24(0)
-	, m31(0), m32(0), m33(initial), m34(0)
-	, m41(0), m42(0), m43(0), m44(initial)
+Mat4x4::Mat4x4(float diag)
+	: m11(diag), m12(0), m13(0), m14(0)
+	, m21(0), m22(diag), m23(0), m24(0)
+	, m31(0), m32(0), m33(diag), m34(0)
+	, m41(0), m42(0), m43(0), m44(diag)
 {
 }
 
@@ -65,11 +65,8 @@ Mat4x4 Mat4x4::create_orthographic_ext(float left, float right, float bottom, fl
 	Mat4x4 result = Mat4x4::identity();
 
 	result.m11 = 2.0f / (right - left);
-
 	result.m22 = 2.0f / (top - bottom);
-
 	result.m33 = 1.0f / (near - far);
-
 	result.m41 = (left + right) / (left - right);
 	result.m42 = (top + bottom) / (bottom - top);
 	result.m43 = near / (near - far);
@@ -80,8 +77,8 @@ Mat4x4 Mat4x4::create_orthographic_ext(float left, float right, float bottom, fl
 
 Mat4x4 Mat4x4::create_perspective(float fov, float aspect, float near, float far)
 {
-    WVN_ASSERT(fov > 0, "[MAT4X4:DEBUG] FOV must be greater than 0.");
-	WVN_ASSERT(aspect != 0, "[MAT4X4:DEBUG] Aspect must not be 0.");
+    WVN_ASSERT(fov > 0, "[MAT4X4|DEBUG] FOV must be greater than 0.");
+	WVN_ASSERT(aspect != 0, "[MAT4X4|DEBUG] Aspect must not be 0.");
 
     Mat4x4 result = Mat4x4(0.0f);
 
@@ -106,7 +103,7 @@ Mat4x4 Mat4x4::from_mat3x2(const Mat3x2& mat)
 	);
 }
 
-Mat4x4 from_mat4x4(const Mat4x3& mat)
+Mat4x4 Mat4x4::from_mat4x3(const Mat4x3& mat)
 {
 	return Mat4x4(
 		mat.m11, mat.m12, mat.m13, 0.0f,
@@ -169,15 +166,15 @@ Mat4x4 Mat4x4::create_scale(float x, float y, float z)
 
 Mat4x4 Mat4x4::create_lookat(const Vec3F& eye, const Vec3F& centre, const Vec3F& up)
 {
-	Vec3F p = (centre - eye).normalized();
+	Vec3F p = (eye - centre).normalized();
 	Vec3F q = Vec3F::cross(p, up).normalized();
 	Vec3F r = Vec3F::cross(q, p);
 
 	return Mat4x4(
-		q.x, r.x, -p.x, 0.0f,
-		q.y, r.y, -p.y, 0.0f,
-		q.z, r.z, -p.z, 0.0f,
-		-Vec3F::dot(q, eye), -Vec3F::dot(r, eye), Vec3F::dot(p, eye), 1.0f
+		q.x, r.x, p.x, 0.0f,
+		q.y, r.y, p.y, 0.0f,
+		q.z, r.z, p.z, 0.0f,
+		-Vec3F::dot(q, eye), -Vec3F::dot(r, eye), -Vec3F::dot(p, eye), 1.0f
 	);
 }
 

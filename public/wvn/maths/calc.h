@@ -1,11 +1,12 @@
-#pragma once
+#ifndef CALC_H
+#define CALC_H
 
 #include <limits>
 #include <cmath>
 
 namespace wvn
 {
-	/*
+	/**
 	 * Generic calculator-wrapper for maths.
 	 */
 	template <typename T>
@@ -45,9 +46,9 @@ namespace wvn
 		static bool within_epsilon(T lhs, T rhs, T epsilon = std::numeric_limits<T>::epsilon());
 
 		static T approach(T from, T to, T amount);
-		static T lerp(T from, T to, T amount);
+		static T lerp(T from, T to, T t);
 		static T smooth(T from, T to, T amount, T t);
-		static T spring(T from, T to, T bounciness, T tension, T* intermediate);
+		static T spring(T from, T to, T bounciness, T tension, T& intermediate);
 
 		static T sin(T x);
 		static T cos(T x);
@@ -64,8 +65,8 @@ namespace wvn
 
 		static T epsilon();
 		static T lowest();
-		static T min_number();
-		static T max_number();
+		static T min_value();
+		static T max_value();
 		static T infinity();
 	};
 
@@ -113,21 +114,17 @@ namespace wvn
 	template <typename T>
 	T Calc<T>::sign(T x)
 	{
-		if (x > 0.0)
-			return +1.0;
-		else if (x < 0.0)
-			return -1.0;
-
-		return 0.0;
+		return (x < 0.0) ? -1.0 : (x > 0.0) ? 1.0 : 0.0;
 	}
 
 	template <typename T>
 	T Calc<T>::snap(T x, T interval)
 	{
-		if (interval <= 1.0)
+		if (interval <= 1.0) {
 			return std::floor(x) + std::round(x - std::floor(x));
-		else
+		} else {
 			return std::round(x / interval) * interval;
+		}
 	}
 
 	template <typename T>
@@ -199,8 +196,7 @@ namespace wvn
 	template <typename T>
 	bool Calc<T>::within_epsilon(T lhs, T rhs, T epsilon)
 	{
-		float delta = rhs - lhs;
-		return ::fabsf(delta) <= epsilon;
+		return std::fabsf(rhs - lhs) <= epsilon;
 	}
 
 	template <typename T>
@@ -210,23 +206,22 @@ namespace wvn
 	}
 
 	template <typename T>
-	T Calc<T>::lerp(T from, T to, T amount)
+	T Calc<T>::lerp(T from, T to, T t)
 	{
-		return from + ((to - from) * amount);
+		return from + ((to - from) * t);
 	}
 
 	template <typename T>
 	T Calc<T>::smooth(T from, T to, T amount, T t)
 	{
-		return (std::exp(-1.0f * amount * t / (1.0 - amount)) * (from - to)) + to;
+		return (std::exp(amount * t / (amount - 1.0)) * (from - to)) + to;
 	}
 
 	template <typename T>
-	T Calc<T>::spring(T from, T to, T bounciness, T tension, T* intermediate)
+	T Calc<T>::spring(T from, T to, T bounciness, T tension, T& intermediate)
 	{
-		// redo this using maths into a single function?
-		(*intermediate) = lerp(*intermediate, (to - from) * tension, 1.0 / bounciness);
-		return from + (*intermediate);
+		intermediate = lerp(intermediate, (to - from) * tension, 1.0 / bounciness);
+		return from + intermediate;
 	}
 
 	template <typename T>
@@ -302,13 +297,13 @@ namespace wvn
 	}
 
 	template <typename T>
-	T Calc<T>::min_number()
+	T Calc<T>::min_value()
 	{
 		return std::numeric_limits<T>::min();
 	}
 
 	template <typename T>
-	T Calc<T>::max_number()
+	T Calc<T>::max_value()
 	{
 		return std::numeric_limits<T>::max();
 	}
@@ -319,3 +314,5 @@ namespace wvn
 		return std::numeric_limits<T>::infinity();
 	}
 }
+
+#endif // CALC_H

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef RECT_H
+#define RECT_H
 
 #include <wvn/maths/vec2.h>
 
@@ -164,3 +165,5 @@ namespace wvn
 	template <typename T> const Rect<T>& Rect<T>::zero() { static const Rect ZERO = Rect(0, 0, 0, 0); return ZERO; }
 	template <typename T> const Rect<T>& Rect<T>::one()  { static const Rect ONE  = Rect(0, 0, 1, 1); return ONE;  }
 }
+
+#endif // RECT_H

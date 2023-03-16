@@ -93,6 +93,6 @@ void RigidBody::apply_forces()
 
 void RigidBody::dampen_forces()
 {
-	m_velocity *= 1.0f / m_drag;
-	m_angular_velocity *= 1.0f / m_angular_drag;
+	m_velocity /= m_drag;
+	m_angular_velocity /= m_angular_drag;
 }

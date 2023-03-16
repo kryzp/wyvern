@@ -1,15 +1,19 @@
-#pragma once
+#ifndef VECTOR_H
+#define VECTOR_H
 
 #include <initializer_list>
 #include <new>
 
 #include <wvn/util/assert.h>
 #include <wvn/util/types.h>
-#include <wvn/maths/calc.h>
+
+// todo: does resizing work downwards
+// todo: why dont i call resize(m_size - 1) in the pop_...() calls?????
+// todo: check this out!!!
 
 namespace wvn
 {
-	/*
+	/**
 	 * Dynamically sized array.
 	 */
 	template <typename T>
@@ -25,7 +29,7 @@ namespace wvn
 			Iterator(T* init) : m_ptr(init) { }
 			~Iterator() = default;
 			T& operator * () const { return *m_ptr; }
-			T* operator -> () const { return &(*m_ptr); }
+			T* operator -> () const { return m_ptr; }
 			Iterator& operator ++ () { m_ptr++; return *this; }
 			Iterator& operator -- () { m_ptr--; return *this; }
 			Iterator& operator ++ (int) { m_ptr++; return *this; }
@@ -45,7 +49,7 @@ namespace wvn
 			ConstIterator(const T* init) : m_ptr(init) { }
 			~ConstIterator() = default;
 			const T& operator * () const { return *m_ptr; }
-			const T* operator -> () const { return &(*m_ptr); }
+			const T* operator -> () const { return m_ptr; }
 			ConstIterator& operator ++ () { m_ptr++; return *this; }
 			ConstIterator& operator -- () { m_ptr--; return *this; }
 			ConstIterator& operator ++ (int) { m_ptr++; return *this; }
@@ -65,7 +69,7 @@ namespace wvn
 			ReverseIterator(T* init) : m_ptr(init) { }
 			~ReverseIterator() = default;
 			T& operator * () const { return *m_ptr; }
-			T* operator -> () const { return &(*m_ptr); }
+			T* operator -> () const { return m_ptr; }
 			ReverseIterator& operator ++ () { m_ptr--; return *this; }
 			ReverseIterator& operator -- () { m_ptr++; return *this; }
 			ReverseIterator& operator ++ (int) { m_ptr--; return *this; }
@@ -83,9 +87,9 @@ namespace wvn
 		public:
 			ReverseConstIterator() : m_ptr(nullptr) { }
 			ReverseConstIterator(const T* init) : m_ptr(init) { }
-			~ConstIterator() = default;
+			~ReverseConstIterator() = default;
 			const T& operator * () const { return *m_ptr; }
-			const T* operator -> () const { return &(*m_ptr); }
+			const T* operator -> () const { return m_ptr; }
 			ReverseConstIterator& operator ++ () { m_ptr--; return *this; }
 			ReverseConstIterator& operator -- () { m_ptr++; return *this; }
 			ReverseConstIterator& operator ++ (int) { m_ptr--; return *this; }
@@ -113,7 +117,7 @@ namespace wvn
         ~Vector();
 
         void allocate(u64 capacity);
-        void resize(u64 new_count);
+        void resize(u64 new_size);
         void expand(u64 amount = 1);
         void fill(byte value);
 
@@ -125,28 +129,28 @@ namespace wvn
 		T* data();
 		const T* data() const;
 
-        T& front();
-        const T& front() const;
-        T& back();
-        const T& back() const;
-
-        T* push_front(const T& item);
-        T* push_back(const T& item);
-
-		template <typename... Args>
-		T* emplace_front(Args&&... args);
-
-		template <typename... Args>
-		T* emplace_back(Args&&... args);
+        T& push_front(const T& item);
+        T& push_back(const T& item);
 
         T pop_front();
         T pop_back();
+
+		template <typename... Args>
+		T& emplace_front(Args&&... args);
+
+		template <typename... Args>
+		T& emplace_back(Args&&... args);
 
         void clear();
         u64 size() const;
 
 		bool any() const;
 		bool empty() const;
+
+		T& front();
+		const T& front() const;
+		T& back();
+		const T& back() const;
 
         Iterator begin();
         ConstIterator begin() const;
@@ -238,7 +242,7 @@ namespace wvn
 		allocate(end.m_ptr - begin.m_ptr);
 		m_size = end.m_ptr - begin.m_ptr;
 
-		for (u64 i = 0; i < m_capacity; i++) {
+		for (u64 i = 0; i < m_size; i++) {
 			new (m_buf + i) T(begin.m_ptr[i]);
         }
 	}
@@ -247,16 +251,17 @@ namespace wvn
     Vector<T>::Vector(const Vector& other)
         : Vector()
     {
-        if (other.m_capacity > 0)
-        {
-            allocate(other.m_capacity);
-            clear();
-            m_size = other.size();
+        if (other.m_capacity <= 0) {
+			return;
+		}
 
-            for (int i = 0; i < other.m_capacity; i++) {
-                new (m_buf + i) T(other.m_buf[i]);
-            }
-        }
+		allocate(other.m_capacity);
+		clear();
+		m_size = other.size();
+
+		for (u64 i = 0; i < other.m_size; i++) {
+			new (m_buf + i) T(other.m_buf[i]);
+		}
     }
 
     template <typename T>
@@ -277,10 +282,12 @@ namespace wvn
     {
 		allocate(other.m_capacity);
 		clear();
-		m_size = other.size();
 
-		for (int i = 0; i < other.m_capacity; i++)
+		m_size = other.m_size;
+
+		for (u64 i = 0; i < other.m_size; i++) {
 			new (m_buf + i) T(other.m_buf[i]);
+		}
 
         return *this;
     }
@@ -290,8 +297,9 @@ namespace wvn
     {
 		clear();
 
-		if (m_buf)
-			::operator delete(m_buf, sizeof(T) * m_capacity);
+		if (m_buf) {
+			::operator delete (m_buf, sizeof(T) * m_capacity);
+		}
 
 		this->m_capacity = std::move(other.m_capacity);
 		this->m_size = std::move(other.m_size);
@@ -309,8 +317,9 @@ namespace wvn
     {
         clear();
 
-        if (m_buf)
-            ::operator delete (m_buf, sizeof(T) * m_capacity);
+		if (m_buf) {
+			::operator delete (m_buf, sizeof(T) * m_capacity);
+		}
 
         m_buf = nullptr;
         m_capacity = 0;
@@ -320,63 +329,58 @@ namespace wvn
     template <typename T>
     void Vector<T>::clear()
     {
-        for (int i = 0; i < m_size; i++)
+        for (int i = 0; i < m_size; i++) {
             m_buf[i].~T();
+		}
 
-		mem::set(m_buf, 0, m_capacity * sizeof(T));
-
+		mem::set(m_buf, 0, m_size * sizeof(T));
         m_size = 0;
     }
 
     template <typename T>
     void Vector<T>::allocate(u64 capacity)
     {
-        if (capacity > m_capacity)
-        {
-            // 8 is just a nice number since vectors this small likely will have lots of rapid push/pop action
-            u64 new_capacity = Calc<u64>::max(8, m_capacity);
-            
-            while (new_capacity < capacity) {
-				new_capacity *= 2;
-            }
+        if (capacity <= m_capacity) {
+			return;
+		}
 
-		    T* new_buf = (T*)::operator new (sizeof(T) * new_capacity);
-			mem::set(new_buf, 0, sizeof(T) * new_capacity);
+		u64 new_capacity = capacity > 8 ? capacity : 8;
 
-            for (int i = 0; i < m_size; i++)
-            {
-                if (i < m_capacity) {
-                    new (new_buf+i) T(std::move(m_buf[i]));
-                }
+		while (new_capacity < capacity) {
+			new_capacity *= 2;
+		}
 
-                m_buf[i].~T();
-            }
+		T* new_buf = (T*)::operator new (sizeof(T) * new_capacity);
+		mem::set(new_buf, 0, sizeof(T) * new_capacity);
 
-            if (m_buf) {
-		        ::operator delete (m_buf, sizeof(T) * m_capacity);
-            }
+		for (int i = 0; i < m_size; i++) {
+			new (new_buf + i) T(std::move(m_buf[i]));
+		}
 
-            m_buf = new_buf;
-            m_capacity = new_capacity;
-        }
+		if (m_buf) {
+			::operator delete (m_buf, sizeof(T) * m_capacity);
+		}
+
+		m_buf = new_buf;
+		m_capacity = new_capacity;
     }
 
     template <typename T>
-    void Vector<T>::resize(u64 new_count)
+    void Vector<T>::resize(u64 new_size)
     {
-        if (new_count < m_size) {
-            erase(new_count, m_size - new_count);
-        } else if (new_count > m_size) {
-            expand(new_count - m_size);
+        if (new_size < m_size) {
+            erase(new_size, m_size - new_size);
+        } else if (new_size > m_size) {
+            expand(new_size - m_size);
         }
 
-		m_size += new_count - m_size;
+		m_size = new_size;
     }
 
     template <typename T>
     void Vector<T>::expand(u64 amount)
     {
-        WVN_ASSERT(amount > 0, "[VECTOR:DEBUG] Expand amount must be higher than 0");
+        WVN_ASSERT(amount > 0, "[VECTOR|DEBUG] Expand amount must be higher than 0");
 
         allocate(m_size + amount);
 
@@ -398,12 +402,12 @@ namespace wvn
 			return;
 		}
 
-		for (int i = 0; i < m_size - amount; i++) {
-			m_buf[i + index] = std::move(m_buf[i + index + amount]);
-        }
-
-		for (int i = m_size - amount; i < m_size; i++) {
+		for (u64 i = 0; i < amount; i++) {
 			m_buf[i + index].~T();
+		}
+
+		for (u64 i = 0; i < m_size - amount; i++) {
+			m_buf[i + index] = std::move(m_buf[i + index + amount]);
         }
 
 		m_size -= amount;
@@ -439,6 +443,62 @@ namespace wvn
 		return end();
 	}
 
+    template <typename T>
+    T& Vector<T>::push_front(const T& item)
+    {
+        resize(m_size + 1);
+        mem::move(m_buf + 1, m_buf, sizeof(T) * m_size);
+        new (m_buf) T(std::move(item));
+        m_size++;
+		return m_buf[0];
+    }
+
+    template <typename T>
+    T& Vector<T>::push_back(const T& item)
+    {
+        resize(m_size + 1);
+        new (m_buf + m_size - 1) T(std::move(item));
+		return m_buf[m_size - 1];
+    }
+
+    template <typename T>
+    T Vector<T>::pop_front()
+    {
+        T item = std::move(m_buf[0]);
+        m_buf[0].~T();
+		mem::move(m_buf, m_buf + 1, m_size - 1);
+        m_size--;
+        return item;
+    }
+
+    template <typename T>
+    T Vector<T>::pop_back()
+    {
+        T item = std::move(m_buf[m_size - 1]);
+        m_buf[m_size - 1].~T();
+        m_size--;
+        return item;
+    }
+
+	template <typename T>
+	template <typename... Args>
+	T& Vector<T>::emplace_front(Args&&... args)
+	{
+		resize(m_size + 1);
+		mem::move(m_buf + 1, m_buf, sizeof(T) * (m_size - 1));
+		new (m_buf) T(std::forward<Args>(args)...);
+		return m_buf[0];
+	}
+
+	template <typename T>
+	template <typename... Args>
+	T& Vector<T>::emplace_back(Args&&... args)
+	{
+		resize(m_size + 1);
+		new (m_buf + m_size - 1) T(std::forward<Args>(args)...);
+		return m_buf[m_size - 1];
+	}
+
 	template <typename T>
 	T* Vector<T>::data()
 	{
@@ -451,88 +511,29 @@ namespace wvn
 		return m_buf;
 	}
 
-    template <typename T>
-    T& Vector<T>::front()
-    {
-        return m_buf[0];
-    }
-
-    template <typename T>
-    const T& Vector<T>::front() const
-    {
-        return m_buf[0];
-    }
-
-    template <typename T>
-    T& Vector<T>::back()
-    {
-        return m_buf[m_size - 1];
-    }
-
-    template <typename T>
-    const T& Vector<T>::back() const
-    {
-        return m_buf[m_size - 1];
-    }
-
-    template <typename T>
-    T* Vector<T>::push_front(const T& item)
-    {
-        resize(m_size + 1);
-        mem::move(m_buf + 1, m_buf, sizeof(T) * m_size);
-        new (m_buf) T(std::move(item));
-        m_size++;
-		return &m_buf[0];
-    }
-
-    template <typename T>
-    T* Vector<T>::push_back(const T& item)
-    {
-        resize(m_size + 1);
-        new (m_buf + m_size - 1) T(std::move(item));
-		return &m_buf[m_size - 2];
-    }
-
 	template <typename T>
-	template <typename... Args>
-	T* Vector<T>::emplace_front(Args&&... args)
+	T& Vector<T>::front()
 	{
-		resize(m_size + 1);
-		mem::move(m_buf + 1, m_buf, sizeof(T) * (m_size - 1));
-		new (m_buf) T(std::forward<Args>(args)...);
-		return &m_buf[0];
+		return m_buf[0];
 	}
 
 	template <typename T>
-	template <typename... Args>
-	T* Vector<T>::emplace_back(Args&&... args)
+	const T& Vector<T>::front() const
 	{
-		resize(m_size + 1);
-		new (m_buf + m_size - 1) T(std::forward<Args>(args)...);
-		return &m_buf[m_size - 2];
+		return m_buf[0];
 	}
 
-    template <typename T>
-    T Vector<T>::pop_front()
-    {
-        T item = std::move(m_buf[0]);
-        m_buf[0].~T();
+	template <typename T>
+	T& Vector<T>::back()
+	{
+		return m_buf[m_size - 1];
+	}
 
-        for (int i = 0; i < m_size - 1; i++)
-            m_buf[i] = std::move(m_buf[i+1]);
-
-        m_size--;
-        return item;
-    }
-
-    template <typename T>
-    T Vector<T>::pop_back()
-    {
-        T item = std::move(m_buf[m_size-1]);
-        m_buf[m_size-1].~T();
-        m_size--;
-        return item;
-    }
+	template <typename T>
+	const T& Vector<T>::back() const
+	{
+		return m_buf[m_size - 1];
+	}
 
     template <typename T>
     u64 Vector<T>::size() const
@@ -648,3 +649,5 @@ namespace wvn
         return m_buf[idx];
     }
 }
+
+#endif // VECTOR_H

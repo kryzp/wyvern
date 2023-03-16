@@ -20,6 +20,14 @@ Mat4x3::Mat4x3(const Mat4x3& other)
 {
 }
 
+Mat4x3::Mat4x3(float diag)
+	: m11(diag), m12(0), m13(0)
+	, m21(0), m22(diag), m23(0)
+	, m31(0), m32(0), m33(diag)
+	, m41(0), m42(0), m43(0)
+{
+}
+
 Mat4x3::Mat4x3(
 	float m11, float m12, float m13,
 	float m21, float m22, float m23,

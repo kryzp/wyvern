@@ -1,4 +1,5 @@
-#pragma once
+#ifndef CAMERA_H
+#define CAMERA_H
 
 #include <wvn/maths/mat4x4.h>
 #include <wvn/maths/mat4x3.h>
@@ -20,3 +21,5 @@ namespace wvn
 		Quaternion direction;
 	};
 }
+
+#endif // CAMERA_H

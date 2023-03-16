@@ -1,8 +1,9 @@
-#pragma once
+#ifndef RENDER_TARGET_H
+#define RENDER_TARGET_H
 
 namespace wvn::gfx
 {
-	/*
+	/**
 	 * Target that can be drawn to and then read from.
 	 */
 	class RenderTarget
@@ -12,3 +13,5 @@ namespace wvn::gfx
 		virtual ~RenderTarget();
 	};
 }
+
+#endif // RENDER_TARGET_H

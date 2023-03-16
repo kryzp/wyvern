@@ -1,15 +1,15 @@
-#pragma once
+#ifndef COLOUR_H
+#define COLOUR_H
 
 #include <wvn/util/types.h>
 
 namespace wvn
 {
-	/*
+	/**
 	 * Generally used just when finally rendering to the screen as often
-	 * graphics API's require a floating-point colour instead of a 32bit
-	 * one.
+	 * graphics API's require a floating-point colour instead of 32-bit.
 	 *
-	 * Not advised to be used for storing data about images and the like
+	 * Not advised to be used for storing data such as images
 	 * as its size is 3x that of the other colour type.
 	 */
 	struct DisplayColour
@@ -30,7 +30,7 @@ namespace wvn
 		DisplayColour(float r, float g, float b);
 	};
 
-	/*
+	/**
 	 * Used for representing a 32-bit (0-255 per colour) colour.
 	 */
 	struct Colour
@@ -70,6 +70,7 @@ namespace wvn
 		Colour premultiplied() const;
 
 		DisplayColour display_colour() const;
+
 		void export_to_u8(u8* colours) const;
 		void export_to_float(float* colours) const;
 
@@ -86,3 +87,5 @@ namespace wvn
 	// hamburjger spelling
 	using Color = Colour;
 }
+
+#endif // COLOUR_H

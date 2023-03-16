@@ -10,24 +10,23 @@ WVN_IMPL_SINGLETON(RenderingMgr);
 
 RenderingMgr::RenderingMgr()
 {
-	dev::LogMgr::get_singleton().print("[RENDERING] Initialized!");
+	dev::LogMgr::get_singleton()->print("[RENDERING] Initialized!");
 }
 
 RenderingMgr::~RenderingMgr()
 {
-	dev::LogMgr::get_singleton().print("[RENDERING] Destroyed!");
+	dev::LogMgr::get_singleton()->print("[RENDERING] Destroyed!");
 }
 
 void RenderingMgr::render_scene()
 {
-	auto* renderer = Root::get_singleton().current_renderer_backend();
+	auto* renderer = Root::get_singleton()->renderer_backend();
 
 	renderer->wait_for_sync();
 
 	static float time = 0.0f;
 	time += 1.0f / 500.0f;
 
-	/*
 	RenderPass pass = {
 		.clear_colour = Colour(
 			(CalcF::cos(time * 4.0f) + 1.0f) * 0.5f * 255.0f,
@@ -35,11 +34,6 @@ void RenderingMgr::render_scene()
 			(CalcF::sin(time * 2.0f + 3.0f) + 1.0f) * 0.5f * 255.0f,
 			255
 		)
-	};
-	 */
-
-	RenderPass pass = {
-		.clear_colour = Colour::black()
 	};
 
 	renderer->render(pass);

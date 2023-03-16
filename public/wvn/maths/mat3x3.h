@@ -1,11 +1,12 @@
-#pragma once
+#ifndef MAT3X3_H
+#define MAT3X3_H
 
 namespace wvn
 {
-	/*
+	/**
 	 * Generic 3x3 matrix.
 	 */
-	class Mat3x3
+	struct Mat3x3
 	{
 		union
 		{
@@ -22,7 +23,7 @@ namespace wvn
 
 		Mat3x3();
 		Mat3x3(const Mat3x3& other);
-		Mat3x3(float initial);
+		Mat3x3(float diag);
 		Mat3x3(
 			float m11, float m12, float m13,
 			float m21, float m22, float m23,
@@ -51,3 +52,5 @@ namespace wvn
 		const float* operator [] (int idx) const;
 	};
 }
+
+#endif // MAT3X3_H

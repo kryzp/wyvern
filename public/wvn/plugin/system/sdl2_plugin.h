@@ -1,4 +1,5 @@
-#pragma once
+#ifndef SDL2_PLUGIN_H
+#define SDL2_PLUGIN_H
 
 #include <wvn/plugin/plugin.h>
 
@@ -14,3 +15,5 @@ namespace wvn::plug
 		void* m_backend;
 	};
 }
+
+#endif // SDL2_PLUGIN_H

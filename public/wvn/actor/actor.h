@@ -1,4 +1,5 @@
-#pragma once
+#ifndef ACTOR_H
+#define ACTOR_H
 
 #include <wvn/util/types.h>
 
@@ -10,7 +11,7 @@ namespace wvn::act
 
 	using ActorID = u32;
 
-	/*
+	/**
 	 * Base class for all actors in the game world.
 	 */
 	class Actor
@@ -21,7 +22,7 @@ namespace wvn::act
 		friend class ActorMgr;
 
 	public:
-		constexpr static ActorID INVALID_ID = 0;
+		constexpr static ActorID NULL_ID = 0;
 
 		Actor();
 		virtual ~Actor() = default;
@@ -43,6 +44,10 @@ namespace wvn::act
 		bool has_flag(u64 flag) const;
 		bool only_has_flag(u64 flag) const;
 		void clear_flags();
+
+	protected:
+		// Transform p_transform;
+		// ...
 
 	private:
 		u64 m_flags;
@@ -80,3 +85,5 @@ namespace wvn::act
 		ActorID m_id;
 	};
 }
+
+#endif // ACTOR_H

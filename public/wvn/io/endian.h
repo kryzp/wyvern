@@ -1,4 +1,5 @@
-#pragma once
+#ifndef ENDIAN_H
+#define ENDIAN_H
 
 namespace wvn::io
 {
@@ -10,7 +11,7 @@ namespace wvn::io
 		ENDIANNESS_MAX
 	};
 
-	/*
+	/**
 	 * Utility for querying the endianness of the system.
 	 */
 	namespace endian
@@ -22,3 +23,5 @@ namespace wvn::io
 		bool is_big_endian();
 	};
 }
+
+#endif // ENDIAN_H

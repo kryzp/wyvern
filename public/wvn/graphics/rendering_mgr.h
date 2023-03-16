@@ -1,10 +1,11 @@
-#pragma once
+#ifndef RENDERING_MGR_H
+#define RENDERING_MGR_H
 
 #include <wvn/util/singleton.h>
 
 namespace wvn::gfx
 {
-	/*
+	/**
 	 * Responsible for actually rendering the scene and sending the required
 	 * render passes to the rendering backend.
 	 */
@@ -20,3 +21,5 @@ namespace wvn::gfx
 		void swap_buffers();
 	};
 }
+
+#endif // RENDERING_MGR_H

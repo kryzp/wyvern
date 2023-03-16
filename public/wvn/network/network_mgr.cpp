@@ -8,10 +8,10 @@ WVN_IMPL_SINGLETON(NetworkMgr);
 
 NetworkMgr::NetworkMgr()
 {
-	dev::LogMgr::get_singleton().print("[NETWORK] Initialized!");
+	dev::LogMgr::get_singleton()->print("[NETWORK] Initialized!");
 }
 
 NetworkMgr::~NetworkMgr()
 {
-	dev::LogMgr::get_singleton().print("[NETWORK] Destroyed!");
+	dev::LogMgr::get_singleton()->print("[NETWORK] Destroyed!");
 }

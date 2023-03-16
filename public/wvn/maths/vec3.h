@@ -1,10 +1,10 @@
-#pragma once
+#ifndef VEC3_H
+#define VEC3_H
 
 #include <wvn/maths/calc.h>
 #include <wvn/maths/random.h>
 #include <wvn/maths/vec2.h>
 #include <wvn/maths/mat4x3.h>
-
 #include <wvn/root.h>
 
 namespace wvn
@@ -19,13 +19,6 @@ namespace wvn
 				T x;
 				T y;
 				T z;
-			};
-
-			struct
-			{
-				T w; // width
-				T h; // height
-				T d; // depth
 			};
 
 			T data[3];
@@ -52,20 +45,23 @@ namespace wvn
 		static const Vec3& right();
 		static const Vec3& up();
 		static const Vec3& down();
-		static const Vec3& forward();
-		static const Vec3& backward();
+		static const Vec3& forward(); // todo: maybe rename to fwd()?
+		static const Vec3& backward(); // todo: maybe rename to bwd()?
 
 		static Vec3 random_unit();
-		static Vec3 from_angle(float theta, float phi, float length);
-		static float dot(const Vec3& a, const Vec3& b);
+		static Vec3 from_angle(float theta, float phi, float radius);
+		static T dot(const Vec3& a, const Vec3& b);
 		static Vec3 cross(const Vec3& a, const Vec3& b);
 		static Vec3 transform(const Vec3& vec, const Mat4x3& mat);
 		static Vec3 lerp(const Vec3& from, const Vec3& to, float amount);
 		static Vec3 spring(const Vec3& from, const Vec3& to, float bounciness, float tension, Vec3& intermediate);
 		static Vec3 approach(const Vec3& from, const Vec3& to, float amount);
 
-		float length() const;
-		float length_squared() const;
+		static Vec3 reflect(const Vec3& v, const Vec3& n);
+		static Vec3 refract(const Vec3& uv, const Vec3& n, double n21);
+
+		T length() const;
+		T length_squared() const;
 
 		Vec3 abs() const;
 		Vec3 normalized() const;
@@ -92,19 +88,21 @@ namespace wvn
 	template <typename T> Vec3<T> operator * (float lhs, const Vec3<T>& rhs) { return Vec3<T>(rhs.x * lhs, rhs.y * lhs, rhs.z * lhs); }
 
 	using Vec3F		= Vec3<float>;
+	using Vec3D		= Vec3<double>;
 	using Vec3I		= Vec3<int>;
 	using Vec3U		= Vec3<unsigned>;
 
 	using Float3	= Vec3<float>;
+	using Double3	= Vec3<double>;
 	using Size3		= Vec3<float>;
 	using Int3		= Vec3<int>;
-	using Point3	= Vec3<int>;
+	using Point3	= Vec3<float>;
 	using UInt3		= Vec3<unsigned>;
 	using Unsigned3 = Vec3<unsigned>;
 	
 	template <typename T>
 	Vec3<T>::Vec3()
-		: x(0), y(0), z(0)
+		: x(0.0), y(0.0), z(0.0)
 	{
 	}
 
@@ -130,24 +128,24 @@ namespace wvn
 	Vec3<T> Vec3<T>::random_unit()
 	{
 		return from_angle(
-			Root::get_singleton().random.real32(0.0f, CalcF::TAU),
-			Root::get_singleton().random.real32(0.0f, CalcF::TAU),
-			1.0f
+			Root::get_singleton()->random.real32(0.0, Calc<T>::TAU),
+			Root::get_singleton()->random.real32(0.0, Calc<T>::TAU),
+			1.0
 		);
 	}
 
 	template <typename T>
-	Vec3<T> Vec3<T>::from_angle(float theta, float phi, float length)
+	Vec3<T> Vec3<T>::from_angle(float theta, float phi, float radius)
 	{
 		return Vec3(
-			CalcF::cos(phi) * length,
-			CalcF::sin(phi) * length,
-			CalcF::sin(theta) * length
+			radius * Calc<T>::cos(theta) * Calc<T>::cos(phi),
+			radius * Calc<T>::sin(theta),
+			radius * Calc<T>::cos(theta) * Calc<T>::sin(theta)
 		);
 	}
 
 	template <typename T>
-	float Vec3<T>::dot(const Vec3<T>& a, const Vec3<T>& b)
+	T Vec3<T>::dot(const Vec3<T>& a, const Vec3<T>& b)
 	{
 		return (a.x * b.x) + (a.y * b.y) + (a.z * b.z);
 	}
@@ -176,9 +174,9 @@ namespace wvn
 	Vec3<T> Vec3<T>::lerp(const Vec3& from, const Vec3& to, float amount)
 	{
 		return Vec3(
-			CalcF::lerp(from.x, to.x, amount),
-			CalcF::lerp(from.y, to.y, amount),
-			CalcF::lerp(from.z, to.z, amount)
+			Calc<T>::lerp(from.x, to.x, amount),
+			Calc<T>::lerp(from.y, to.y, amount),
+			Calc<T>::lerp(from.z, to.z, amount)
 		);
 	}
 
@@ -186,9 +184,9 @@ namespace wvn
 	Vec3<T> Vec3<T>::spring(const Vec3& from, const Vec3& to, float bounciness, float tension, Vec3& intermediate)
 	{
 		return Vec3(
-			CalcF::spring(from.x, to.x, bounciness, tension, intermediate.x),
-			CalcF::spring(from.y, to.y, bounciness, tension, intermediate.y),
-			CalcF::spring(from.z, to.z, bounciness, tension, intermediate.z)
+			Calc<T>::spring(from.x, to.x, bounciness, tension, intermediate.x),
+			Calc<T>::spring(from.y, to.y, bounciness, tension, intermediate.y),
+			Calc<T>::spring(from.z, to.z, bounciness, tension, intermediate.z)
 		);
 	}
 
@@ -196,20 +194,35 @@ namespace wvn
 	Vec3<T> Vec3<T>::approach(const Vec3& from, const Vec3& to, float amount)
 	{
 		return Vec3(
-			CalcF::approach(from.x, to.x, amount),
-			CalcF::approach(from.y, to.y, amount),
-			CalcF::approach(from.z, to.z, amount)
+			Calc<T>::approach(from.x, to.x, amount),
+			Calc<T>::approach(from.y, to.y, amount),
+			Calc<T>::approach(from.z, to.z, amount)
 		);
 	}
 
 	template <typename T>
-	float Vec3<T>::length() const
+	Vec3<T> Vec3<T>::reflect(const Vec3<T>& v, const Vec3<T>& n)
 	{
-		return CalcF::sqrt(length_squared());
+		return v - (2.0 * dot(v, n) * n);
 	}
 
 	template <typename T>
-	float Vec3<T>::length_squared() const
+	Vec3<T> Vec3<T>::refract(const Vec3<T>& uv, const Vec3<T>& n, double n21)
+	{
+		double cost = Calc<T>::min(dot(-uv, n), 1.0);
+		Vec3 out_perp = n21 * (uv + (cost * n));
+		Vec3 out_para = -Calc<T>::sqrt(Calc<T>::abs(1.0 - out_perp.length_squared())) * n;
+		return out_perp + out_para;
+	}
+
+	template <typename T>
+	T Vec3<T>::length() const
+	{
+		return Calc<T>::sqrt(length_squared());
+	}
+
+	template <typename T>
+	T Vec3<T>::length_squared() const
 	{
 		return (x * x) + (y * y) + (z * z);
 	}
@@ -218,9 +231,9 @@ namespace wvn
 	Vec3<T> Vec3<T>::abs() const
 	{
 		return Vec3(
-			CalcF::abs(this->x),
-			CalcF::abs(this->y),
-			CalcF::abs(this->z)
+			Calc<T>::abs(this->x),
+			Calc<T>::abs(this->y),
+			Calc<T>::abs(this->z)
 		);
 	}
 
@@ -229,13 +242,14 @@ namespace wvn
 	{
 		float len = length();
 
-		if (len == 0.0f)
+		if (len <= 0.0) {
 			return zero();
+		}
 
 		return Vec3(
-			x / len,
-			y / len,
-			z / len
+			this->x / len,
+			this->y / len,
+			this->z / len
 		);
 	}
 
@@ -273,3 +287,5 @@ namespace wvn
 	template <typename T> const Vec3<T>& Vec3<T>::forward()		{ static const Vec3 FORWARD		= Vec3( 0,  0,  1); return FORWARD;		}
 	template <typename T> const Vec3<T>& Vec3<T>::backward()	{ static const Vec3 BACKWARD	= Vec3( 0,  0, -1); return BACKWARD;	}
 }
+
+#endif // VEC3_H

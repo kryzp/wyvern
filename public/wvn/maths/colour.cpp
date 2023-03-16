@@ -47,6 +47,7 @@ Colour Colour::from_hsv(float hue, float sat, float val, u8 alpha)
 {
 	float C = sat * val;
 	float X = C * (1 - CalcF::abs(CalcF::mod(hue / 60.0f, 2) - 1));
+	float m = val - C;
 
 	float r, g, b;
 	r = g = b = 0.0f;
@@ -89,9 +90,9 @@ Colour Colour::from_hsv(float hue, float sat, float val, u8 alpha)
 	}
 
 	return Colour(
-		static_cast<u8>(r * 255.0f),
-		static_cast<u8>(g * 255.0f),
-		static_cast<u8>(b * 255.0f),
+		static_cast<u8>((r + m) * 255.0f),
+		static_cast<u8>((g + m) * 255.0f),
+		static_cast<u8>((b + m) * 255.0f),
 		alpha
 	);
 }
@@ -105,18 +106,6 @@ Colour Colour::lerp(const Colour& from, const Colour& to, float amount)
 		CalcF::lerp(from.a, to.a, amount)
 	);
 }
-
-/*
-u32 Colour::pack() const
-{
-	return (
-		r << 24 |
-		g << 16 |
-		b << 8  |
-		a << 0
-	);
-}
-*/
 
 void Colour::premultiply()
 {
@@ -135,9 +124,9 @@ Colour Colour::premultiplied() const
 DisplayColour Colour::display_colour() const
 {
 	return DisplayColour(
-		static_cast<float>(r) / 255.0f,
-		static_cast<float>(g) / 255.0f,
-		static_cast<float>(b) / 255.0f
+		static_cast<float>(r * a) / (255.0f * 255.0f),
+		static_cast<float>(g * a) / (255.0f * 255.0f),
+		static_cast<float>(b * a) / (255.0f * 255.0f)
 	);
 }
 

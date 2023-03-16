@@ -1,4 +1,5 @@
-#pragma once
+#ifndef MOUSE_H
+#define MOUSE_H
 
 namespace wvn::inp
 {
@@ -13,3 +14,5 @@ namespace wvn::inp
 		MB_MAX
 	};
 }
+
+#endif // MOUSE_H

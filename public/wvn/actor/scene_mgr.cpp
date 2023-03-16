@@ -8,10 +8,10 @@ WVN_IMPL_SINGLETON(SceneMgr);
 
 SceneMgr::SceneMgr()
 {
-	dev::LogMgr::get_singleton().print("[SCENE] Initialized!");
+	dev::LogMgr::get_singleton()->print("[SCENE] Initialized!");
 }
 
 SceneMgr::~SceneMgr()
 {
-	dev::LogMgr::get_singleton().print("[SCENE] Destroyed!");
+	dev::LogMgr::get_singleton()->print("[SCENE] Destroyed!");
 }

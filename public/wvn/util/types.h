@@ -1,13 +1,17 @@
-#pragma once
+#ifndef TYPES_H
+#define TYPES_H
 
 #include <inttypes.h>
 #include <memory>
+
+// not used in here but makes sense for types.h as this is just custom rtti pretty much
+//#include <wvn/util/class_db.h>
 
 #define SWAP(_x, _y) (::__wvnutils_swap((_x), (_y)))
 #define SID(_str) (::__wvnutils_hash((_str)))
 #define ARRAY_LENGTH(_arr) (sizeof((_arr)) / sizeof((*_arr)))
 
-#define BYTES(x)     (x)
+#define BYTES    (x) (x)
 #define KILOBYTES(x) (BYTES(x)     * 1024LL)
 #define MEGABYTES(x) (KILOBYTES(x) * 1024LL)
 #define GIGABYTES(x) (MEGABYTES(x) * 1024LL)
@@ -39,11 +43,6 @@ using byte  = unsigned char;
 using f32 = float;
 using f64 = double;
 
-using r32 = float;
-using r64 = double;
-
-using single = float;
-
 using b8  = uint8_t;
 using b16 = uint16_t;
 using b32 = uint32_t;
@@ -60,8 +59,9 @@ inline void __wvnutils_swap(T& x, T& y)
 constexpr u64 __wvnutils_hash(const char* str)
 {
 	u64 hash = 7521;
-	for (int i = 0; str[i] != '\0'; i++)
+	for (int i = 0; str[i] != '\0'; i++) {
 		hash = ((hash << 5) + hash) + str[i];
+	}
 	return hash;
 }
 
@@ -92,17 +92,20 @@ namespace wvn
 	namespace cstr
 	{
 		u64 length(const char* str);
-		char* cncat(char* dst, const char* src, u64 size);
+		char* concat(char* dst, const char* src, u64 size);
 		char* copy(char* dst, const char* src, u64 size);
 		int compare(const char* str1, const char* str2);
-		u64 cspan(const char* scan, const char* match);
+		u64 span(const char* str, const char* match);
+		u64 cspan(const char* str, const char* match);
 		char* token(char* str, const char* sep);
 		bool is_space(char c);
 		char to_upper(char c);
 		char to_lower(char c);
-		void from_int(char* buf, s32 value);
-		void from_float(char* buf, f32 value);
+		void from_int(char* buf, u64 size, s32 value);
+		void from_float(char* buf, u64 size, f32 value);
 		int to_int(const char* str);
 		float to_float(const char* str);
 	}
 }
+
+#endif // TYPES_H

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef NETWORK_MGR_H
+#define NETWORK_MGR_H
 
 #include <wvn/util/singleton.h>
 
@@ -17,7 +18,7 @@ namespace wvn::net
 		NET_NOT_READY
 	};
 
-	/*
+	/**
 	 * Manages the network and generally acts as an
 	 * interface for the network.
 	 */
@@ -30,3 +31,5 @@ namespace wvn::net
 		~NetworkMgr();
 	};
 }
+
+#endif // NETWORK_MGR_H

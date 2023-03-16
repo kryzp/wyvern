@@ -1,4 +1,5 @@
-#pragma once
+#ifndef OPENAL_BACKEND_H
+#define OPENAL_BACKEND_H
 
 #include <wvn/audio/audio_backend.h>
 
@@ -13,3 +14,5 @@ namespace wvn::sfx
 		AudioBackendProperties properties() override;
 	};
 }
+
+#endif // OPENAL_BACKEND_H

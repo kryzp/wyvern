@@ -1,4 +1,5 @@
-#pragma once
+#ifndef LISTENER_H
+#define LISTENER_H
 
 #include <wvn/util/types.h>
 #include <wvn/network/network_mgr.h>
@@ -6,7 +7,7 @@
 
 namespace wvn::net
 {
-	/*
+	/**
 	 * Base class for network listeners.
 	 */
 	class Listener
@@ -16,7 +17,7 @@ namespace wvn::net
 		virtual ~Listener() = default;
 	};
 
-	/*
+	/**
 	 * Listener for TCP.
 	 */
 	class TCPListener : public Listener
@@ -29,3 +30,5 @@ namespace wvn::net
 		NetworkCallback accept(const TCPSocket& socket);
 	};
 }
+
+#endif // LISTENER_H

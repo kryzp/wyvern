@@ -1,4 +1,5 @@
-#pragma once
+#ifndef RANDOM_H
+#define RANDOM_H
 
 #include <wvn/util/types.h>
 
@@ -7,7 +8,7 @@
 
 namespace wvn
 {
-	/*
+	/**
 	 * Used for generating random numbers given a seed.
 	 */
 	template <class Engine = std::mt19937>
@@ -81,3 +82,5 @@ namespace wvn
 		return dist(m_rng);
 	}
 }
+
+#endif // RANDOM_H

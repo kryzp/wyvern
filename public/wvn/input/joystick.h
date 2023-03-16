@@ -1,4 +1,5 @@
-#pragma once
+#ifndef JOYSTICK_H
+#define JOYSTICK_H
 
 namespace wvn::inp
 {
@@ -54,3 +55,5 @@ namespace wvn::inp
 		JAS_HAT_MAX
 	};
 }
+
+#endif // JOYSTICK_H

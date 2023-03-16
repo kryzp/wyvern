@@ -1,4 +1,5 @@
-#pragma once
+#ifndef POLYGON_H
+#define POLYGON_H
 
 #include <wvn/container/vector.h>
 #include <wvn/container/function.h>
@@ -7,7 +8,7 @@
 
 namespace wvn
 {
-	/*
+	/**
 	 * Representation of a 2d polygon as a list of vertices.
 	 */
 	struct Polygon2D
@@ -23,7 +24,7 @@ namespace wvn
 		void foreach_point(const Function<void(int, Vec2F&, Vec2F&)>& fn);
 	};
 
-	/*
+	/**
 	 * Representation of a 3d polygon as a list of vertices.
 	 */
 	struct Polygon3D
@@ -39,3 +40,5 @@ namespace wvn
 		void foreach_point(const Function<void(int, Vec3F&, Vec3F&)>& fn);
 	};
 }
+
+#endif // POLYGON_H

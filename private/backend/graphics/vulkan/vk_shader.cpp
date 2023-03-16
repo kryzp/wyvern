@@ -32,7 +32,7 @@ VulkanShader::~VulkanShader()
 	clean_up();
 }
 
-void VulkanShader::clean_up()
+void VulkanShader::clean_up() const
 {
 	// reverse order !!
 	vkDestroyShaderModule(device, frag_module, nullptr);

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef HASH_MAP_H
+#define HASH_MAP_H
 
 #include <wvn/util/types.h>
 #include <wvn/util/assert.h>
@@ -9,7 +10,7 @@
 
 namespace wvn
 {
-	/*
+	/**
 	 * Dictionary structure that uses a hash function
 	 * to index the different elements inside it.
 	 */
@@ -17,8 +18,6 @@ namespace wvn
 	class HashMap
 	{
 	public:
-		static constexpr int MIN_CAPACITY = 8;
-
 		using KeyValuePair = Pair<TKey, TValue>;
 
 		struct Element
@@ -146,8 +145,9 @@ namespace wvn
 		for (int i = 0; i < other.m_capacity; i++)
 		{
 			Element* elem_ptr = other.m_elements[i];
-			if (elem_ptr)
+			if (elem_ptr) {
 				_insert(elem_ptr->data);
+			}
 		}
 
 		realign_ptrs();
@@ -176,8 +176,9 @@ namespace wvn
 		for (int i = 0; i < other.m_capacity; i++)
 		{
 			Element* elem_ptr = other.m_elements[i];
-			if (elem_ptr)
+			if (elem_ptr) {
 				_insert(elem_ptr->data);
+			}
 		}
 
 		realign_ptrs();
@@ -206,8 +207,9 @@ namespace wvn
 
 		while (e)
 		{
+			Element* next = e->next;
 			delete e;
-			e = e->next;
+			e = next;
 		}
 
 		delete[] m_elements;
@@ -233,8 +235,9 @@ namespace wvn
 
 		if (b)
 		{
-			while (b->next)
+			while (b->next) {
 				b = b->next;
+			}
 
 			b->next = new Element(pair);
 			b->next->prev = b;
@@ -254,14 +257,17 @@ namespace wvn
 		{
 			if (b->data.first == key)
 			{
-				if (b == m_elements[index_of(key)])
+				if (b == m_elements[index_of(key)]) {
 					m_elements[index_of(key)] = b->next;
+				}
 
-				if (b->next)
+				if (b->next) {
 					b->next->prev = b->prev;
+				}
 
-				if (b->prev)
+				if (b->prev) {
 					b->prev->next = b->next;
+				}
 
 				::operator delete(b, sizeof(Element));
 
@@ -288,11 +294,13 @@ namespace wvn
 	{
 		int old_size = m_capacity;
 
-		if (m_capacity < MIN_CAPACITY)
-			m_capacity = MIN_CAPACITY;
+		if (m_capacity < 8) {
+			m_capacity = 8;
+		}
 
-		while (m_element_count >= m_capacity)
+		while (m_element_count >= m_capacity) {
 			m_capacity *= 2;
+		}
 
 		Element** new_buf = new Element*[m_capacity];
 		mem::set(new_buf, 0, sizeof(Element*) * m_capacity);
@@ -318,17 +326,16 @@ namespace wvn
 	template <typename TKey, typename TValue>
 	void HashMap<TKey, TValue>::realign_ptrs()
 	{
-		// big o who?
-
-		auto f = first();
-		auto l = last();
+		Element* f = first();
+		Element* l = last();
 
 		for (int i = 0; i < m_capacity; i++)
 		{
 			Element* bkt = m_elements[i];
 
-			if (!bkt)
+			if (!bkt) {
 				continue;
+			}
 
 			if (bkt != l)
 			{
@@ -350,10 +357,11 @@ namespace wvn
 				{
 					int check_idx = m_capacity - 1 - j + i;
 
-					if (check_idx < 0)
+					if (check_idx < 0) {
 						check_idx += m_capacity;
-					else if (check_idx >= m_capacity)
+					} else if (check_idx >= m_capacity) {
 						check_idx -= m_capacity;
+					}
 
 					if (m_elements[check_idx])
 					{
@@ -372,13 +380,14 @@ namespace wvn
 
 		while (b)
 		{
-			if (b->data.first == key)
+			if (b->data.first == key) {
 				return b->data.second;
+			}
 
 			b = b->next;
 		}
 
-		WVN_ERROR("[HASHMAP:DEBUG] Could not find bucket matching key.");
+		WVN_ERROR("[HASHMAP|DEBUG] Could not find bucket matching key.");
 	}
 
 	template <typename TKey, typename TValue>
@@ -388,13 +397,14 @@ namespace wvn
 
 		while (b)
 		{
-			if (b->data.first == key)
+			if (b->data.first == key) {
 				return b->data.second;
+			}
 
 			b = b->next;
 		}
 
-		WVN_ERROR("[HASHMAP:DEBUG] Could not find element matching key.");
+		WVN_ERROR("[HASHMAP|DEBUG] Could not find element matching key.");
 	}
 
 	template <typename TKey, typename TValue>
@@ -404,8 +414,9 @@ namespace wvn
 
 		while (b)
 		{
-			if (b->data.first == key)
+			if (b->data.first == key) {
 				return true;
+			}
 
 			b = b->next;
 		}
@@ -428,10 +439,10 @@ namespace wvn
 	template <typename TKey, typename TValue>
 	bool HashMap<TKey, TValue>::is_empty() const
 	{
-		for (int i = 0; i < m_capacity; i++)
-		{
-			if (m_elements[i])
+		for (int i = 0; i < m_capacity; i++) {
+			if (m_elements[i]) {
 				return false;
+			}
 		}
 
 		return true;
@@ -446,10 +457,10 @@ namespace wvn
 	template <typename TKey, typename TValue>
 	typename HashMap<TKey, TValue>::Element* HashMap<TKey, TValue>::first()
 	{
-		for (int i = 0; i < m_capacity; i++)
-		{
-			if (m_elements[i])
+		for (int i = 0; i < m_capacity; i++) {
+			if (m_elements[i]) {
 				return m_elements[i];
+			}
 		}
 
 		return nullptr;
@@ -458,10 +469,10 @@ namespace wvn
 	template <typename TKey, typename TValue>
 	const typename HashMap<TKey, TValue>::Element* HashMap<TKey, TValue>::first() const
 	{
-		for (int i = 0; i < m_capacity; i++)
-		{
-			if (m_elements[i])
+		for (int i = 0; i < m_capacity; i++) {
+			if (m_elements[i]) {
 				return m_elements[i];
+			}
 		}
 
 		return nullptr;
@@ -470,10 +481,10 @@ namespace wvn
 	template <typename TKey, typename TValue>
 	typename HashMap<TKey, TValue>::Element* HashMap<TKey, TValue>::last()
 	{
-		for (int i = m_capacity - 1; i >= 0; i--)
-		{
-			if (m_elements[i])
+		for (int i = m_capacity - 1; i >= 0; i--) {
+			if (m_elements[i]) {
 				return m_elements[i];
+			}
 		}
 
 		return nullptr;
@@ -482,10 +493,10 @@ namespace wvn
 	template <typename TKey, typename TValue>
 	const typename HashMap<TKey, TValue>::Element* HashMap<TKey, TValue>::last() const
 	{
-		for (int i = m_capacity; i >= 0; i--)
-		{
-			if (m_elements[i])
+		for (int i = m_capacity; i >= 0; i--) {
+			if (m_elements[i]) {
 				return m_elements[i];
+			}
 		}
 
 		return nullptr;
@@ -504,6 +515,12 @@ namespace wvn
 	}
 
 	template <typename TKey, typename TValue>
+	typename HashMap<TKey, TValue>::ConstIterator HashMap<TKey, TValue>::cbegin() const
+	{
+		return ConstIterator(first());
+	}
+
+	template <typename TKey, typename TValue>
 	typename HashMap<TKey, TValue>::Iterator HashMap<TKey, TValue>::end()
 	{
 		return Iterator(nullptr);
@@ -513,12 +530,6 @@ namespace wvn
 	typename HashMap<TKey, TValue>::ConstIterator HashMap<TKey, TValue>::end() const
 	{
 		return ConstIterator(nullptr);
-	}
-
-	template <typename TKey, typename TValue>
-	typename HashMap<TKey, TValue>::ConstIterator HashMap<TKey, TValue>::cbegin() const
-	{
-		return ConstIterator(first());
 	}
 
 	template <typename TKey, typename TValue>
@@ -539,3 +550,5 @@ namespace wvn
 		return get(idx);
 	}
 };
+
+#endif // HASH_MAP_H

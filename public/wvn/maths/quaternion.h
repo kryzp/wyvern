@@ -1,10 +1,11 @@
-#pragma once
+#ifndef QUATERNION_H
+#define QUATERNION_H
 
 namespace wvn
 {
 	template <typename T> struct Vec3;
 
-	/*
+	/**
 	 * Used for representing rotations via a 4D hypersphere.
 	 * Yeah.
 	 *
@@ -44,3 +45,5 @@ namespace wvn
 		bool operator != (const Quaternion& other) const;
 	};
 }
+
+#endif // QUATERNION_H

@@ -16,10 +16,10 @@ Mat3x3::Mat3x3(const Mat3x3& other)
 {
 }
 
-Mat3x3::Mat3x3(float initial)
-	: m11(initial), m12(0), m13(0)
-	, m21(0), m22(initial), m23(0)
-	, m31(0), m32(0), m33(initial)
+Mat3x3::Mat3x3(float diag)
+	: m11(diag), m12(0), m13(0)
+	, m21(0), m22(diag), m23(0)
+	, m31(0), m32(0), m33(diag)
 {
 }
 

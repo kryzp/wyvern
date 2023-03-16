@@ -18,7 +18,7 @@ FileStream::FileStream(const char* filename, const char* mode)
 
 FileStream& FileStream::open(const char* filename, const char* mode)
 {
-	p_stream = Root::get_singleton().current_system_backend()->stream_from_file(filename, mode);
+	p_stream = Root::get_singleton()->system_backend()->stream_from_file(filename, mode);
 	return *this;
 }
 

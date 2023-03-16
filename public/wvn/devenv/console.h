@@ -1,10 +1,11 @@
-#pragma once
+#ifndef CONSOLE_H
+#define CONSOLE_H
 
 #include <wvn/util/singleton.h>
 
 namespace wvn::dev
 {
-	/*
+	/**
 	 * Developer Console.
 	 */
 	class Console : public Singleton<Console>
@@ -16,3 +17,5 @@ namespace wvn::dev
 		~Console();
 	};
 }
+
+#endif // CONSOLE_H

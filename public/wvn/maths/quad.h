@@ -1,11 +1,12 @@
-#pragma once
+#ifndef QUAD_H
+#define QUAD_H
 
 #include <wvn/maths/vec2.h>
 #include <wvn/maths/rect.h>
 
 namespace wvn
 {
-	/*
+	/**
 	 * Representation of a quad, a shape between 4 points.
 	 */
 	struct Quad
@@ -22,3 +23,5 @@ namespace wvn
 		Quad operator / (const Vec2F& factor) const;
 	};
 }
+
+#endif // QUAD_H

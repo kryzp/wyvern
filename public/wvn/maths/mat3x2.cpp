@@ -5,7 +5,7 @@
 // nice spelling of 'transformation' alan :/
 // https://www.alanzucconi.com/2016/02/10/tranfsormation-matrix/
 
-/* Here's how it works:
+/** Here's how it works:
 This is actually just a 2x2 transformation matrix + position (m31, m32)
 
 So, multiplication means doing 2x2 matrix multiplication then also applying
@@ -28,10 +28,10 @@ Mat3x2::Mat3x2(const Mat3x2& other)
 {
 }
 
-Mat3x2::Mat3x2(float initial)
-	: m11(initial), m12(0)
-	, m21(0),       m22(initial)
-	, m31(0),       m32(0)
+Mat3x2::Mat3x2(float diag)
+	: m11(diag), m12(0)
+	, m21(0), m22(diag)
+	, m31(0), m32(0)
 {
 }
 

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef KEYBOARD_H
+#define KEYBOARD_H
 
 namespace wvn::inp
 {
@@ -222,3 +223,5 @@ namespace wvn::inp
 		KEY_MAX
 	};
 }
+
+#endif // KEYBOARD_H

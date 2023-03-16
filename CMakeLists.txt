@@ -7,8 +7,13 @@ add_library(${PROJECT_NAME}
 
 	public/wvn/root.cpp
 	public/wvn/camera.cpp
+	public/wvn/time.cpp
 
 	public/wvn/util/types.cpp
+
+	public/wvn/devenv/log_mgr.cpp
+	public/wvn/devenv/console.cpp
+	public/wvn/devenv/profiler.cpp
 
 	public/wvn/actor/actor.cpp
 	public/wvn/actor/actor_mgr.cpp
@@ -29,7 +34,6 @@ add_library(${PROJECT_NAME}
 	public/wvn/graphics/mesh_mgr.cpp
 	public/wvn/graphics/texture.cpp
 	public/wvn/graphics/texture_mgr.cpp
-	public/wvn/graphics/shader.cpp
 	public/wvn/graphics/render_target.cpp
 	public/wvn/graphics/font.cpp
 	public/wvn/graphics/image.cpp
@@ -45,11 +49,6 @@ add_library(${PROJECT_NAME}
 	public/wvn/io/stream.cpp
 	public/wvn/io/file_stream.cpp
 	public/wvn/io/memory_stream.cpp
-
-	public/wvn/plugin/plugin_loader.cpp
-	public/wvn/plugin/system/sdl2_plugin.cpp
-	public/wvn/plugin/graphics/vulkan_plugin.cpp
-	public/wvn/plugin/audio/openal_plugin.cpp
 
 	public/wvn/physics/physics_mgr.cpp
 	public/wvn/physics/rigidbody.cpp
@@ -70,8 +69,11 @@ add_library(${PROJECT_NAME}
 	public/wvn/maths/timer.cpp
 	public/wvn/maths/triangle.cpp
 
-	public/wvn/devenv/log_mgr.cpp
-	public/wvn/devenv/console.cpp
+	public/wvn/plugin/plugin_loader.cpp
+	public/wvn/plugin/system/sdl2_plugin.cpp
+	public/wvn/plugin/graphics/vulkan_plugin.cpp
+	public/wvn/plugin/graphics/opengl_plugin.cpp
+	public/wvn/plugin/audio/openal_plugin.cpp
 
 	private/backend/system/sdl2/sdl2_backend.cpp
 
@@ -80,8 +82,13 @@ add_library(${PROJECT_NAME}
 	private/backend/graphics/vulkan/vk_util.cpp
 	private/backend/graphics/vulkan/vk_shader.cpp
 	private/backend/graphics/vulkan/vk_texture.cpp
+	private/backend/graphics/vulkan/vk_texture_sampler.cpp
+	private/backend/graphics/vulkan/vk_image.cpp
+	private/backend/graphics/vulkan/vk_image_view.cpp
 	private/backend/graphics/vulkan/vk_mesh.cpp
 	private/backend/graphics/vulkan/vk_framebuffer.cpp
+
+	private/backend/graphics/opengl/opengl_backend.cpp
 
 	private/backend/audio/openal/openal_backend.cpp
 )
@@ -97,10 +104,10 @@ target_include_directories(${PROJECT_NAME}
 
 find_package(SDL2 REQUIRED)
 find_package(Vulkan REQUIRED)
-find_package(glm REQUIRED)
 
 set(SDL2_ENABLED true CACHE BOOL "Use SDL2 as the system implementation")
 set(VK_ENABLED true CACHE BOOL "Use Vulkan as the renderer implementation")
+set(OPENGL_ENABLED false CACHE BOOL "Use OpenGL as the renderer implementation")
 set(OPENAL_ENABLED true CACHE BOOL "Use OpenAL as the audio implementation")
 
 add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
@@ -114,6 +121,11 @@ endif()
 if (VK_ENABLED)
 	add_compile_definitions(WVN_USE_VULKAN)
 	target_link_libraries(${PROJECT_NAME} Vulkan::Vulkan)
+endif()
+
+if (OPENGL_ENABLED)
+	add_compile_definitions(WVN_USE_OPENGL)
+	# todo: link opengl
 endif()
 
 if (OPENAL_ENABLED)

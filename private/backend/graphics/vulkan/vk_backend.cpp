@@ -1,7 +1,7 @@
 
 // https://vulkan-tutorial.com
 // Thank. You. So. Much.
-// I love Vulkan. Thank u Khronos (tm) (c) (r)
+// I love Vulkan. Thank u Khronos (tm) (c) (r) <3
 
 #include <backend/graphics/vulkan/vk_backend.h>
 
@@ -13,25 +13,31 @@
 #include <wvn/container/array.h>
 #include <wvn/maths/vec3.h>
 
+#include <backend/graphics/vulkan/vk_texture.h>
+#include <backend/graphics/vulkan/vk_framebuffer.h>
 #include <backend/graphics/vulkan/vk_shader.h>
+#include <backend/graphics/vulkan/vk_mesh.h>
 
 /// debug ///
 #include <wvn/io/file_stream.h>
 /// debug ///
+
+#include <wvn/input/input_mgr.h>
 
 using namespace wvn;
 using namespace wvn::gfx;
 
 // TEMP //
 static Vertex VERTICES[] = {
-	{ { -0.5f, -0.5f }, { 1.0f, 0.0f, 0.0f } },
-	{ {  0.5f, -0.5f }, { 0.0f, 1.0f, 0.0f } },
-	{ {  0.5f,  0.5f }, { 0.0f, 0.0f, 1.0f } },
-	{ { -0.5f,  0.5f }, { 1.0f, 1.0f, 1.0f } },
+	{ { -0.5f, -0.5f }, { 1.0f, 0.0f }, { 1.0f, 0.0f, 0.0f } },
+	{ {  0.5f, -0.5f }, { 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f } },
+	{ {  0.5f,  0.5f }, { 0.0f, 1.0f }, { 1.0f, 1.0f, 0.0f } },
+	{ { -0.5f,  0.5f }, { 1.0f, 1.0f }, { 0.0f, 0.0f, 1.0f } },
 };
 
 static u16 INDICES[] = {
-	0, 1, 2, 2, 3, 0
+	0, 1, 2,
+	2, 3, 0
 };
 // TEMP //
 
@@ -41,7 +47,7 @@ static const char* VALIDATION_LAYERS[] = {
 
 static const char* DEVICE_EXTENSIONS[] = {
 	VK_KHR_SWAPCHAIN_EXTENSION_NAME,
-	"VK_KHR_portability_subset"
+	"VK_KHR_portability_subset" // same here lol
 };
 
 static VkDynamicState DYNAMIC_STATES[] = {
@@ -67,22 +73,21 @@ static bool debug_has_validation_layer_support()
 	for (int i = 0; i < ARRAY_LENGTH(VALIDATION_LAYERS); i++)
 	{
 		bool has_layer = false;
-
 		const char* layer_name_0 = VALIDATION_LAYERS[i];
 
 		for (int j = 0; j < layer_count; j++)
 		{
 			const char* layer_name_1 = available_layers[j].layerName;
 
-			if (cstr::compare(layer_name_0, layer_name_1) == 0)
-			{
+			if (cstr::compare(layer_name_0, layer_name_1) == 0) {
 				has_layer = true;
 				break;
 			}
 		}
 
-		if (!has_layer)
+		if (!has_layer) {
 			return false;
+		}
 	}
 
 	return true;
@@ -96,7 +101,7 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL vk_debug_callback(
 )
 {
 	if (messageSeverity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT) {
-		dev::LogMgr::get_singleton().print("[VULKAN:DEBUG] Validation Layer (SEVERITY: %d) (TYPE: %d): %s", messageSeverity, messageType, pCallbackData->pMessage);
+		dev::LogMgr::get_singleton()->print("[VULKAN|DEBUG] Validation Layer (SEVERITY: %d) (TYPE: %d): %s", messageSeverity, messageType, pCallbackData->pMessage);
 	}
 
 	return VK_FALSE;
@@ -146,14 +151,14 @@ static Vector<const char*> get_instance_extensions()
 {
 	u32 ext_count = 0;
 
-	if (!Root::get_singleton().current_system_backend()->vk_get_instance_extensions(&ext_count, nullptr)) {
-		WVN_ERROR("[VULKAN]: Unable to get instance extension count.");
+	if (!Root::get_singleton()->system_backend()->vk_get_instance_extensions(&ext_count, nullptr)) {
+		WVN_ERROR("[VULKAN|DEBUG] Unable to get instance extension count.");
 	}
 
 	Vector<const char*> extensions(ext_count);
 
-	if (!Root::get_singleton().current_system_backend()->vk_get_instance_extensions(&ext_count, extensions.data())) {
-		WVN_ERROR("[VULKAN]: Unable to get additional instance extensions.");
+	if (!Root::get_singleton()->system_backend()->vk_get_instance_extensions(&ext_count, extensions.data())) {
+		WVN_ERROR("[VULKAN|DEBUG] Unable to get additional instance extensions.");
 	}
 
 #if WVN_DEBUG
@@ -167,9 +172,9 @@ static Vector<const char*> get_instance_extensions()
 	return extensions;
 }
 
-static Array<VkVertexInputAttributeDescription, 2> get_vertex_attribute_description()
+static Array<VkVertexInputAttributeDescription, 3> get_vertex_attribute_description()
 {
-	Array<VkVertexInputAttributeDescription, 2> result = {};
+	Array<VkVertexInputAttributeDescription, 3> result = {};
 
 	// position part
 	result[0].binding = 0;
@@ -177,11 +182,17 @@ static Array<VkVertexInputAttributeDescription, 2> get_vertex_attribute_descript
 	result[0].format = VK_FORMAT_R32G32_SFLOAT;
 	result[0].offset = offsetof(Vertex, pos);
 
-	// colour part
+	// uv part
 	result[1].binding = 0;
 	result[1].location = 1;
-	result[1].format = VK_FORMAT_R32G32B32_SFLOAT;
-	result[1].offset = offsetof(Vertex, col);
+	result[1].format = VK_FORMAT_R32G32_SFLOAT;
+	result[1].offset = offsetof(Vertex, uv);
+
+	// colour part
+	result[2].binding = 0;
+	result[2].location = 2;
+	result[2].format = VK_FORMAT_R32G32B32_SFLOAT;
+	result[2].offset = offsetof(Vertex, col);
 
 	return result;
 }
@@ -225,6 +236,7 @@ VulkanBackend::VulkanBackend()
 	, m_queues()
 	, m_logical_data()
 	, m_physical_data()
+	, m_temp_texture()
 	, m_temp_shader(nullptr)
 #if WVN_DEBUG
 	, m_debug_messenger()
@@ -232,7 +244,7 @@ VulkanBackend::VulkanBackend()
 {
 	VkApplicationInfo app_info = {
 		.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
-		.pApplicationName = Root::get_singleton().config().name,
+		.pApplicationName = Root::get_singleton()->config().name,
 		.applicationVersion = VK_MAKE_VERSION(1, 0, 0),
 		.pEngineName = "Wyvern",
 		.engineVersion = VK_MAKE_VERSION(1, 0, 0),
@@ -249,7 +261,7 @@ VulkanBackend::VulkanBackend()
 
 	if (debug_has_validation_layer_support())
 	{
-		dev::LogMgr::get_singleton().print("[VULKAN:DEBUG] Validation layer support verified!");
+		dev::LogMgr::get_singleton()->print("[VULKAN|DEBUG] Validation layer support verified!");
 
 		debug_populate_debug_utils_messenger_create_info_ext(&debug_create_info);
 
@@ -261,7 +273,7 @@ VulkanBackend::VulkanBackend()
 	}
 	else
 	{
-		dev::LogMgr::get_singleton().print("[VULKAN:DEBUG] No validation layer support.");
+		dev::LogMgr::get_singleton()->print("[VULKAN|DEBUG] No validation layer support.");
 
 		create_info.enabledLayerCount = 0;
 		create_info.ppEnabledLayerNames = nullptr;
@@ -278,21 +290,21 @@ VulkanBackend::VulkanBackend()
 	create_info.flags |= VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
 
 	if (VkResult result = vkCreateInstance(&create_info, nullptr, &m_instance); result != VK_SUCCESS) {
-		dev::LogMgr::get_singleton().print("[VULKAN] Result: %d", result);
-		WVN_ERROR("[VULKAN] Failed to create instance.");
+		dev::LogMgr::get_singleton()->print("[VULKAN] Result: %d", result);
+		WVN_ERROR("[VULKAN|DEBUG] Failed to create instance.");
 	}
 
 #if WVN_DEBUG
 	if (VkResult result = debug_create_debug_utils_messenger_ext(m_instance, &debug_create_info, nullptr, &m_debug_messenger); result != VK_SUCCESS) {
-		dev::LogMgr::get_singleton().print("[VULKAN:DEBUG] Result: %d", result);
-		WVN_ERROR("[VULKAN:DEBUG] Failed to create debug messenger.");
+		dev::LogMgr::get_singleton()->print("[VULKAN|DEBUG] Result: %d", result);
+		WVN_ERROR("[VULKAN|DEBUG] Failed to create debug messenger.");
 	}
 #endif
 
 	// create surface
-	if (bool result = Root::get_singleton().current_system_backend()->vk_create_surface(m_instance, &m_surface); !result) {
-		dev::LogMgr::get_singleton().print("[VULKAN] Result: %d", result);
-		WVN_ERROR("[VULKAN:DEBUG] Failed to create surface.");
+	if (bool result = Root::get_singleton()->system_backend()->vk_create_surface(m_instance, &m_surface); !result) {
+		dev::LogMgr::get_singleton()->print("[VULKAN] Result: %d", result);
+		WVN_ERROR("[VULKAN|DEBUG] Failed to create surface.");
 	}
 
 	enumerate_physical_devices();
@@ -307,6 +319,7 @@ VulkanBackend::VulkanBackend()
 	create_graphics_pipeline();
 	create_swap_chain_framebuffers();
 	create_command_pool(phys_idx);
+	create_texture_image();
 	create_vertex_buffer();
 	create_index_buffer();
 	create_uniform_buffers();
@@ -315,7 +328,7 @@ VulkanBackend::VulkanBackend()
 	create_command_buffers();
 	create_sync_objects();
 
-	dev::LogMgr::get_singleton().print("[VULKAN] Initialized!");
+	dev::LogMgr::get_singleton()->print("[VULKAN] Initialized!");
 }
 
 VulkanBackend::~VulkanBackend()
@@ -325,6 +338,8 @@ VulkanBackend::~VulkanBackend()
 	// //
 
 	clean_up_swap_chain();
+
+	m_temp_texture.clean_up();
 
 	vkDestroyPipeline(m_logical_data.device, m_graphics_pipeline, nullptr);
 	vkDestroyPipelineLayout(m_logical_data.device, m_pipeline_layout, nullptr);
@@ -354,14 +369,14 @@ VulkanBackend::~VulkanBackend()
 #if WVN_DEBUG
 	if (g_debug_enable_validation_layers) {
 		debug_destroy_debug_utils_messenger_ext(m_instance, m_debug_messenger, nullptr);
-		dev::LogMgr::get_singleton().print("[VULKAN:DEBUG] Destroyed validation layers!");
+		dev::LogMgr::get_singleton()->print("[VULKAN|DEBUG] Destroyed validation layers!");
 	}
 #endif
 
 	vkDestroySurfaceKHR(m_instance, m_surface, nullptr);
 	vkDestroyInstance(m_instance, nullptr);
 
-	dev::LogMgr::get_singleton().print("[VULKAN] Destroyed!");
+	dev::LogMgr::get_singleton()->print("[VULKAN] Destroyed!");
 }
 
 RendererBackendProperties VulkanBackend::properties()
@@ -378,7 +393,7 @@ void VulkanBackend::enumerate_physical_devices()
 	vkEnumeratePhysicalDevices(m_instance, &device_count, nullptr);
 
 	if (!device_count) {
-		WVN_ERROR("[VULKAN] Failed to find GPUs with Vulkan support!");
+		WVN_ERROR("[VULKAN|DEBUG] Failed to find GPUs with Vulkan support!");
 	}
 
 	VkPhysicalDeviceProperties properties = {};
@@ -416,10 +431,10 @@ void VulkanBackend::enumerate_physical_devices()
 	}
 
 	if (m_physical_data.device == VK_NULL_HANDLE) {
-		WVN_ERROR("[VULKAN] Unable to find a suitable GPU!");
+		WVN_ERROR("[VULKAN|DEBUG] Unable to find a suitable GPU!");
 	}
 
-	dev::LogMgr::get_singleton().print("[VULKAN] Selected a suitable GPU: %d", m_physical_data.device);
+	dev::LogMgr::get_singleton()->print("[VULKAN] Selected a suitable GPU: %d", m_physical_data.device);
 }
 
 void VulkanBackend::create_logical_device(const QueueFamilyIdx& phys_idx)
@@ -428,7 +443,7 @@ void VulkanBackend::create_logical_device(const QueueFamilyIdx& phys_idx)
 
 	Vector<VkDeviceQueueCreateInfo> queue_create_infos;
 
-	for (auto family : phys_idx.package())
+	for (auto& family : phys_idx.package())
 	{
 		queue_create_infos.push_back({
 			.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
@@ -453,20 +468,20 @@ void VulkanBackend::create_logical_device(const QueueFamilyIdx& phys_idx)
 		create_info.enabledLayerCount = ARRAY_LENGTH(VALIDATION_LAYERS);
 		create_info.ppEnabledLayerNames = VALIDATION_LAYERS;
 	}
-	dev::LogMgr::get_singleton().print("[VULKAN:DEBUG] Enabled validation layers!");
+	dev::LogMgr::get_singleton()->print("[VULKAN|DEBUG] Enabled validation layers!");
 #endif
 
 	if (VkResult result = vkCreateDevice(m_physical_data.device, &create_info, nullptr, &m_logical_data.device); result != VK_SUCCESS) {
-		dev::LogMgr::get_singleton().print("[VULKAN] Result: %d", result);
-		WVN_ERROR("[VULKAN:DEBUG] Failed to create logical device.");
+		dev::LogMgr::get_singleton()->print("[VULKAN] Result: %d", result);
+		WVN_ERROR("[VULKAN|DEBUG] Failed to create logical device.");
 	}
 
-	vkGetDeviceQueue(m_logical_data.device, phys_idx.graphics_family.value(), 0, &m_queues.graphics_queue);
-	vkGetDeviceQueue(m_logical_data.device, phys_idx.present_family.value(),  0, &m_queues.present_queue);
-	vkGetDeviceQueue(m_logical_data.device, phys_idx.compute_family.value(),  0, &m_queues.compute_queue);
-	vkGetDeviceQueue(m_logical_data.device, phys_idx.transfer_family.value(), 0, &m_queues.transfer_queue);
+	vkGetDeviceQueue(m_logical_data.device, phys_idx.graphics_family.value(), 0, &m_queues.graphics);
+	vkGetDeviceQueue(m_logical_data.device, phys_idx.present_family.value(),  0, &m_queues.present);
+	vkGetDeviceQueue(m_logical_data.device, phys_idx.compute_family.value(),  0, &m_queues.compute);
+	vkGetDeviceQueue(m_logical_data.device, phys_idx.transfer_family.value(), 0, &m_queues.transfer);
 
-	dev::LogMgr::get_singleton().print("[VULKAN] Created a logical device!");
+	dev::LogMgr::get_singleton()->print("[VULKAN] Created a logical device!");
 }
 
 void VulkanBackend::create_swap_chain(const QueueFamilyIdx& phys_idx)
@@ -515,55 +530,41 @@ void VulkanBackend::create_swap_chain(const QueueFamilyIdx& phys_idx)
 	create_info.oldSwapchain = VK_NULL_HANDLE;
 
 	if (VkResult result = vkCreateSwapchainKHR(m_logical_data.device, &create_info, nullptr, &m_swap_chain); result != VK_SUCCESS) {
-		dev::LogMgr::get_singleton().print("[VULKAN] Result: %d", result);
-		WVN_ERROR("[VULKAN:DEBUG] Failed to create swap chain.");
+		dev::LogMgr::get_singleton()->print("[VULKAN] Result: %d", result);
+		WVN_ERROR("[VULKAN|DEBUG] Failed to create swap chain.");
 	}
 
 	vkGetSwapchainImagesKHR(m_logical_data.device, m_swap_chain, &img_count, nullptr);
 
 	if (!img_count) {
-		WVN_ERROR("[VULKAN:DEBUG] Failed to find any images in swap chain!");
+		WVN_ERROR("[VULKAN|DEBUG] Failed to find any images in swap chain!");
 	}
 
 	m_swap_chain_images.resize(img_count);
-	vkGetSwapchainImagesKHR(m_logical_data.device, m_swap_chain, &img_count, m_swap_chain_images.data());
+
+	VkImage images[img_count];
+	vkGetSwapchainImagesKHR(m_logical_data.device, m_swap_chain, &img_count, images);
+
+	for (int i = 0; i < img_count; i++) {
+		m_swap_chain_images[i].image() = images[i];
+	}
 
 	this->m_swap_chain_image_format = surf_fmt.format;
 	this->m_swap_chain_extent = extent;
 
-	dev::LogMgr::get_singleton().print("[VULKAN] Created the swap chain!");
+	dev::LogMgr::get_singleton()->print("[VULKAN] Created the swap chain!");
 }
 
 void VulkanBackend::create_image_views()
 {
 	m_swap_chain_image_views.resize(m_swap_chain_images.size());
 
-	for (u64 i = 0; i < m_swap_chain_images.size(); i++)
-	{
-		VkImageViewCreateInfo create_info = {};
-		create_info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-		create_info.image = m_swap_chain_images[i];
-		create_info.viewType = VK_IMAGE_VIEW_TYPE_2D;
-		create_info.format = m_swap_chain_image_format;
-
-		create_info.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
-		create_info.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
-		create_info.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
-		create_info.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
-
-		create_info.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-		create_info.subresourceRange.baseMipLevel = 0;
-		create_info.subresourceRange.levelCount = 1;
-		create_info.subresourceRange.baseArrayLayer = 0;
-		create_info.subresourceRange.layerCount = 1;
-
-		if (VkResult result = vkCreateImageView(m_logical_data.device, &create_info, nullptr, &m_swap_chain_image_views[i]); result != VK_SUCCESS) {
-			dev::LogMgr::get_singleton().print("[VULKAN] Result [Index: %d]: %d", i, result);
-			WVN_ERROR("[VULKAN:DEBUG] Failed to create image view.");
-		}
+	for (u64 i = 0; i < m_swap_chain_images.size(); i++) {
+		m_swap_chain_image_views[i].init(m_logical_data.device);
+		m_swap_chain_image_views[i].create(m_swap_chain_images[i].image(), m_swap_chain_image_format);
 	}
 
-	dev::LogMgr::get_singleton().print("[VULKAN] Created image views!");
+	dev::LogMgr::get_singleton()->print("[VULKAN] Created image views!");
 }
 
 void VulkanBackend::create_graphics_pipeline()
@@ -572,8 +573,8 @@ void VulkanBackend::create_graphics_pipeline()
 	io::FileStream vert_fs = io::FileStream("/Users/kryzp/Documents/Projects/wyvern/test/res/vert.spv", "r");
 	io::FileStream frag_fs = io::FileStream("/Users/kryzp/Documents/Projects/wyvern/test/res/frag.spv", "r");
 
-	WVN_ASSERT(vert_fs.size() > 0, "[VULKAN:DEBUG] Vertex file must not be empty.");
-	WVN_ASSERT(frag_fs.size() > 0, "[VULKAN:DEBUG] Fragment file must not be empty.");
+	WVN_ASSERT(vert_fs.size() > 0, "[VULKAN|DEBUG] Vertex file must not be empty.");
+	WVN_ASSERT(frag_fs.size() > 0, "[VULKAN|DEBUG] Fragment file must not be empty.");
 
 	Vector<char> vert_source;
 	Vector<char> frag_source;
@@ -584,7 +585,7 @@ void VulkanBackend::create_graphics_pipeline()
 	vert_fs.read(vert_source.data(), vert_fs.size());
 	frag_fs.read(frag_source.data(), frag_fs.size());
 
-	m_temp_shader = static_cast<VulkanShader*>(create_shader(vert_source, frag_source));
+	m_temp_shader = create_shader(vert_source, frag_source);
 	//////// debug /////////
 
 	auto binding_desc = get_vertex_binding_description();
@@ -681,8 +682,8 @@ void VulkanBackend::create_graphics_pipeline()
 	pipeline_layout_create_info.pPushConstantRanges = nullptr;
 
 	if (VkResult result = vkCreatePipelineLayout(m_logical_data.device, &pipeline_layout_create_info, nullptr, &m_pipeline_layout); result != VK_SUCCESS) {
-		dev::LogMgr::get_singleton().print("[VULKAN] Result: %d", result);
-		WVN_ERROR("[VULKAN:DEBUG] Failed to create pipeline layout.");
+		dev::LogMgr::get_singleton()->print("[VULKAN] Result: %d", result);
+		WVN_ERROR("[VULKAN|DEBUG] Failed to create pipeline layout.");
 	}
 
 	VkGraphicsPipelineCreateInfo graphics_pipeline_create_info = {};
@@ -704,11 +705,11 @@ void VulkanBackend::create_graphics_pipeline()
 	graphics_pipeline_create_info.basePipelineIndex = -1;
 
 	if (VkResult result = vkCreateGraphicsPipelines(m_logical_data.device, VK_NULL_HANDLE, 1, &graphics_pipeline_create_info, nullptr, &m_graphics_pipeline); result != VK_SUCCESS) {
-		dev::LogMgr::get_singleton().print("[VULKAN] Result: %d", result);
-		WVN_ERROR("[VULKAN:DEBUG] Failed to create graphics pipeline.");
+		dev::LogMgr::get_singleton()->print("[VULKAN] Result: %d", result);
+		WVN_ERROR("[VULKAN|DEBUG] Failed to create graphics pipeline.");
 	}
 
-	dev::LogMgr::get_singleton().print("[VULKAN] Created graphics pipeline!");
+	dev::LogMgr::get_singleton()->print("[VULKAN] Created graphics pipeline!");
 }
 
 void VulkanBackend::create_render_pass()
@@ -750,11 +751,11 @@ void VulkanBackend::create_render_pass()
 	render_pass_create_info.pDependencies = &subpass_dependency;
 
 	if (VkResult result = vkCreateRenderPass(m_logical_data.device, &render_pass_create_info, nullptr, &m_render_pass); result != VK_SUCCESS) {
-		dev::LogMgr::get_singleton().print("[VULKAN] Result: %d", result);
-		WVN_ERROR("[VULKAN:DEBUG] Failed to create render pass.");
+		dev::LogMgr::get_singleton()->print("[VULKAN] Result: %d", result);
+		WVN_ERROR("[VULKAN|DEBUG] Failed to create render pass.");
 	}
 
-	dev::LogMgr::get_singleton().print("[VULKAN] Created render pass!");
+	dev::LogMgr::get_singleton()->print("[VULKAN] Created render pass!");
 }
 
 void VulkanBackend::create_swap_chain_framebuffers()
@@ -763,7 +764,7 @@ void VulkanBackend::create_swap_chain_framebuffers()
 
 	for (u64 i = 0; i < m_swap_chain_image_views.size(); i++)
 	{
-		VkImageView* attachments = &m_swap_chain_image_views[i];
+		VkImageView* attachments = &m_swap_chain_image_views[i].view();
 
 		VkFramebufferCreateInfo framebufferInfo{};
 		framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
@@ -775,12 +776,12 @@ void VulkanBackend::create_swap_chain_framebuffers()
 		framebufferInfo.layers = 1;
 
 		if (VkResult result = vkCreateFramebuffer(m_logical_data.device, &framebufferInfo, nullptr, &m_swap_chain_framebuffers[i]); result != VK_SUCCESS) {
-			dev::LogMgr::get_singleton().print("[VULKAN] Result [Index: %d]: %d", i, result);
-			WVN_ERROR("[VULKAN:DEBUG] Failed to create framebuffer.");
+			dev::LogMgr::get_singleton()->print("[VULKAN] Result (Index: %d): %d", i, result);
+			WVN_ERROR("[VULKAN|DEBUG] Failed to create framebuffer.");
 		}
 	}
 
-	dev::LogMgr::get_singleton().print("[VULKAN] Created swap chain framebuffers!");
+	dev::LogMgr::get_singleton()->print("[VULKAN] Created swap chain framebuffers!");
 }
 
 void VulkanBackend::clean_up_swap_chain()
@@ -790,7 +791,7 @@ void VulkanBackend::clean_up_swap_chain()
 	}
 
 	for (auto& view : m_swap_chain_image_views) {
-		vkDestroyImageView(m_logical_data.device, view, nullptr);
+		vkDestroyImageView(m_logical_data.device, view.view(), nullptr);
 	}
 
 	vkDestroySwapchainKHR(m_logical_data.device, m_swap_chain, nullptr);
@@ -799,7 +800,7 @@ void VulkanBackend::clean_up_swap_chain()
 void VulkanBackend::rebuild_swap_chain()
 {
 	// wait until draw size isnt zero
-	while (Root::get_singleton().current_system_backend()->get_draw_size() == Vec2I::zero()) { }
+	while (Root::get_singleton()->system_backend()->get_draw_size() == Vec2I::zero()) { }
 
 	vkDeviceWaitIdle(m_logical_data.device);
 
@@ -820,11 +821,11 @@ void VulkanBackend::create_command_pool(const QueueFamilyIdx& phys_idx)
 	create_info.queueFamilyIndex = phys_idx.graphics_family.value();
 
 	if (VkResult result = vkCreateCommandPool(m_logical_data.device, &create_info, nullptr, &m_command_pool); result != VK_SUCCESS) {
-		dev::LogMgr::get_singleton().print("[VULKAN] Result: %d", result);
-		WVN_ERROR("[VULKAN:DEBUG] Failed to create command pool.");
+		dev::LogMgr::get_singleton()->print("[VULKAN] Result: %d", result);
+		WVN_ERROR("[VULKAN|DEBUG] Failed to create command pool.");
 	}
 
-	dev::LogMgr::get_singleton().print("[VULKAN] Created command pool!");
+	dev::LogMgr::get_singleton()->print("[VULKAN] Created command pool!");
 }
 
 void VulkanBackend::create_command_buffers()
@@ -838,11 +839,11 @@ void VulkanBackend::create_command_buffers()
 	command_buffer_allocate_info.commandBufferCount = MAX_FRAMES_IN_FLIGHT;
 
 	if (VkResult result = vkAllocateCommandBuffers(m_logical_data.device, &command_buffer_allocate_info, m_command_buffers.data()); result != VK_SUCCESS) {
-		dev::LogMgr::get_singleton().print("[VULKAN] Result: %d", result);
-		WVN_ERROR("[VULKAN:DEBUG] Failed to create command buffer.");
+		dev::LogMgr::get_singleton()->print("[VULKAN] Result: %d", result);
+		WVN_ERROR("[VULKAN|DEBUG] Failed to create command buffer.");
 	}
 
-	dev::LogMgr::get_singleton().print("[VULKAN] Created command buffer!");
+	dev::LogMgr::get_singleton()->print("[VULKAN] Created command buffer!");
 }
 
 void VulkanBackend::create_sync_objects()
@@ -861,44 +862,133 @@ void VulkanBackend::create_sync_objects()
 	for (u32 i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 	{
 		if (VkResult result = vkCreateSemaphore(m_logical_data.device, &semaphore_create_info, nullptr, &m_image_available_semaphores[i]); result != VK_SUCCESS) {
-			dev::LogMgr::get_singleton().print("[VULKAN] Result: %d", result);
-			WVN_ERROR("[VULKAN:DEBUG] Failed to create image available semaphore.");
+			dev::LogMgr::get_singleton()->print("[VULKAN] Result: %d", result);
+			WVN_ERROR("[VULKAN|DEBUG] Failed to create image available semaphore.");
 		}
 
 		if (VkResult result = vkCreateSemaphore(m_logical_data.device, &semaphore_create_info, nullptr, &m_render_finished_semaphores[i]); result != VK_SUCCESS) {
-			dev::LogMgr::get_singleton().print("[VULKAN] Result: %d", result);
-			WVN_ERROR("[VULKAN:DEBUG] Failed to create render finished semaphore.");
+			dev::LogMgr::get_singleton()->print("[VULKAN] Result: %d", result);
+			WVN_ERROR("[VULKAN|DEBUG] Failed to create render finished semaphore.");
 		}
 
 		if (VkResult result = vkCreateFence(m_logical_data.device, &fence_create_info, nullptr, &m_in_flight_fences[i]); result != VK_SUCCESS) {
-			dev::LogMgr::get_singleton().print("[VULKAN] Result: %d", result);
-			WVN_ERROR("[VULKAN:DEBUG] Failed to create in flight fence.");
+			dev::LogMgr::get_singleton()->print("[VULKAN] Result: %d", result);
+			WVN_ERROR("[VULKAN|DEBUG] Failed to create in flight fence.");
 		}
 	}
 
-	dev::LogMgr::get_singleton().print("[VULKAN] Created sync objects!");
+	dev::LogMgr::get_singleton()->print("[VULKAN] Created sync objects!");
 }
 
 void VulkanBackend::create_descriptor_set_layout()
 {
-	VkDescriptorSetLayoutBinding ubo_binding = {};
-	ubo_binding.binding = 0;
-	ubo_binding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	ubo_binding.descriptorCount = 1;
-	ubo_binding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-	ubo_binding.pImmutableSamplers = nullptr;
+	Array<VkDescriptorSetLayoutBinding, 2> bindings;
+
+	// ubo binding
+	bindings[0].binding = 0;
+	bindings[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	bindings[0].descriptorCount = 1;
+	bindings[0].stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+	bindings[0].pImmutableSamplers = nullptr;
+
+	// sampler layout binding
+	bindings[1].binding = 1;
+	bindings[1].descriptorCount = 1;
+	bindings[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	bindings[1].pImmutableSamplers = nullptr;
+	bindings[1].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
 	VkDescriptorSetLayoutCreateInfo layout_create_info = {};
 	layout_create_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-	layout_create_info.bindingCount = 1;
-	layout_create_info.pBindings = &ubo_binding;
+	layout_create_info.bindingCount = bindings.size();
+	layout_create_info.pBindings = bindings.data();
 
 	if (VkResult result = vkCreateDescriptorSetLayout(m_logical_data.device, &layout_create_info, nullptr, &m_descriptor_set_layout); result != VK_SUCCESS) {
-		dev::LogMgr::get_singleton().print("[VULKAN] Result: %d", result);
-		WVN_ERROR("[VULKAN:DEBUG] Failed to create descriptor set layout.");
+		dev::LogMgr::get_singleton()->print("[VULKAN] Result: %d", result);
+		WVN_ERROR("[VULKAN|DEBUG] Failed to create descriptor set layout.");
 	}
 
-	dev::LogMgr::get_singleton().print("[VULKAN] Created descriptor set layout!");
+	dev::LogMgr::get_singleton()->print("[VULKAN] Created descriptor set layout!");
+}
+
+void VulkanBackend::create_descriptor_pool()
+{
+	Array<VkDescriptorPoolSize, 2> pool_sizes;
+	pool_sizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	pool_sizes[0].descriptorCount = MAX_FRAMES_IN_FLIGHT;
+	pool_sizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	pool_sizes[1].descriptorCount = MAX_FRAMES_IN_FLIGHT;
+
+	VkDescriptorPoolCreateInfo pool_create_info = {};
+	pool_create_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+	pool_create_info.poolSizeCount = pool_sizes.size();
+	pool_create_info.pPoolSizes = pool_sizes.data();
+	pool_create_info.maxSets = MAX_FRAMES_IN_FLIGHT;
+
+	if (VkResult result = vkCreateDescriptorPool(m_logical_data.device, &pool_create_info, nullptr, &m_descriptor_pool); result != VK_SUCCESS) {
+		dev::LogMgr::get_singleton()->print("[VULKAN] Result: %d", result);
+		WVN_ERROR("[VULKAN|DEBUG] Failed to create descriptor pool.");
+	}
+
+	dev::LogMgr::get_singleton()->print("[VULKAN] Created descriptor pool!");
+}
+
+void VulkanBackend::create_descriptor_sets()
+{
+	m_descriptor_sets.resize(MAX_FRAMES_IN_FLIGHT);
+
+	Array<VkDescriptorSetLayout, MAX_FRAMES_IN_FLIGHT> layouts;
+	layouts.fill(m_descriptor_set_layout);
+
+	VkDescriptorSetAllocateInfo alloc_info = {};
+	alloc_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+	alloc_info.descriptorPool = m_descriptor_pool;
+	alloc_info.descriptorSetCount = MAX_FRAMES_IN_FLIGHT;
+	alloc_info.pSetLayouts = layouts.data();
+
+	if (VkResult result = vkAllocateDescriptorSets(m_logical_data.device, &alloc_info, m_descriptor_sets.data()); result != VK_SUCCESS) {
+		dev::LogMgr::get_singleton()->print("[VULKAN] Result: %d", result);
+		WVN_ERROR("[VULKAN|DEBUG] Failed to create descriptor pool.");
+	}
+
+	for (u64 i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+	{
+		Array<VkWriteDescriptorSet, 2> descriptors;
+
+		// ubo
+		VkDescriptorBufferInfo descriptor_buffer_info = {};
+		descriptor_buffer_info.buffer = m_uniform_buffers[i].buffer();
+		descriptor_buffer_info.offset = 0;
+		descriptor_buffer_info.range = sizeof(UniformBufferObject);
+		descriptors[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		descriptors[0].dstSet = m_descriptor_sets[i];
+		descriptors[0].dstBinding = 0;
+		descriptors[0].dstArrayElement = 0;
+		descriptors[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+		descriptors[0].descriptorCount = 1;
+		descriptors[0].pBufferInfo = &descriptor_buffer_info;
+		descriptors[0].pImageInfo = nullptr;
+		descriptors[0].pTexelBufferView = nullptr;
+
+		// sampler
+		VkDescriptorImageInfo image_info = {};
+		image_info.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		image_info.imageView = m_temp_texture.view().view();
+		image_info.sampler = m_temp_texture.sampler().sampler();
+		descriptors[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		descriptors[1].dstSet = m_descriptor_sets[i];
+		descriptors[1].dstBinding = 1;
+		descriptors[1].dstArrayElement = 0;
+		descriptors[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		descriptors[1].descriptorCount = 1;
+		descriptors[1].pBufferInfo = nullptr;
+		descriptors[1].pImageInfo = &image_info;
+		descriptors[1].pTexelBufferView = nullptr;
+
+		vkUpdateDescriptorSets(m_logical_data.device, descriptors.size(), descriptors.data(), 0, nullptr);
+	}
+
+	dev::LogMgr::get_singleton()->print("[VULKAN] Created descriptor sets!");
 }
 
 void VulkanBackend::create_uniform_buffers()
@@ -914,67 +1004,6 @@ void VulkanBackend::create_uniform_buffers()
 			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
 		);
 	}
-}
-
-void VulkanBackend::create_descriptor_pool()
-{
-    VkDescriptorPoolSize pool_size = {};
-    pool_size.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    pool_size.descriptorCount = MAX_FRAMES_IN_FLIGHT;
-
-    VkDescriptorPoolCreateInfo pool_create_info = {};
-    pool_create_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-    pool_create_info.poolSizeCount = 1;
-    pool_create_info.pPoolSizes = &pool_size;
-    pool_create_info.maxSets = MAX_FRAMES_IN_FLIGHT;
-
-    if (VkResult result = vkCreateDescriptorPool(m_logical_data.device, &pool_create_info, nullptr, &m_descriptor_pool); result != VK_SUCCESS) {
-        dev::LogMgr::get_singleton().print("[VULKAN] Result: %d", result);
-        WVN_ERROR("[VULKAN:DEBUG] Failed to create descriptor pool.");
-    }
-
-    dev::LogMgr::get_singleton().print("[VULKAN] Created descriptor pool!");
-}
-
-void VulkanBackend::create_descriptor_sets()
-{
-    m_descriptor_sets.resize(MAX_FRAMES_IN_FLIGHT);
-
-	Array<VkDescriptorSetLayout, MAX_FRAMES_IN_FLIGHT> layouts;
-	layouts.fill(m_descriptor_set_layout);
-
-    VkDescriptorSetAllocateInfo alloc_info = {};
-    alloc_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-    alloc_info.descriptorPool = m_descriptor_pool;
-    alloc_info.descriptorSetCount = MAX_FRAMES_IN_FLIGHT;
-    alloc_info.pSetLayouts = layouts.data();
-
-    if (VkResult result = vkAllocateDescriptorSets(m_logical_data.device, &alloc_info, m_descriptor_sets.data()); result != VK_SUCCESS) {
-        dev::LogMgr::get_singleton().print("[VULKAN] Result: %d", result);
-        WVN_ERROR("[VULKAN:DEBUG] Failed to create descriptor pool.");
-    }
-
-	for (u64 i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-		VkDescriptorBufferInfo descriptor_buffer_info = {};
-		descriptor_buffer_info.buffer = m_uniform_buffers[i].buffer();
-		descriptor_buffer_info.offset = 0;
-		descriptor_buffer_info.range = sizeof(UniformBufferObject);
-
-		VkWriteDescriptorSet descriptor_write = {};
-		descriptor_write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-		descriptor_write.dstSet = m_descriptor_sets[i];
-		descriptor_write.dstBinding = 0;
-		descriptor_write.dstArrayElement = 0;
-		descriptor_write.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-		descriptor_write.descriptorCount = 1;
-		descriptor_write.pBufferInfo = &descriptor_buffer_info;
-		descriptor_write.pImageInfo = nullptr;
-		descriptor_write.pTexelBufferView = nullptr;
-
-		vkUpdateDescriptorSets(m_logical_data.device, 1, &descriptor_write, 0, nullptr);
-	}
-
-    dev::LogMgr::get_singleton().print("[VULKAN] Created descriptor sets!");
 }
 
 void VulkanBackend::create_vertex_buffer()
@@ -997,10 +1026,10 @@ void VulkanBackend::create_vertex_buffer()
 		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
 	);
 
-	m_staging_buffer.copy_to(m_vertex_buffer, m_command_pool, m_queues.graphics_queue);
+	m_staging_buffer.copy_to(m_vertex_buffer, m_command_pool, m_queues.graphics);
 	m_staging_buffer.clean_up();
 
-	dev::LogMgr::get_singleton().print("[VULKAN] Created vertex buffer!");
+	dev::LogMgr::get_singleton()->print("[VULKAN] Created vertex buffer!");
 }
 
 void VulkanBackend::create_index_buffer()
@@ -1023,13 +1052,53 @@ void VulkanBackend::create_index_buffer()
 		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
 	);
 
-	m_staging_buffer.copy_to(m_index_buffer, m_command_pool, m_queues.graphics_queue);
+	m_staging_buffer.copy_to(m_index_buffer, m_command_pool, m_queues.graphics);
 	m_staging_buffer.clean_up();
 
-	dev::LogMgr::get_singleton().print("[VULKAN] Created index buffer!");
+	dev::LogMgr::get_singleton()->print("[VULKAN] Created index buffer!");
 }
 
-// abstract function that generates a "usability" or "goodness value" of a given device
+void VulkanBackend::create_texture_image()
+{
+	Image temp_image("../images/kitty.png");
+
+	m_temp_texture.init(m_logical_data.device, m_physical_data.device);
+	m_temp_texture.create(temp_image);
+
+	m_staging_buffer.create(
+		m_logical_data.device, m_physical_data.device,
+		temp_image.size(),
+		VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+	);
+
+	m_staging_buffer.send_data(temp_image.pixels());
+
+	m_temp_texture.image().transition_layout(
+		VK_FORMAT_R8G8B8A8_SRGB,
+		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+		m_command_pool,
+		m_queues.graphics
+	);
+
+	m_staging_buffer.copy_to_image(
+		m_temp_texture.image().image(),
+		m_temp_texture.width(),
+		m_temp_texture.height(),
+		m_command_pool,
+		m_queues.graphics
+	);
+
+	m_temp_texture.image().transition_layout(
+		VK_FORMAT_R8G8B8A8_SRGB,
+		VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+		m_command_pool,
+		m_queues.graphics
+	);
+
+	m_staging_buffer.clean_up();
+}
+
 u32 VulkanBackend::assign_physical_device_usability(
 	VkPhysicalDevice device,
 	VkPhysicalDeviceProperties properties,
@@ -1042,6 +1111,7 @@ u32 VulkanBackend::assign_physical_device_usability(
 	bool adequate_swap_chain = false;
 	bool has_required_extensions = check_device_extension_support(device);
 	bool indices_complete = find_queue_families(device).is_complete();
+	bool has_anisotropy = features.samplerAnisotropy;
 
 	if (properties.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU) {
 		result += 2;
@@ -1053,13 +1123,18 @@ u32 VulkanBackend::assign_physical_device_usability(
 		result += 1;
 	}
 
+	if (has_anisotropy) {
+		result += 1;
+	}
+
 	if (has_required_extensions) {
 		SwapChainSupportDetails swap_chain_support_details = query_swap_chain_support(device);
 		adequate_swap_chain = swap_chain_support_details.surface_formats.any() && swap_chain_support_details.present_modes.any();
+		result += 1;
 	}
 
 	if (essentials_completed) {
-		(*essentials_completed) = indices_complete && has_required_extensions && adequate_swap_chain;
+		(*essentials_completed) = indices_complete && has_required_extensions && adequate_swap_chain && has_anisotropy;
 	}
 
 	return result;
@@ -1073,7 +1148,7 @@ QueueFamilyIdx VulkanBackend::find_queue_families(VkPhysicalDevice device)
 	vkGetPhysicalDeviceQueueFamilyProperties(device, &queue_family_count, nullptr);
 
 	if (!queue_family_count) {
-		WVN_ERROR("[VULKAN] Failed to find any queue families!");
+		WVN_ERROR("[VULKAN|DEBUG] Failed to find any queue families!");
 	}
 
 	Vector<VkQueueFamilyProperties> queue_families(queue_family_count);
@@ -1118,7 +1193,7 @@ bool VulkanBackend::check_device_extension_support(VkPhysicalDevice device)
 	vkEnumerateDeviceExtensionProperties(device, nullptr, &ext_count, nullptr);
 
 	if (!ext_count) {
-		WVN_ERROR("[VULKAN] Failed to find any device extension properties!");
+		WVN_ERROR("[VULKAN|DEBUG] Failed to find any device extension properties!");
 	}
 
 	Vector<VkExtensionProperties> available_exts(ext_count);
@@ -1197,14 +1272,14 @@ VkPresentModeKHR VulkanBackend::choose_swap_present_mode(const Vector<VkPresentM
 
 VkExtent2D VulkanBackend::choose_swap_extent(const VkSurfaceCapabilitiesKHR& capabilities)
 {
-	if (capabilities.currentExtent.width != CalcU::max_number())
+	if (capabilities.currentExtent.width != CalcU::max_value())
 	{
 		return capabilities.currentExtent;
 	}
 	else
 	{
-		Vec2I wh = Root::get_singleton().current_system_backend()->get_window_size();
-		VkExtent2D actual_extent = { static_cast<u32>(wh.w), static_cast<u32>(wh.h) };
+		Vec2I wh = Root::get_singleton()->system_backend()->get_window_size();
+		VkExtent2D actual_extent = { static_cast<u32>(wh.x), static_cast<u32>(wh.y) };
 
 		actual_extent.width  = CalcU::clamp(actual_extent.width,  capabilities.minImageExtent.width,  capabilities.maxImageExtent.width );
 		actual_extent.height = CalcU::clamp(actual_extent.height, capabilities.minImageExtent.height, capabilities.maxImageExtent.height);
@@ -1223,21 +1298,23 @@ VkShaderModule VulkanBackend::create_shader_module(const Vector<char>& source)
 	VkShaderModule module = {};
 
 	if (VkResult result = vkCreateShaderModule(m_logical_data.device, &create_info, nullptr, &module); result != VK_SUCCESS) {
-		dev::LogMgr::get_singleton().print("[VULKAN] Result: %d", result);
-		WVN_ERROR("[VULKAN:DEBUG] Failed to create shader module.");
+		dev::LogMgr::get_singleton()->print("[VULKAN] Result: %d", result);
+		WVN_ERROR("[VULKAN|DEBUG] Failed to create shader module.");
 	}
 
-	dev::LogMgr::get_singleton().print("[VULKAN] Created shader module!");
+	dev::LogMgr::get_singleton()->print("[VULKAN] Created shader module!");
 
 	return module;
 }
 
 Texture* VulkanBackend::create_texture(u32 width, u32 height)
 {
-	return nullptr;
+	VulkanTexture* ret = new VulkanTexture();
+	ret->create(width, height, TEX_FMT_R8G8B8A8_SRGB, TEX_TILE_OPTIMAL);
+	return ret;
 }
 
-Shader* VulkanBackend::create_shader(const Vector<char>& vert_source, const Vector<char>& frag_source)
+VulkanShader* VulkanBackend::create_shader(const Vector<char>& vert_source, const Vector<char>& frag_source)
 {
 	VkShaderModule vert_module = create_shader_module(vert_source);
 	VkShaderModule frag_module = create_shader_module(frag_source);
@@ -1247,12 +1324,12 @@ Shader* VulkanBackend::create_shader(const Vector<char>& vert_source, const Vect
 
 RenderTarget* VulkanBackend::create_render_target(u32 width, u32 height)
 {
-	return nullptr;
+	return new VulkanFramebuffer();
 }
 
 Mesh* VulkanBackend::create_mesh()
 {
-	return nullptr;
+	return new VulkanMesh();
 }
 
 void VulkanBackend::wait_for_sync()
@@ -1273,22 +1350,49 @@ void VulkanBackend::render(const RenderPass& pass)
 		rebuild_swap_chain();
 		return;
 	} else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
-		dev::LogMgr::get_singleton().print("[VULKAN] Result: %d", result);
-		WVN_ERROR("[VULKAN:DEBUG] Failed to acquire next image in swap chain.");
+		dev::LogMgr::get_singleton()->print("[VULKAN] Result: %d", result);
+		WVN_ERROR("[VULKAN|DEBUG] Failed to acquire next image in swap chain.");
 	}
 
 	VkCommandBuffer& current_buffer = m_command_buffers[m_current_frame];
 
+	const float ASPECT = (float)m_swap_chain_extent.width / (float)m_swap_chain_extent.height;
+
 	// update uniform buffer
 	{
-		static float timer = 0.0f;
-		timer += CalcF::TAU * 0.0025f;
+		static float cx = 0.0f, cy = 0.0f, cz = -5.0f, t = 0.0f;
+
+		auto cam_pos = Vec3F(cx, cy, cz);
+		auto look_at = cam_pos + Vec3F::forward();
+
+		if (inp::InputMgr::get_singleton()->is_down(inp::KEY_A)) {
+			cx -= 0.025f;
+		} else if (inp::InputMgr::get_singleton()->is_down(inp::KEY_D)) {
+			cx += 0.025f;
+		}
+
+		if (inp::InputMgr::get_singleton()->is_down(inp::KEY_SPACE)) {
+			cy -= 0.025f;
+		} else if (inp::InputMgr::get_singleton()->is_down(inp::KEY_LEFT_SHIFT)) {
+			cy += 0.025f;
+		}
+
+		if (inp::InputMgr::get_singleton()->is_down(inp::KEY_S)) {
+			cz -= 0.025f;
+		} else if (inp::InputMgr::get_singleton()->is_down(inp::KEY_W)) {
+			cz += 0.025f;
+		}
+
+		if (inp::InputMgr::get_singleton()->is_down(inp::KEY_Q)) {
+			t -= 0.025f;
+		} else if (inp::InputMgr::get_singleton()->is_down(inp::KEY_E)) {
+			t += 0.025f;
+		}
 
 		UniformBufferObject ubo = {};
-		ubo.model = Mat4x4::create_rotation(timer * 90.0f * CalcF::DEG2RAD, Vec3F(0.0f, 0.0f, 1.0f));
-		ubo.view  = Mat4x4::create_lookat(Vec3F(2.0f, 2.0f, 2.0f), Vec3F(0.0f, 0.0f, 0.0f), Vec3F(0.0f, 0.0f, 1.0f));
-		ubo.proj  = Mat4x4::create_perspective(CalcF::DEG2RAD * 45.0f, (float)m_swap_chain_extent.width / (float)m_swap_chain_extent.height, 0.1f, 10.0f);
-
+		ubo.model = Mat4x4::create_rotation(t, Vec3F::forward());
+		ubo.view  = Mat4x4::create_lookat(cam_pos, look_at, Vec3F::up());
+		ubo.proj  = Mat4x4::create_perspective(CalcF::PI * 0.25f, ASPECT, 0.01f, 50.0f);
 		m_uniform_buffers[m_current_frame].send_data(&ubo);
 	}
 
@@ -1303,8 +1407,8 @@ void VulkanBackend::render(const RenderPass& pass)
 		command_buffer_begin_info.pInheritanceInfo = nullptr;
 
 		if (VkResult result = vkBeginCommandBuffer(current_buffer, &command_buffer_begin_info); result != VK_SUCCESS) {
-			dev::LogMgr::get_singleton().print("[VULKAN] Result: %d", result);
-			WVN_ERROR("[VULKAN:DEBUG] Failed to begin recording command buffer.");
+			dev::LogMgr::get_singleton()->print("[VULKAN] Result: %d", result);
+			WVN_ERROR("[VULKAN|DEBUG] Failed to begin recording command buffer.");
 		}
 
 		VkClearValue clear_colour = {};
@@ -1379,8 +1483,8 @@ void VulkanBackend::render(const RenderPass& pass)
 		vkCmdEndRenderPass(current_buffer);
 
 		if (VkResult result = vkEndCommandBuffer(current_buffer); result != VK_SUCCESS) {
-			dev::LogMgr::get_singleton().print("[VULKAN] Result: %d", result);
-			WVN_ERROR("[VULKAN:DEBUG] Failed to record command buffer.");
+			dev::LogMgr::get_singleton()->print("[VULKAN] Result: %d", result);
+			WVN_ERROR("[VULKAN|DEBUG] Failed to record command buffer.");
 		}
 	}
 
@@ -1398,9 +1502,9 @@ void VulkanBackend::render(const RenderPass& pass)
 	submit_info.signalSemaphoreCount = 1;
 	submit_info.pSignalSemaphores = signal_semaphores;
 
-	if (VkResult result = vkQueueSubmit(m_queues.graphics_queue, 1, &submit_info, m_in_flight_fences[m_current_frame]); result != VK_SUCCESS) {
-		dev::LogMgr::get_singleton().print("[VULKAN] Result: %d", result);
-		WVN_ERROR("Failed to submit draw command to buffer.");
+	if (VkResult result = vkQueueSubmit(m_queues.graphics, 1, &submit_info, m_in_flight_fences[m_current_frame]); result != VK_SUCCESS) {
+		dev::LogMgr::get_singleton()->print("[VULKAN] Result: %d", result);
+		WVN_ERROR("[VULKAN|DEBUG] Failed to submit draw command to buffer.");
 	}
 
 	VkSwapchainKHR swapchains[] = { m_swap_chain };
@@ -1414,12 +1518,12 @@ void VulkanBackend::render(const RenderPass& pass)
 	present_info.pImageIndices = &img_idx;
 	present_info.pResults = nullptr;
 
-	if (VkResult result = vkQueuePresentKHR(m_queues.present_queue, &present_info); result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || m_is_framebuffer_resized) {
+	if (VkResult result = vkQueuePresentKHR(m_queues.present, &present_info); result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || m_is_framebuffer_resized) {
 		m_is_framebuffer_resized = false;
 		rebuild_swap_chain();
 	} else if (result != VK_SUCCESS) {
-		dev::LogMgr::get_singleton().print("[VULKAN] Result: %d", result);
-		WVN_ERROR("[VULKAN:DEBUG] Failed to present swap chain image.");
+		dev::LogMgr::get_singleton()->print("[VULKAN] Result: %d", result);
+		WVN_ERROR("[VULKAN|DEBUG] Failed to present swap chain image.");
 	}
 
 	m_current_frame = (m_current_frame + 1) % MAX_FRAMES_IN_FLIGHT;

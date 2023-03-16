@@ -1,4 +1,5 @@
-#pragma once
+#ifndef SOCKET_H
+#define SOCKET_H
 
 #include <wvn/util/types.h>
 #include <wvn/network/network_mgr.h>
@@ -6,7 +7,7 @@
 
 namespace wvn::net
 {
-	/*
+	/**
 	 * Base class for representing, storing and manipulating a socket.
 	 */
 	class Socket
@@ -16,7 +17,7 @@ namespace wvn::net
 		virtual ~Socket() = default;
 	};
 
-	/*
+	/**
 	 * TCP-Specialized socket.
 	 */
 	class TCPSocket : public Socket
@@ -29,7 +30,7 @@ namespace wvn::net
 		NetworkCallback recv(byte* data, u64 size, u64* bytes_recieved = nullptr);
 	};
 
-	/*
+	/**
 	 * UDP-Specialized socket
 	 */
 	class UDPSocket : public Socket
@@ -43,3 +44,5 @@ namespace wvn::net
 		NetworkCallback recv(byte* data, u64 size, u64 port, const IpAddress& addr, u64* bytes_recieved = nullptr);
 	};
 }
+
+#endif // SOCKET_H

@@ -1,10 +1,11 @@
-#pragma once
+#ifndef PHYSICS_MGR_H
+#define PHYSICS_MGR_H
 
 #include <wvn/util/singleton.h>
 
 namespace wvn::phys
 {
-	/*
+	/**
 	 * Manages the phyiscs of the game world
 	 */
 	class PhysicsMgr : public Singleton<PhysicsMgr>
@@ -18,3 +19,5 @@ namespace wvn::phys
 		void simulate();
 	};
 }
+
+#endif // PHYSICS_MGR_H

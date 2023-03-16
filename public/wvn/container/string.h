@@ -1,20 +1,21 @@
-#pragma once
+#ifndef STRING_H
+#define STRING_H
 
 #include <wvn/util/types.h>
 #include <wvn/container/vector.h>
 
 namespace wvn
 {
-	/*
-	 * Generic-sized c-style string wrapper.
+	/**
+	 * Generic-sized C-style string wrapper.
 	 */
-	template <u64 TSize>
+	template <u64 Size>
 	class Str
 	{
 	public:
 		class Iterator
 		{
-			friend class Str<TSize>;
+			friend class Str<Size>;
 
 		public:
 			Iterator() : m_char(nullptr) { }
@@ -34,7 +35,7 @@ namespace wvn
 
 		class ConstIterator
 		{
-			friend class Str<TSize>;
+			friend class Str<Size>;
 
 		public:
 			ConstIterator() : m_char(nullptr) { }
@@ -54,7 +55,7 @@ namespace wvn
 
 		class ReverseIterator
 		{
-			friend class Str<TSize>;
+			friend class Str<Size>;
 
 		public:
 			ReverseIterator() : m_char(nullptr) { }
@@ -74,7 +75,7 @@ namespace wvn
 
 		class ReverseConstIterator
 		{
-			friend class Str<TSize>;
+			friend class Str<Size>;
 
 		public:
 			ReverseConstIterator() : m_char(nullptr) { }
@@ -175,31 +176,31 @@ namespace wvn
 
 	using String = Str<64>;
 
-	template <u64 TSize>
-	Str<TSize>::Str()
+	template <u64 Size>
+	Str<Size>::Str()
 		: m_length(0)
 	{
-		m_buf = new char[TSize];
-		mem::set(m_buf, 0, TSize);
+		m_buf = new char[Size];
+		mem::set(m_buf, 0, Size);
 	}
 
-	template <u64 TSize>
-	Str<TSize>::Str(const char* str)
+	template <u64 Size>
+	Str<Size>::Str(const char* str)
 		: m_length(cstr::length(str))
 	{
-		WVN_ASSERT(m_length < (TSize - 1), "[STRING:DEBUG] Length must not exceed maximum size."); // -1 for '\0'
+		WVN_ASSERT(m_length < (Size - 1), "[STRING|DEBUG] Length must not exceed maximum size."); // -1 for '\0'
 
-		m_buf = new char[TSize];
+		m_buf = new char[Size];
 		cstr::copy(m_buf, str, m_length);
 		m_buf[m_length] = '\0';
 	}
 	
-	template <u64 TSize>
-	Str<TSize>::Str(const Str& other)
+	template <u64 Size>
+	Str<Size>::Str(const Str& other)
 	{
-		WVN_ASSERT(other.m_length < (TSize - 1), "[STRING:DEBUG] Length must not exceed maximum size.");
+		WVN_ASSERT(other.m_length < (Size - 1), "[STRING|DEBUG] Length must not exceed maximum size.");
 
-		m_buf = new char[TSize];
+		m_buf = new char[Size];
 
 		m_length = other.m_length;
 		cstr::copy(m_buf, other.m_buf, other.m_length);
@@ -207,12 +208,12 @@ namespace wvn
 		m_buf[m_length] = '\0';
 	}
 	
-	template <u64 TSize>
-	Str<TSize>::Str(Str&& other) noexcept
+	template <u64 Size>
+	Str<Size>::Str(Str&& other) noexcept
 	{
-		WVN_ASSERT(other.m_length < (TSize - 1), "[STRING:DEBUG] Length must not exceed maximum size.");
+		WVN_ASSERT(other.m_length < (Size - 1), "[STRING|DEBUG] Length must not exceed maximum size.");
 
-		m_buf = new char[TSize];
+		m_buf = new char[Size];
 
 		m_length = std::move(other.m_length);
 		m_buf = std::move(other.m_buf);
@@ -221,13 +222,13 @@ namespace wvn
 		other.m_buf = nullptr;
 	}
 	
-	template <u64 TSize>
-	Str<TSize>& Str<TSize>::operator = (const Str& other)
+	template <u64 Size>
+	Str<Size>& Str<Size>::operator = (const Str& other)
 	{
-		WVN_ASSERT(other.m_length < (TSize - 1), "[STRING:DEBUG] Length must not exceed maximum size.");
+		WVN_ASSERT(other.m_length < (Size - 1), "[STRING|DEBUG] Length must not exceed maximum size.");
 
 		if (!m_buf)
-			m_buf = new char[TSize];
+			m_buf = new char[Size];
 		
 		if (m_length > other.m_length)
 			mem::set(m_buf, 0, m_length);
@@ -239,13 +240,13 @@ namespace wvn
 		return *this;
 	}
 	
-	template <u64 TSize>
-	Str<TSize>& Str<TSize>::operator = (Str&& other) noexcept
+	template <u64 Size>
+	Str<Size>& Str<Size>::operator = (Str&& other) noexcept
 	{
-		WVN_ASSERT(other.m_length < (TSize - 1), "[STRING:DEBUG] Length must not exceed maximum size");
+		WVN_ASSERT(other.m_length < (Size - 1), "[STRING|DEBUG] Length must not exceed maximum size");
 
 		if (!m_buf)
-			m_buf = new char[TSize];
+			m_buf = new char[Size];
 
 		m_length = std::move(other.m_length);
 		m_buf = std::move(other.m_buf);
@@ -256,171 +257,171 @@ namespace wvn
 		return *this;
 	}
 
-	template <u64 TSize>
-	Str<TSize>::~Str()
+	template <u64 Size>
+	Str<Size>::~Str()
 	{
 		m_length = 0;
 		delete[] m_buf;
 	}
 
-	template <u64 TSize>
-	void Str<TSize>::clear()
+	template <u64 Size>
+	void Str<Size>::clear()
 	{
 		mem::set(m_buf, 0, m_length);
 		m_length = 0;
 	}
 
-	template <u64 TSize>
-	bool Str<TSize>::empty() const
+	template <u64 Size>
+	bool Str<Size>::empty() const
 	{
 		return cstr::compare(m_buf, "") == 0;
 	}
 
-	template <u64 TSize>
-	Str<TSize>& Str<TSize>::append(const Str<TSize>& str)
+	template <u64 Size>
+	Str<Size>& Str<Size>::append(const Str<Size>& str)
 	{
-		WVN_ASSERT((m_length + str.m_length) < (TSize - 1), "[STRING:DEBUG] Final length must not exceed maximum size.");
+		WVN_ASSERT((m_length + str.m_length) < (Size - 1), "[STRING|DEBUG] Final length must not exceed maximum size.");
 
 		m_length += str.length();
-		cstr::cncat(m_buf, str.m_buf, str.length());
+		cstr::concat(m_buf, str.m_buf, str.length());
 
 		return *this;
 	}
 
-	template <u64 TSize>
-	void Str<TSize>::push_front(char c)
+	template <u64 Size>
+	void Str<Size>::push_front(char c)
 	{
 		mem::move(m_buf + 1, m_buf, m_length);
 		m_buf[0] = c;
 		m_length++;
 	}
 
-	template <u64 TSize>
-	void Str<TSize>::push_back(char c)
+	template <u64 Size>
+	void Str<Size>::push_back(char c)
 	{
 		m_buf[m_length] = c;
 		m_length++;
 		m_buf[m_length] = '\0';
 	}
 
-	template <u64 TSize>
-	void Str<TSize>::pop_front()
+	template <u64 Size>
+	void Str<Size>::pop_front()
 	{
 		m_length--;
 		mem::move(m_buf, m_buf + 1, m_length);
 	}
 
-	template <u64 TSize>
-	void Str<TSize>::pop_back()
+	template <u64 Size>
+	void Str<Size>::pop_back()
 	{
 		m_length--;
 		m_buf[m_length] = '\0';
 	}
 
-	template <u64 TSize>
-	typename Str<TSize>::Iterator Str<TSize>::begin()
+	template <u64 Size>
+	typename Str<Size>::Iterator Str<Size>::begin()
 	{
 		return Iterator(m_buf);
 	}
 
-	template <u64 TSize>
-	typename Str<TSize>::ConstIterator Str<TSize>::begin() const
+	template <u64 Size>
+	typename Str<Size>::ConstIterator Str<Size>::begin() const
 	{
 		return ConstIterator(m_buf);
 	}
 
-	template <u64 TSize>
-	typename Str<TSize>::Iterator Str<TSize>::end()
+	template <u64 Size>
+	typename Str<Size>::Iterator Str<Size>::end()
 	{
 		return Iterator(m_buf + m_length);
 	}
 
-	template <u64 TSize>
-	typename Str<TSize>::ConstIterator Str<TSize>::end() const
+	template <u64 Size>
+	typename Str<Size>::ConstIterator Str<Size>::end() const
 	{
 		return ConstIterator(m_buf + m_length);
 	}
 
-	template <u64 TSize>
-	typename Str<TSize>::ReverseIterator Str<TSize>::rbegin()
+	template <u64 Size>
+	typename Str<Size>::ReverseIterator Str<Size>::rbegin()
 	{
 		return ReverseIterator(m_buf + m_length - 1);
 	}
 
-	template <u64 TSize>
-	typename Str<TSize>::ReverseConstIterator Str<TSize>::rbegin() const
+	template <u64 Size>
+	typename Str<Size>::ReverseConstIterator Str<Size>::rbegin() const
 	{
 		return ReverseConstIterator(m_buf + m_length - 1);
 	}
 
-	template <u64 TSize>
-	typename Str<TSize>::ReverseIterator Str<TSize>::rend()
+	template <u64 Size>
+	typename Str<Size>::ReverseIterator Str<Size>::rend()
 	{
 		return ReverseIterator(m_buf - 1);
 	}
 
-	template <u64 TSize>
-	typename Str<TSize>::ReverseConstIterator Str<TSize>::rend() const
+	template <u64 Size>
+	typename Str<Size>::ReverseConstIterator Str<Size>::rend() const
 	{
 		return ReverseConstIterator(m_buf - 1);
 	}
 
-	template <u64 TSize>
-	typename Str<TSize>::ConstIterator Str<TSize>::cbegin() const
+	template <u64 Size>
+	typename Str<Size>::ConstIterator Str<Size>::cbegin() const
 	{
 		return ConstIterator(m_buf);
 	}
 
-	template <u64 TSize>
-	typename Str<TSize>::ConstIterator Str<TSize>::cend() const
+	template <u64 Size>
+	typename Str<Size>::ConstIterator Str<Size>::cend() const
 	{
 		return ConstIterator(m_buf + m_length);
 	}
 
-	template <u64 TSize>
-	typename Str<TSize>::ReverseConstIterator Str<TSize>::rcbegin() const
+	template <u64 Size>
+	typename Str<Size>::ReverseConstIterator Str<Size>::rcbegin() const
 	{
 		return ReverseConstIterator(m_buf + m_length - 1);
 	}
 
-	template <u64 TSize>
-	typename Str<TSize>::ReverseConstIterator Str<TSize>::rcend() const
+	template <u64 Size>
+	typename Str<Size>::ReverseConstIterator Str<Size>::rcend() const
 	{
 		return ReverseConstIterator(m_buf - 1);
 	}
 
-	template <u64 TSize>
-	char* Str<TSize>::c_str()
+	template <u64 Size>
+	char* Str<Size>::c_str()
 	{
 		return m_buf;
 	}
 
-	template <u64 TSize>
-	const char* Str<TSize>::c_str() const
+	template <u64 Size>
+	const char* Str<Size>::c_str() const
 	{
 		return m_buf;
 	}
 
-	template <u64 TSize>
-	u64 Str<TSize>::length() const
+	template <u64 Size>
+	u64 Str<Size>::length() const
 	{
 		return m_length;
 	}
 
-	template <u64 TSize>
-	constexpr u64 Str<TSize>::size() const
+	template <u64 Size>
+	constexpr u64 Str<Size>::size() const
 	{
-		return TSize;
+		return Size;
 	}
 
-	template <u64 TSize>
-	Str<TSize> Str<TSize>::trim() const
+	template <u64 Size>
+	Str<Size> Str<Size>::trim() const
 	{
 		return trim_start().trim_end();
 	}
 
-	template <u64 TSize>
-	Str<TSize> Str<TSize>::trim_start() const
+	template <u64 Size>
+	Str<Size> Str<Size>::trim_start() const
 	{
 		const char* buffer = m_buf;
 		while (cstr::is_space(*buffer)) buffer++;
@@ -433,8 +434,8 @@ namespace wvn
 		return trimmed;
 	}
 
-	template <u64 TSize>
-	Str<TSize> Str<TSize>::trim_end() const
+	template <u64 Size>
+	Str<Size> Str<Size>::trim_end() const
 	{
 		const char* end = m_buf + m_length - 1;
 
@@ -442,28 +443,28 @@ namespace wvn
 		while (buffer > m_buf && cstr::is_space(*buffer)) buffer--;
 		int whitespace = buffer - end;
 
-		Str<TSize> trimmed = *this;
+		Str<Size> trimmed = *this;
 		trimmed.m_length -= whitespace;
 		trimmed.m_buf[trimmed.m_length] = '\0';
 
 		return trimmed.strip_newline();
 	}
 
-	template <u64 TSize>
-	Str<TSize> Str<TSize>::strip_newline() const
+	template <u64 Size>
+	Str<Size> Str<Size>::strip_newline() const
 	{
-		Str<TSize> cpy = *this;
+		Str<Size> cpy = *this;
 		cpy.m_buf[cstr::cspan(cpy.m_buf, "\n")] = 0;
 		cpy.m_buf[cstr::cspan(cpy.m_buf, "\r\n")] = 0;
 		return cpy;
 	}
 
-	template <u64 TSize>
-	Vector<Str<TSize>> Str<TSize>::split(const char* delimiter) const
+	template <u64 Size>
+	Vector<Str<Size>> Str<Size>::split(const char* delimiter) const
 	{
-		Vector<Str<TSize>> tokens;
+		Vector<Str<Size>> tokens;
 
-		char tokenbuf[TSize] = { 0 };
+		char tokenbuf[Size] = { 0 };
 		mem::copy(tokenbuf, m_buf, m_length);
 
 		char* token = cstr::token(tokenbuf, delimiter);
@@ -477,10 +478,10 @@ namespace wvn
 		return tokens;
 	}
 
-	template <u64 TSize>
-	Str<TSize> Str<TSize>::to_upper() const
+	template <u64 Size>
+	Str<Size> Str<Size>::to_upper() const
 	{
-		Str<TSize> copy = *this;
+		Str<Size> copy = *this;
 
 		for (auto& c : copy)
 			c = cstr::to_upper(c);
@@ -488,10 +489,10 @@ namespace wvn
 		return copy;
 	}
 
-	template <u64 TSize>
-	Str<TSize> Str<TSize>::to_lower() const
+	template <u64 Size>
+	Str<Size> Str<Size>::to_lower() const
 	{
-		Str<TSize> copy = *this;
+		Str<Size> copy = *this;
 
 		for (auto& c : copy)
 			c = cstr::to_lower(c);
@@ -499,10 +500,10 @@ namespace wvn
 		return copy;
 	}
 
-	template <u64 TSize>
-	int Str<TSize>::index_of(const Str& str) const
+	template <u64 Size>
+	int Str<Size>::index_of(const Str& str) const
 	{
-		WVN_ASSERT(m_length >= str.m_length, "[STRING:DEBUG] String to check for must not be larger than the string getting checked.");
+		WVN_ASSERT(m_length >= str.m_length, "[STRING|DEBUG] String to check for must not be larger than the string getting checked.");
 
 		for (unsigned i = 0; i <= m_length - str.m_length; i++)
 		{
@@ -520,10 +521,10 @@ namespace wvn
 		return -1;
 	}
 
-	template <u64 TSize>
-	int Str<TSize>::last_index_of(const Str<TSize>& str) const
+	template <u64 Size>
+	int Str<Size>::last_index_of(const Str<Size>& str) const
 	{
-		WVN_ASSERT(m_length >= str.m_length, "[STRING:DEBUG] String to check for must not be larger than the string getting checked.");
+		WVN_ASSERT(m_length >= str.m_length, "[STRING|DEBUG] String to check for must not be larger than the string getting checked.");
 
 		for (unsigned i = m_length - str.m_length; i > 0; i--)
 		{
@@ -541,8 +542,8 @@ namespace wvn
 		return -1;
 	}
 
-	template <u64 TSize>
-	bool Str<TSize>::starts_with(const Str& str) const
+	template <u64 Size>
+	bool Str<Size>::starts_with(const Str& str) const
 	{
 		for (int i = 0; i < str.length(); i++)
 		{
@@ -553,8 +554,8 @@ namespace wvn
 		return true;
 	}
 
-	template <u64 TSize>
-	bool Str<TSize>::ends_with(const Str& str) const
+	template <u64 Size>
+	bool Str<Size>::ends_with(const Str& str) const
 	{
 		for (int i = 0; i < str.length(); i++)
 		{
@@ -565,56 +566,56 @@ namespace wvn
 		return true;
 	}
 
-	template <u64 TSize>
-	bool Str<TSize>::contains(const Str& str) const
+	template <u64 Size>
+	bool Str<Size>::contains(const Str& str) const
 	{
 		return index_of(str) != -1;
 	}
 
-	template <u64 TSize>
-	char* Str<TSize>::at(u64 idx)
+	template <u64 Size>
+	char* Str<Size>::at(u64 idx)
 	{
-		WVN_ASSERT(idx < m_length, "[STRING:DEBUG] Index must not be more than the length of the string.");
+		WVN_ASSERT(idx < m_length, "[STRING|DEBUG] Index must not be more than the length of the string.");
 		return m_buf[idx];
 	}
 
-	template <u64 TSize>
-	const char* Str<TSize>::at(u64 idx) const
+	template <u64 Size>
+	const char* Str<Size>::at(u64 idx) const
 	{
-		WVN_ASSERT(idx < m_length, "[STRING:DEBUG] Index must not be more than the length of the string.");
+		WVN_ASSERT(idx < m_length, "[STRING|DEBUG] Index must not be more than the length of the string.");
 		return m_buf[idx];
 	}
 
-	template <u64 TSize>
-	char& Str<TSize>::operator [] (u64 idx)
+	template <u64 Size>
+	char& Str<Size>::operator [] (u64 idx)
 	{
-		WVN_ASSERT(idx < m_length, "[STRING:DEBUG] Index must not be more than the length of the string.");
+		WVN_ASSERT(idx < m_length, "[STRING|DEBUG] Index must not be more than the length of the string.");
 		return m_buf[idx];
 	}
 
-	template <u64 TSize>
-	const char& Str<TSize>::operator [] (u64 idx) const
+	template <u64 Size>
+	const char& Str<Size>::operator [] (u64 idx) const
 	{
-		WVN_ASSERT(idx < m_length, "[STRING:DEBUG] Index must not be more than the length of the string.");
+		WVN_ASSERT(idx < m_length, "[STRING|DEBUG] Index must not be more than the length of the string.");
 		return m_buf[idx];
 	}
 
-	template <u64 TSize>
-	Str<TSize> Str<TSize>::operator + (const Str<TSize>& other) const
+	template <u64 Size>
+	Str<Size> Str<Size>::operator + (const Str<Size>& other) const
 	{
 		Str str = *this;
 		str.append(other);
 		return str;
 	}
 
-	template <u64 TSize>
-	Str<TSize>& Str<TSize>::operator += (const Str<TSize>& other)
+	template <u64 Size>
+	Str<Size>& Str<Size>::operator += (const Str<Size>& other)
 	{
 		return append(other);
 	}
 
-	template <u64 TSize>
-	bool Str<TSize>::operator == (const Str& other) const
+	template <u64 Size>
+	bool Str<Size>::operator == (const Str& other) const
 	{
 		if (!other.m_buf || !this->m_buf)
 			return false;
@@ -622,20 +623,20 @@ namespace wvn
 		return cstr::compare(m_buf, other.m_buf) == 0;
 	}
 
-	template <u64 TSize>
-	bool Str<TSize>::operator != (const Str& other) const
+	template <u64 Size>
+	bool Str<Size>::operator != (const Str& other) const
 	{
 		return !(*this == other);
 	}
 
-	template <u64 TSize>
-	Str<TSize>::operator const char* () const
+	template <u64 Size>
+	Str<Size>::operator const char* () const
 	{
 		return m_buf;
 	}
 
-	template <u64 TSize>
-	Str<TSize>::operator char* ()
+	template <u64 Size>
+	Str<Size>::operator char* ()
 	{
 		return m_buf;
 	}
@@ -647,9 +648,11 @@ namespace std
 	template <>
 	struct hash<wvn::String>
 	{
-		std::size_t operator()(const wvn::String& k) const
+		std::size_t operator () (const wvn::String& k) const
 		{
 			return SID(k.c_str());
 		}
 	};
 }
+
+#endif // STRING_H

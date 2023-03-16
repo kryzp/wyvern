@@ -1,10 +1,11 @@
-#pragma once
+#ifndef AUDIO_MGR_H
+#define AUDIO_MGR_H
 
 #include <wvn/util/singleton.h>
 
 namespace wvn::sfx
 {
-	/*
+	/**
 	 * Manages the audio in the game.
 	 */
 	class AudioMgr : public Singleton<AudioMgr>
@@ -18,3 +19,5 @@ namespace wvn::sfx
 		void tick();
 	};
 }
+
+#endif // AUDIO_MGR_H

@@ -7,27 +7,26 @@ using namespace wvn::act;
 WVN_IMPL_SINGLETON(EventMgr);
 
 EventMgr::EventMgr()
-	: m_events(MAX_EVENTS)
+	: m_events()
 {
-	dev::LogMgr::get_singleton().print("[EVENT] Initialized!");
+	dev::LogMgr::get_singleton()->print("[EVENT] Initialized!");
 }
 
 EventMgr::~EventMgr()
 {
-	dev::LogMgr::get_singleton().print("[EVENT] Destroyed!");
+	dev::LogMgr::get_singleton()->print("[EVENT] Destroyed!");
 }
 
 void EventMgr::enqueue_event(Event* event)
 {
-	m_events.push(event);
+	m_events.push_back(new Event(event->m_type, event->m_args, event->m_receiver));
 }
 
 void EventMgr::dispatch_events()
 {
-	while (!m_events.empty())
-	{
-		Event* event = m_events.pop();
-		event->dispatch();
-		delete event;
+	while (!m_events.empty()) {
+		Event* e = m_events.pop_front();
+		e->dispatch();
+		delete e;
 	}
 }

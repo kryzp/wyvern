@@ -1,4 +1,5 @@
-#pragma once
+#ifndef SDL2_BACKEND_H
+#define SDL2_BACKEND_H
 
 #include <wvn/system/system_backend.h>
 #include <wvn/input/input_mgr.h>
@@ -62,3 +63,5 @@ namespace wvn::sys
 		SDL_Window* m_window;
 	};
 }
+
+#endif // SDL2_BACKEND_H

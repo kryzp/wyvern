@@ -1,4 +1,5 @@
-#pragma once
+#ifndef INPUT_MGR_H
+#define INPUT_MGR_H
 
 #include <wvn/util/singleton.h>
 #include <wvn/input/keyboard.h>
@@ -7,9 +8,9 @@
 #include <wvn/input/v_key.h>
 #include <wvn/maths/vec2.h>
 
-namespace wvn
+namespace wvn::inp
 {
-	/*
+	/**
 	 * Manages input in the program.
 	 */
 	class InputMgr : public Singleton<InputMgr>
@@ -34,13 +35,10 @@ namespace wvn
 		struct JoystickState
 		{
 			bool down[inp::JSB_MAX];
-
 			Float2 left_stick;
 			Float2 right_stick;
-
 			float left_trigger;
 			float right_trigger;
-
 			inp::JoystickHat hat;
 		};
 
@@ -108,3 +106,5 @@ namespace wvn
 		InputState m_prev_state;
 	};
 }
+
+#endif // INPUT_MGR_H

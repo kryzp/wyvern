@@ -1,4 +1,5 @@
-#pragma once
+#ifndef RANGE_H
+#define RANGE_H
 
 #include <wvn/maths/random.h>
 
@@ -30,3 +31,5 @@ namespace wvn
 		}
 	};
 }
+
+#endif // RANGE_H

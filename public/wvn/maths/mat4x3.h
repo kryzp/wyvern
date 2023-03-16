@@ -1,11 +1,12 @@
-#pragma once
+#ifndef MAT4X3_H
+#define MAT4X3_H
 
 namespace wvn
 {
 	template <typename T> struct Vec3;
 	struct Quaternion;
 
-	/*
+	/**
 	 * Special matrix used for representing 3D transformations.
 	 * This mathematically doesn't actually make sense because the
 	 * naming is slightly dishonest.
@@ -32,7 +33,7 @@ namespace wvn
 
 		Mat4x3();
 		Mat4x3(const Mat4x3& other);
-		Mat4x3(float initial);
+		Mat4x3(float diag);
 		Mat4x3(
 			float m11, float m12, float m13,
 			float m21, float m22, float m23,
@@ -73,3 +74,5 @@ namespace wvn
 		const float* operator [] (int idx) const;
 	};
 }
+
+#endif // MAT4X3_H

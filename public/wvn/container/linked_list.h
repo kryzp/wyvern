@@ -1,62 +1,66 @@
-#pragma once
+#ifndef LINKED_LIST_H
+#define LINKED_LIST_H
 
 namespace wvn
 {
-	/*
+	/**
 	 * List in which each element or node points to the next node.
 	 */
 	template <typename T>
 	class LinkedList
 	{
 	public:
-		struct Node
+		struct Link
 		{
-			Node* next = nullptr;
-			Node* prev = nullptr;
+			Link* next = nullptr;
+			Link* prev = nullptr;
 			T data;
 		};
 
 		struct Iterator
 		{
-			Iterator() : m_node(nullptr) { }
-			Iterator(Node* init) : m_node(init) { }
+			Iterator() : m_ptr(nullptr) { }
+			Iterator(Link* init) : m_ptr(init) { }
 			~Iterator() = default;
-			T& operator * () const { return m_node->data; }
-			T* operator -> () const { return &m_node->data; }
-			Iterator& operator ++ () { if (m_node) { m_node = m_node->next; } return *this; }
-			Iterator& operator -- () { if (m_node) { m_node = m_node->prev; } return *this; }
-			Iterator& operator ++ (int) { if (m_node) { m_node = m_node->next; } return *this; }
-			Iterator& operator -- (int) { if (m_node) { m_node = m_node->prev; } return *this; }
-			bool operator == (const Iterator& other) const { return this->m_node == other.m_node; }
-			bool operator != (const Iterator& other) const { return this->m_node != other.m_node; }
+			T& operator * () const { return m_ptr->data; }
+			T* operator -> () const { return &m_ptr->data; }
+			Iterator& operator ++ () { if (m_ptr) { m_ptr = m_ptr->next; } return *this; }
+			Iterator& operator -- () { if (m_ptr) { m_ptr = m_ptr->prev; } return *this; }
+			Iterator& operator ++ (int) { if (m_ptr) { m_ptr = m_ptr->next; } return *this; }
+			Iterator& operator -- (int) { if (m_ptr) { m_ptr = m_ptr->prev; } return *this; }
+			bool operator == (const Iterator& other) const { return this->m_ptr == other.m_ptr; }
+			bool operator != (const Iterator& other) const { return this->m_ptr != other.m_ptr; }
 		private:
-			Node* m_node;
+			Link* m_ptr;
 		};
 
 		struct ConstIterator
 		{
-			ConstIterator() : m_node(nullptr) { }
-			ConstIterator(const Node* init) : m_node(init) { }
+			ConstIterator() : m_ptr(nullptr) { }
+			ConstIterator(const Link* init) : m_ptr(init) { }
 			~ConstIterator() = default;
-			const T& operator * () const { return m_node->data; }
-			const T* operator -> () const { return &m_node->data; }
-			ConstIterator& operator ++ () { if (m_node) { m_node = m_node->next; } return *this; }
-			ConstIterator& operator -- () { if (m_node) { m_node = m_node->prev; } return *this; }
-			ConstIterator& operator ++ (int) { if (m_node) { m_node = m_node->next; } return *this; }
-			ConstIterator& operator -- (int) { if (m_node) { m_node = m_node->prev; } return *this; }
-			bool operator == (const Iterator& other) const { return this->m_node == other.m_node; }
-			bool operator != (const Iterator& other) const { return this->m_node != other.m_node; }
+			const T& operator * () const { return m_ptr->data; }
+			const T* operator -> () const { return &m_ptr->data; }
+			ConstIterator& operator ++ () { if (m_ptr) { m_ptr = m_ptr->next; } return *this; }
+			ConstIterator& operator -- () { if (m_ptr) { m_ptr = m_ptr->prev; } return *this; }
+			ConstIterator& operator ++ (int) { if (m_ptr) { m_ptr = m_ptr->next; } return *this; }
+			ConstIterator& operator -- (int) { if (m_ptr) { m_ptr = m_ptr->prev; } return *this; }
+			bool operator == (const Iterator& other) const { return this->m_ptr == other.m_ptr; }
+			bool operator != (const Iterator& other) const { return this->m_ptr != other.m_ptr; }
 		private:
-			const Node* m_node;
+			const Link* m_ptr;
 		};
 
 		LinkedList();
 		~LinkedList();
 
-		Node* add(T item);
-		void remove(Node* node);
+		Link* add(T item);
 		void remove(T item);
-		Node* find(T item) const;
+
+		T& first();
+		const T& first() const;
+		T& last();
+		const T& last() const;
 
 		Iterator begin();
 		ConstIterator begin() const;
@@ -66,79 +70,83 @@ namespace wvn
 		ConstIterator cbegin() const;
 		ConstIterator cend() const;
 
-		Node* first;
-		Node* last;
+	private:
+		void remove(Link* link);
+		Link* find(T item) const;
+
+		Link* m_first;
+		Link* m_last;
 	};
 
 	template <typename T>
 	LinkedList<T>::LinkedList()
-		: first(nullptr)
-		, last(nullptr)
+		: m_first(nullptr)
+		, m_last(nullptr)
 	{
 	}
 
 	template <typename T>
 	LinkedList<T>::~LinkedList()
 	{
-		Node* node = first;
+		Link* node = m_first;
 		while (node)
 		{
-			Node* next = node->next;
+			Link* next = node->next;
 			delete node;
 			node = next;
 		}
 
-		first = nullptr;
-		last = nullptr;
+		m_first = nullptr;
+		m_last = nullptr;
 	}
 
 	template <typename T>
-	typename LinkedList<T>::Node* LinkedList<T>::add(T item)
+	typename LinkedList<T>::Link* LinkedList<T>::add(T item)
 	{
-		Node* node = new Node();
+		Link* node = new Link();
 		node->data = item;
 
-		if (last)
+		if (m_last)
 		{
-			last->next = node;
-			node->prev = last;
+			m_last->next = node;
+			node->prev = m_last;
 			node->next = nullptr;
-			last = node;
+			m_last = node;
 		}
 		else
 		{
 			node->next = nullptr;
 			node->prev = nullptr;
 
-			first = node;
-			last = node;
+			m_first = node;
+			m_last = node;
 		}
 
 		return node;
 	}
 
 	template <typename T>
-	void LinkedList<T>::remove(Node* node)
+	void LinkedList<T>::remove(Link* link)
 	{
-		if (!node)
+		if (!link)
 			return;
 
-		if (node->next)
-			node->next->prev = node->prev;
+		if (link->next)
+			link->next->prev = link->prev;
 
-		if (node->prev)
-			node->prev->next = node->next;
+		if (link->prev)
+			link->prev->next = link->next;
 
-		if (node == first)
-			first = node->next;
+		if (link == m_first)
+			m_first = link->next;
 
-		if (node == last)
-			last = node->prev;
+		if (link == m_last)
+			m_last = link->prev;
 
-		node->next = nullptr;
-		node->prev = nullptr;
+		link->next = nullptr;
+		link->prev = nullptr;
 
-		delete node;
+		delete link;
 	}
 
 	template <typename T>
@@ -148,27 +156,51 @@ namespace wvn
 	}
 
 	template <typename T>
-	typename LinkedList<T>::Node* LinkedList<T>::find(T item) const
+	typename LinkedList<T>::Link* LinkedList<T>::find(T item) const
 	{
-		for (auto* node = first; node != nullptr; node = node->next)
-		{
-			if (node->data == item)
+		for (auto* node = m_first; node != nullptr; node = node->next) {
+			if (node->data == item) {
 				return node;
+			}
 		}
 
 		return nullptr;
 	}
 
 	template <typename T>
+	T& LinkedList<T>::first()
+	{
+		return m_first->data;
+	}
+
+	template <typename T>
+	const T& LinkedList<T>::first() const
+	{
+		return m_first->data;
+	}
+
+	template <typename T>
+	T& LinkedList<T>::last()
+	{
+		return m_last->data;
+	}
+
+	template <typename T>
+	const T& LinkedList<T>::last() const
+	{
+		return m_last->data;
+	}
+
+	template <typename T>
 	typename LinkedList<T>::Iterator LinkedList<T>::begin()
 	{
-		return Iterator(first);
+		return Iterator(m_first);
 	}
 
 	template <typename T>
 	typename LinkedList<T>::ConstIterator LinkedList<T>::begin() const
 	{
-		return ConstIterator(first);
+		return ConstIterator(m_first);
 	}
 
 	template <typename T>
@@ -186,7 +218,7 @@ namespace wvn
 	template <typename T>
 	typename LinkedList<T>::ConstIterator LinkedList<T>::cbegin() const
 	{
-		return ConstIterator(first);
+		return ConstIterator(m_first);
 	}
 
 	template <typename T>
@@ -195,3 +227,5 @@ namespace wvn
 		return ConstIterator(nullptr);
 	}
 }
+
+#endif // LINKED_LIST_H

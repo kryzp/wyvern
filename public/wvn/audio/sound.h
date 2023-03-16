@@ -1,8 +1,9 @@
-#pragma once
+#ifndef SOUND_H
+#define SOUND_H
 
 namespace wvn::sfx
 {
-	/*
+	/**
 	 * Generic class for representing, storing and manipulating a sound.
 	 */
 	class Sound
@@ -12,3 +13,5 @@ namespace wvn::sfx
 		virtual ~Sound();
 	};
 }
+
+#endif // SOUND_H

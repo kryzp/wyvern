@@ -1,8 +1,9 @@
-#pragma once
+#ifndef PAIR_H
+#define PAIR_H
 
 namespace wvn
 {
-	/*
+	/**
 	 * Pair of two different types.
 	 */
 	template <typename TFirst, typename TSecond>
@@ -87,3 +88,5 @@ namespace wvn
 		return !(*this == other);
 	}
 }
+
+#endif // PAIR_H

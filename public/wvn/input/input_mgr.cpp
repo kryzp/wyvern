@@ -11,37 +11,36 @@ InputMgr::InputMgr()
 	, m_next_state()
 	, m_prev_state()
 {
-	dev::LogMgr::get_singleton().print("[INPUT] Initialized!");
+	dev::LogMgr::get_singleton()->print("[INPUT] Initialized!");
 }
 
 InputMgr::~InputMgr()
 {
-	dev::LogMgr::get_singleton().print("[INPUT] Destroyed!");
+	dev::LogMgr::get_singleton()->print("[INPUT] Destroyed!");
 }
 
 void InputMgr::update()
 {
 	m_prev_state = m_current_state;
 	m_current_state = m_next_state;
-	mem::set(&m_next_state, 0, sizeof(InputState));
 }
 
 bool InputMgr::is_down(const inp::VirtualKey& k) const
 {
-	for (auto kb : k.keyboard_keys) {
+	for (auto& kb : k.keyboard_keys) {
 		if (is_down(kb)) {
 			return true;
 		}
 	}
 
-	for (auto mb : k.mouse_buttons) {
+	for (auto& mb : k.mouse_buttons) {
 		if (is_down(mb)) {
 			return true;
 		}
 	}
 
-	for (u32 i = 0; i < MAX_JOYSTICKS; i++) {
-		for (auto jsb : k.joystick_buttons) {
+	for (int i = 0; i < MAX_JOYSTICKS; i++) {
+		for (auto& jsb : k.joystick_buttons) {
 			if (is_down(i, jsb)) {
 				return true;
 			}
@@ -53,20 +52,20 @@ bool InputMgr::is_down(const inp::VirtualKey& k) const
 
 bool InputMgr::is_pressed(const inp::VirtualKey& k) const
 {
-	for (auto kb : k.keyboard_keys) {
+	for (auto& kb : k.keyboard_keys) {
 		if (is_pressed(kb)) {
 			return true;
 		}
 	}
 
-	for (auto mb : k.mouse_buttons) {
+	for (auto& mb : k.mouse_buttons) {
 		if (is_pressed(mb)) {
 			return true;
 		}
 	}
 
-	for (u32 i = 0; i < MAX_JOYSTICKS; i++) {
-		for (auto jsb : k.joystick_buttons) {
+	for (int i = 0; i < MAX_JOYSTICKS; i++) {
+		for (auto& jsb : k.joystick_buttons) {
 			if (is_pressed(i, jsb)) {
 				return true;
 			}
@@ -78,20 +77,20 @@ bool InputMgr::is_pressed(const inp::VirtualKey& k) const
 
 bool InputMgr::is_released(const inp::VirtualKey& k) const
 {
-	for (auto kb : k.keyboard_keys) {
+	for (auto& kb : k.keyboard_keys) {
 		if (is_released(kb)) {
 			return true;
 		}
 	}
 
-	for (auto mb : k.mouse_buttons) {
+	for (auto& mb : k.mouse_buttons) {
 		if (is_released(mb)) {
 			return true;
 		}
 	}
 
 	for (u32 i = 0; i < MAX_JOYSTICKS; i++) {
-		for (auto jsb : k.joystick_buttons) {
+		for (auto& jsb : k.joystick_buttons) {
 			if (is_released(i, jsb)) {
 				return true;
 			}
@@ -223,7 +222,7 @@ void InputMgr::on_key_up(u64 btn)
 
 void InputMgr::on_text_utf8(const char* text)
 {
-	cstr::cncat(m_next_state.keyboard.text, text, MAX_TEXT_INPUT);
+	cstr::concat(m_next_state.keyboard.text, text, MAX_TEXT_INPUT);
 }
 
 // todo: do joystick input

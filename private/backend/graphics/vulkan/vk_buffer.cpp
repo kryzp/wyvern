@@ -1,6 +1,6 @@
 #include <backend/graphics/vulkan/vk_buffer.h>
-#include <wvn/devenv/log_mgr.h>
 #include <backend/graphics/vulkan/vk_util.h>
+#include <wvn/devenv/log_mgr.h>
 #include <wvn/util/types.h>
 
 using namespace wvn;
@@ -9,10 +9,8 @@ using namespace wvn::gfx;
 VulkanBuffer::VulkanBuffer()
 	: m_device(VK_NULL_HANDLE)
 	, m_physical_device(VK_NULL_HANDLE)
-
 	, m_buffer(VK_NULL_HANDLE)
 	, m_memory(VK_NULL_HANDLE)
-
 	, m_size()
 	, m_usage()
 	, m_properties()
@@ -39,8 +37,8 @@ void VulkanBuffer::create(VkDevice device, VkPhysicalDevice physical_device, VkD
 	buffer_create_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
 	if (VkResult result = vkCreateBuffer(m_device, &buffer_create_info, nullptr, &m_buffer); result != VK_SUCCESS) {
-		dev::LogMgr::get_singleton().print("[VULKAN] Result: %d", result);
-		WVN_ERROR("[VULKAN:DEBUG] Failed to create buffer.");
+		dev::LogMgr::get_singleton()->print("[VULKAN] Result: %d", result);
+		WVN_ERROR("[VULKAN|DEBUG] Failed to create buffer.");
 	}
 
 	VkMemoryRequirements memory_requirements = {};
@@ -52,8 +50,8 @@ void VulkanBuffer::create(VkDevice device, VkPhysicalDevice physical_device, VkD
 	memory_allocate_info.memoryTypeIndex = vkutil::find_memory_type(m_physical_device, memory_requirements.memoryTypeBits, properties);
 
 	if (VkResult result = vkAllocateMemory(m_device, &memory_allocate_info, nullptr, &m_memory); result != VK_SUCCESS) {
-		dev::LogMgr::get_singleton().print("[VULKAN] Result: %d", result);
-		WVN_ERROR("[VULKAN:DEBUG] Failed to allocate memory for buffer.");
+		dev::LogMgr::get_singleton()->print("[VULKAN] Result: %d", result);
+		WVN_ERROR("[VULKAN|DEBUG] Failed to realloc memory for buffer.");
 	}
 
 	vkBindBufferMemory(m_device, m_buffer, m_memory, 0);
@@ -81,81 +79,57 @@ void VulkanBuffer::send_data(const void* data)
 	vkUnmapMemory(m_device, m_memory);
 }
 
-void VulkanBuffer::copy_to(const wvn::gfx::VulkanBuffer& other, VkCommandPool cmd_pool, VkQueue graphics_queue)
+void VulkanBuffer::copy_to(const VulkanBuffer& other, VkCommandPool cmd_pool, VkQueue graphics_queue)
 {
-	VkCommandBufferAllocateInfo allocate_info = {};
-	allocate_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-	allocate_info.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-	allocate_info.commandPool = cmd_pool;
-	allocate_info.commandBufferCount = 1;
+	VkCommandBuffer cmd_buf = vkutil::begin_single_time_commands(m_device, cmd_pool);
+	{
+		VkBufferCopy region = {};
+		region.srcOffset = 0;
+		region.dstOffset = 0;
+		region.size = m_size;
 
-	VkCommandBuffer command_buffer = {};
-
-	if (VkResult result = vkAllocateCommandBuffers(m_device, &allocate_info, &command_buffer); result != VK_SUCCESS) {
-		dev::LogMgr::get_singleton().print("[VULKAN] Result: %d", result);
-		WVN_ERROR("[VULKAN:DEBUG] Failed to allocate command buffers when copying buffer.");
+		vkCmdCopyBuffer(
+			cmd_buf,
+			m_buffer,
+			other.m_buffer,
+			1,
+			&region
+		);
 	}
+	vkutil::end_single_time_commands(m_device, cmd_pool, cmd_buf, graphics_queue);
+}
 
-	VkCommandBufferBeginInfo begin_info = {};
-	begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-	begin_info.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+void VulkanBuffer::copy_to_image(VkImage image, u32 width, u32 height, VkCommandPool cmd_pool, VkQueue graphics_queue)
+{
+	VkCommandBuffer cmd_buf = vkutil::begin_single_time_commands(m_device, cmd_pool);
+	{
+		VkBufferImageCopy region = {};
+		region.bufferOffset = 0;
+		region.bufferRowLength = 0;
+		region.bufferImageHeight = 0;
+		region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		region.imageSubresource.mipLevel = 0;
+		region.imageSubresource.baseArrayLayer = 0;
+		region.imageSubresource.layerCount = 1;
+		region.imageOffset = { 0, 0, 0 };
+		region.imageExtent = { width, height, 1 };
 
-	if (VkResult result = vkBeginCommandBuffer(command_buffer, &begin_info); result != VK_SUCCESS) {
-		dev::LogMgr::get_singleton().print("[VULKAN] Result: %d", result);
-		WVN_ERROR("[VULKAN:DEBUG] Failed to begin command buffer when copying buffer.");
+		vkCmdCopyBufferToImage(
+			cmd_buf,
+			m_buffer,
+			image,
+			VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+			1,
+			&region
+		);
 	}
-
-	VkBufferCopy region = {};
-	region.srcOffset = 0;
-	region.dstOffset = 0;
-	region.size = m_size;
-
-	vkCmdCopyBuffer(command_buffer, m_buffer, other.m_buffer, 1, &region);
-
-	vkEndCommandBuffer(command_buffer);
-
-	VkSubmitInfo submit_info = {};
-	submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-	submit_info.commandBufferCount = 1;
-	submit_info.pCommandBuffers = &command_buffer;
-
-	vkQueueSubmit(graphics_queue, 1, &submit_info, VK_NULL_HANDLE);
-	vkQueueWaitIdle(graphics_queue);
-
-	vkFreeCommandBuffers(m_device, cmd_pool, 1, &command_buffer);
+	vkutil::end_single_time_commands(m_device, cmd_pool, cmd_buf, graphics_queue);
 }
 
-VkDevice VulkanBuffer::device() const
-{
-	return m_device;
-}
-
-VkPhysicalDevice VulkanBuffer::physical_device() const
-{
-	return m_physical_device;
-}
-
-VkBuffer VulkanBuffer::buffer() const
-{
-	return m_buffer;
-}
-
-VkDeviceMemory VulkanBuffer::memory() const
-{
-	return m_memory;
-}
-
-VkDeviceSize VulkanBuffer::size() const
-{
-	return m_size;
-}
-
-VkBufferUsageFlags VulkanBuffer::usage() const
-{
-	return m_usage;
-}
-
-VkMemoryPropertyFlags VulkanBuffer::properties() const
-{
-	return m_properties;
-}
+VkDevice VulkanBuffer::device() const { return m_device; }
+VkPhysicalDevice VulkanBuffer::physical_device() const { return m_physical_device; }
+VkBuffer VulkanBuffer::buffer() const { return m_buffer; }
+VkDeviceMemory VulkanBuffer::memory() const { return m_memory; }
+VkDeviceSize VulkanBuffer::size() const { return m_size; }
+VkBufferUsageFlags VulkanBuffer::usage() const { return m_usage; }
+VkMemoryPropertyFlags VulkanBuffer::properties() const { return m_properties; }

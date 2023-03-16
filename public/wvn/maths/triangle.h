@@ -1,4 +1,5 @@
-#pragma once
+#ifndef TRIANGLE_H
+#define TRIANGLE_H
 
 #include <wvn/maths/vec2.h>
 
@@ -16,3 +17,5 @@ namespace wvn
 		Vec2F centre() const;
 	};
 }
+
+#endif // TRIANGLE_H

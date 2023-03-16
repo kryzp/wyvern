@@ -1,8 +1,9 @@
-#pragma once
+#ifndef OPTIONAL_H
+#define OPTIONAL_H
 
 namespace wvn
 {
-	/*
+	/**
 	 * Used for when you have a type that you wish to enable
 	 * or disable and this cannot be inferred from its current state.
 	 */
@@ -143,3 +144,5 @@ namespace wvn
 		return m_enabled;
 	}
 }
+
+#endif // OPTIONAL_H

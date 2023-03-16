@@ -1,4 +1,5 @@
-#pragma once
+#ifndef VK_MESH_H
+#define VK_MESH_H
 
 #include <wvn/graphics/mesh.h>
 
@@ -9,3 +10,5 @@ namespace wvn::gfx
 	public:
 	};
 }
+
+#endif // VK_MESH_H

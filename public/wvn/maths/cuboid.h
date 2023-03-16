@@ -1,11 +1,12 @@
-#pragma once
+#ifndef CUBOID_H
+#define CUBOID_H
 
 #include <wvn/maths/vec3.h>
 #include <wvn/maths/rect.h>
 
 namespace wvn
 {
-	/*
+	/**
 	 * Representation of a cuboid.
 	 */
 	template <typename T>
@@ -335,3 +336,5 @@ namespace wvn
 		return ONE;
 	}
 }
+
+#endif // CUBOID_H

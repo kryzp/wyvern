@@ -1,11 +1,12 @@
-#pragma once
+#ifndef MAT3X2_H
+#define MAT3X2_H
 
 namespace wvn
 {
 	template <typename T> struct Vec2;
 	struct Mat4x4;
 
-	/*
+	/**
 	 * Special matrix used for representing 2D transformations.
 	 * This mathematically doesn't actually make sense because the
 	 * naming is slightly dishonest.
@@ -31,7 +32,7 @@ namespace wvn
 
 		Mat3x2();
 		Mat3x2(const Mat3x2& other);
-		Mat3x2(float initial);
+		Mat3x2(float diag);
 		Mat3x2(
 			float m11, float m12,
 			float m21, float m22,
@@ -71,3 +72,5 @@ namespace wvn
 		const float* operator [] (int idx) const;
 	};
 };
+
+#endif // MAT3X2_H

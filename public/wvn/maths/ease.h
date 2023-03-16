@@ -1,4 +1,5 @@
-#pragma once
+#ifndef EASE_H
+#define EASE_H
 
 #include <wvn/maths/calc.h>
 
@@ -6,7 +7,7 @@
 
 namespace wvn
 {
-	/*
+	/**
 	 * Generic utility functions for easing from 0->1 over
 	 * a time value 't'
 	 */
@@ -173,3 +174,5 @@ namespace wvn
 		return (Calc<T>::sqrt(1 - Calc<T>::pow((-2.0 * t) + 2.0, 2.0)) + 1) * 0.5;
 	}
 }
+
+#endif // EASE_H

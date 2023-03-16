@@ -8,14 +8,27 @@ WVN_IMPL_SINGLETON(PhysicsMgr);
 
 PhysicsMgr::PhysicsMgr()
 {
-	dev::LogMgr::get_singleton().print("[PHYSICS] Initialized!");
+	dev::LogMgr::get_singleton()->print("[PHYSICS] Initialized!");
 }
 
 PhysicsMgr::~PhysicsMgr()
 {
-	dev::LogMgr::get_singleton().print("[PHYSICS] Destroyed!");
+	dev::LogMgr::get_singleton()->print("[PHYSICS] Destroyed!");
 }
 
 void PhysicsMgr::simulate()
 {
+	// update key-framed rigid bodies
+
+	// update phantoms
+
+	// update forces / impulses & adjust constraints
+
+	// step the simulation
+
+	// update dynamic rigid bodies
+
+	// query phantoms
+
+	// perform collision cast queries
 }

@@ -1,8 +1,9 @@
-#pragma once
+#ifndef COMPLEX_H
+#define COMPLEX_H
 
 namespace wvn
 {
-	/*
+	/**
 	 * Useless in the actual engine but still pretty neat!
 	 * Wrapper around complex numbers. Allows for complex arithmetic
 	 * and other maths-based things.
@@ -67,3 +68,5 @@ namespace wvn
 		Complex& operator /= (const Complex& other);
 	};
 }
+
+#endif // COMPLEX_H

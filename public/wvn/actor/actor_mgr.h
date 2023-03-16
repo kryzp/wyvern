@@ -1,17 +1,18 @@
-#pragma once
+#ifndef ACTOR_MGR_H
+#define ACTOR_MGR_H
 
 #include <wvn/util/singleton.h>
 
 #include <wvn/container/vector.h>
 #include <wvn/container/hash_map.h>
-#include <wvn/container/queue.h>
+#include <wvn/container/deque.h>
 #include <wvn/container/function.h>
 
 #include <wvn/actor/actor.h>
 
 namespace wvn::act
 {
-	/*
+	/**
 	 * Manages actors in the game world.
 	 */
 	class ActorMgr : public Singleton<ActorMgr>
@@ -21,14 +22,18 @@ namespace wvn::act
 		friend class ActorHandle;
 
 	public:
+		constexpr static int ACTOR_BUCKETS = 64;
+		constexpr static int MAX_FREE_IDS = 64;
+
 		ActorMgr();
 		~ActorMgr();
 
-		void tick();
+		void tick_pre_animation();
+		void tick_post_animation();
 
 		// temporary //
 		template <typename T, typename... Args>
-		T* create(Args&&... args);
+		ActorHandle create(Args&&... args);
 		// temporary //
 
 		void destroy(const ActorHandle& act);
@@ -49,18 +54,18 @@ namespace wvn::act
 		Vector<ActorHandle> m_actors_initializing;
 		Vector<ActorHandle> m_actors_destroying;
 
-		Queue<ActorID> m_free_ids;
+		Deque<ActorID> m_free_ids;
 		ActorID m_unique_id;
 	};
 
 	template <typename T, typename... Args>
-	T* ActorMgr::create(Args&& ...args)
+	ActorHandle ActorMgr::create(Args&&... args)
 	{
-		ActorID act_id = Actor::INVALID_ID;
+		ActorID act_id = Actor::NULL_ID;
 
 		if (!m_free_ids.empty())
 		{
-			act_id = m_free_ids.pop();
+			act_id = m_free_ids.pop_front();
 		}
 		else
 		{
@@ -75,6 +80,8 @@ namespace wvn::act
 		m_actors_initializing.push_back(actor);
 		m_actors.insert(Pair(act_id, static_cast<Actor*>(actor)));
 
-		return actor;
+		return ActorHandle(actor);
 	}
 }
+
+#endif // ACTOR_MGR_H

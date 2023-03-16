@@ -1,4 +1,5 @@
-#pragma once
+#ifndef SYSTEM_BACKEND_H
+#define SYSTEM_BACKEND_H
 
 #include <wvn/util/types.h>
 #include <wvn/maths/vec2.h>
@@ -15,7 +16,7 @@ using VkSurfaceKHR = VkSurfaceKHR_T*;
 
 namespace wvn::sys
 {
-	/*
+	/**
 	 * Properties a system backend might have that are exclusive to itself.
 	 */
 	struct SystemBackendProperties
@@ -23,7 +24,7 @@ namespace wvn::sys
 		bool temp;
 	};
 
-	/*
+	/**
 	 * System backend that can be implemented by specific API's to
 	 * disconnect them from being directly connected to the actual game
 	 * engine, effectively acting as an interface.
@@ -81,3 +82,5 @@ namespace wvn::sys
 #endif
 	};
 }
+
+#endif // SYSTEM_BACKEND_H

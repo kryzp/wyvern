@@ -8,12 +8,12 @@ WVN_IMPL_SINGLETON(AudioMgr);
 
 AudioMgr::AudioMgr()
 {
-	dev::LogMgr::get_singleton().print("[AUDIO] Initialized!");
+	dev::LogMgr::get_singleton()->print("[AUDIO] Initialized!");
 }
 
 AudioMgr::~AudioMgr()
 {
-	dev::LogMgr::get_singleton().print("[AUDIO] Destroyed!");
+	dev::LogMgr::get_singleton()->print("[AUDIO] Destroyed!");
 }
 
 void AudioMgr::tick()

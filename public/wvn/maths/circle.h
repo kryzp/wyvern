@@ -1,10 +1,11 @@
-#pragma once
+#ifndef CIRCLE_H
+#define CIRCLE_H
 
 #include <wvn/maths/vec2.h>
 
 namespace wvn
 {
-	/*
+	/**
 	 * Representation of a circle.
 	 */
 	struct Circle
@@ -30,3 +31,5 @@ namespace wvn
 		float diameter() const;
 	};
 }
+
+#endif // CIRCLE_H

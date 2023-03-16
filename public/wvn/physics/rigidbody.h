@@ -1,4 +1,5 @@
-#pragma once
+#ifndef RIGIDBODY_H
+#define RIGIDBODY_H
 
 #include <wvn/maths/vec2.h>
 #include <wvn/maths/vec3.h>
@@ -16,11 +17,16 @@ namespace wvn::phys
 		COLLISION_DET_CONTINUOUS
 	};
 
-	/*
+	enum SimulationType
+	{
+		SIM_TYPE_KINEMATIC,
+		SIM_TYPE_DYNAMIC
+	};
+
+	/**
 	 * RigidBody that holds the physics data required to
 	 * actually calculate the physics such as mass, drag, position
-	 * rotation, the stress tensor, etc... hmm yes yes maths-y
-	 * maths physics yes I know what I'm talking about.
+	 * rotation, the stress tensor.
 	 */
 	class RigidBody
 	{
@@ -79,8 +85,8 @@ namespace wvn::phys
 		Point3 m_centre_of_mass;
 
 		float m_mass;
-
-		// todo:
-		// Mat3x3 m_tensor;
+		Mat3x3 m_tensor;
 	};
 }
+
+#endif // RIGIDBODY_H

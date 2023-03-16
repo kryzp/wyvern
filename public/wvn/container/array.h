@@ -1,4 +1,5 @@
-#pragma once
+#ifndef ARRAY_H
+#define ARRAY_H
 
 #include <initializer_list>
 
@@ -6,7 +7,7 @@
 
 namespace wvn
 {
-	/*
+	/**
 	 * Wrapper around a c-style array that provides some
 	 * utility functions and makes them easier to work with.
 	 */
@@ -125,3 +126,5 @@ namespace wvn
 		return m_buf[idx];
 	}
 }
+
+#endif // ARRAY_H

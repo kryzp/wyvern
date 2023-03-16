@@ -1,6 +1,8 @@
-#pragma once
+#ifndef VK_BUFFER_H
+#define VK_BUFFER_H
 
 #include <vulkan/vulkan.h>
+#include <wvn/util/types.h>
 
 namespace wvn::gfx
 {
@@ -14,7 +16,9 @@ namespace wvn::gfx
 		void clean_up();
 
 		void send_data(const void* data);
+
 		void copy_to(const VulkanBuffer& other, VkCommandPool cmd_pool, VkQueue graphics_queue);
+		void copy_to_image(VkImage image, u32 width, u32 height, VkCommandPool cmd_pool, VkQueue graphics_queue);
 
 		VkDevice device() const;
 		VkPhysicalDevice physical_device() const;
@@ -39,3 +43,4 @@ namespace wvn::gfx
 	};
 }
 
+#endif // VK_BUFFER_H

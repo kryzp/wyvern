@@ -1,4 +1,5 @@
-#pragma once
+#ifndef FUNCTION_H
+#define FUNCTION_H
 
 #include <memory>
 #include <wvn/util/types.h>
@@ -8,7 +9,7 @@ namespace wvn
 	template <typename T>
 	class Function;
 
-	/*
+	/**
 	 * Wrapper around a function pointer pretty much
 	 */
 	template <typename Result, typename... Args>
@@ -158,3 +159,5 @@ namespace wvn
 		return !(*this == other);
 	}
 }
+
+#endif // FUNCTION_H

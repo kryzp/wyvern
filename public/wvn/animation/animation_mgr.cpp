@@ -8,12 +8,12 @@ WVN_IMPL_SINGLETON(AnimationMgr);
 
 AnimationMgr::AnimationMgr()
 {
-	dev::LogMgr::get_singleton().print("[ANIMATION] Initialized!");
+	dev::LogMgr::get_singleton()->print("[ANIMATION] Initialized!");
 }
 
 AnimationMgr::~AnimationMgr()
 {
-	dev::LogMgr::get_singleton().print("[ANIMATION] Destroyed!");
+	dev::LogMgr::get_singleton()->print("[ANIMATION] Destroyed!");
 }
 
 void AnimationMgr::tick()

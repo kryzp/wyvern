@@ -35,7 +35,7 @@ bool mem::vcompare(void* ptr, byte val, u64 size)
 {
 	return (
 		(*((byte*)ptr)) == val &&
-		memcmp(ptr, ((byte*)ptr) + sizeof(byte), size - 1) == 0
+		::memcmp(ptr, ((byte*)ptr) + sizeof(byte), size - 1) == 0
 	);
 }
 
@@ -44,7 +44,7 @@ u64 cstr::length(const char* str)
 	return ::strlen(str);
 }
 
-char* cstr::cncat(char* dst, const char* src, u64 size)
+char* cstr::concat(char* dst, const char* src, u64 size)
 {
 	return ::strncat(dst, src, size);
 }
@@ -59,9 +59,14 @@ int cstr::compare(const char* str1, const char* str2)
 	return ::strcmp(str1, str2);
 }
 
-u64 cstr::cspan(const char* scan, const char* match)
+u64 cstr::span(const char* str, const char* match)
 {
-	return ::strcspn(scan, match);
+	return ::strspn(str, match);
+}
+
+u64 cstr::cspan(const char* str, const char* match)
+{
+	return ::strcspn(str, match);
 }
 
 char* cstr::token(char* str, const char* delimiter)
@@ -84,22 +89,22 @@ char cstr::to_lower(char c)
 	return ::tolower(c);
 }
 
-void cstr::from_int(char* buf, s32 value)
+void cstr::from_int(char* buf, u64 size, s32 value)
 {
-	sprintf(buf, "%d", value);
+	::snprintf(buf, size, "%d", value);
 }
 
-void cstr::from_float(char* buf, f32 value)
+void cstr::from_float(char* buf, u64 size, f32 value)
 {
-	sprintf(buf, "%f", value);
+	::snprintf(buf, size, "%f", value);
 }
 
 int cstr::to_int(const char* str)
 {
-	return atoi(str);
+	return ::atoi(str);
 }
 
 float cstr::to_float(const char* str)
 {
-	return atof(str);
+	return ::atof(str);
 }

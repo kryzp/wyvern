@@ -1,10 +1,11 @@
-#pragma once
+#ifndef RESOURCE_MGR_H
+#define RESOURCE_MGR_H
 
 #include <wvn/util/singleton.h>
 
 namespace wvn::res
 {
-	/*
+	/**
 	 * Manages different resources that can be loaded in-and-out
 	 * as the program runs.
 	 */
@@ -17,3 +18,5 @@ namespace wvn::res
 		~ResourceMgr();
 	};
 }
+
+#endif // RESOURCE_MGR_H

@@ -1,9 +1,9 @@
-#pragma once
+#ifndef VEC2_H
+#define VEC2_H
 
 #include <wvn/maths/calc.h>
 #include <wvn/maths/mat3x2.h>
 #include <wvn/maths/random.h>
-
 #include <wvn/root.h>
 
 namespace wvn
@@ -17,12 +17,6 @@ namespace wvn
 			{
 				T x;
 				T y;
-			};
-
-			struct
-			{
-				T w; // width
-				T h; // height
 			};
 
 			T data[2];
@@ -50,16 +44,16 @@ namespace wvn
 
 		static Vec2 random_unit();
 		static Vec2 transform(const Vec2& vec, const Mat3x2& mat);
-		static float dot(const Vec2& a, const Vec2& b);
+		static T dot(const Vec2& a, const Vec2& b);
 		static Vec2 from_angle(float angle, float length);
 		static Vec2 lerp(const Vec2& from, const Vec2& to, float amount);
 		static Vec2 spring(const Vec2& from, const Vec2& to, float bounciness, float tension, Vec2& intermediate);
 		static Vec2 approach(const Vec2& from, const Vec2& to, float amount);
 
-		float angle() const;
+		T angle() const;
 
-		float length() const;
-		float length_squared() const;
+		T length() const;
+		T length_squared() const;
 
 		Vec2 abs() const;
 		Vec2 normalized() const;
@@ -86,19 +80,21 @@ namespace wvn
 	template <typename T> Vec2<T> operator * (float lhs, const Vec2<T>& rhs) { return Vec2<T>(rhs.x * lhs, rhs.y * lhs); }
 
 	using Vec2F		= Vec2<float>;
+	using Vec2D		= Vec2<double>;
 	using Vec2I		= Vec2<int>;
 	using Vec2U		= Vec2<unsigned>;
 
 	using Float2	= Vec2<float>;
+	using Double	= Vec2<float>;
 	using Size2		= Vec2<float>;
 	using Int2		= Vec2<int>;
-	using Point2	= Vec2<int>;
+	using Point2	= Vec2<float>;
 	using UInt2		= Vec2<unsigned>;
 	using Unsigned2 = Vec2<unsigned>;
 
 	template <typename T>
 	Vec2<T>::Vec2()
-		: x(0), y(0)
+		: x(0.0), y(0.0)
 	{
 	}
 
@@ -117,7 +113,7 @@ namespace wvn
 	template <typename T>
 	Vec2<T> Vec2<T>::random_unit()
 	{
-		return from_angle(Root::get_singleton().random.real32(0.0f, CalcF::TAU), 1.0f);
+		return from_angle(Root::get_singleton()->random.real32(0.0, Calc<T>::TAU), 1.0);
 	}
 	
 	template <typename T>
@@ -130,17 +126,17 @@ namespace wvn
 	}
 	
 	template <typename T>
-	float Vec2<T>::dot(const Vec2& a, const Vec2& b)
+	T Vec2<T>::dot(const Vec2& a, const Vec2& b)
 	{
-		return a.x*b.x + a.y*b.y;
+		return (a.x * b.x) + (a.y * b.y);
 	}
 	
 	template <typename T>
 	Vec2<T> Vec2<T>::from_angle(float angle, float length)
 	{
 		return Vec2(
-			CalcF::cos(angle) * length,
-			CalcF::sin(angle) * length
+			Calc<T>::cos(angle) * length,
+			Calc<T>::sin(angle) * length
 		);
 	}
 	
@@ -148,8 +144,8 @@ namespace wvn
 	Vec2<T> Vec2<T>::lerp(const Vec2& from, const Vec2& to, float amount)
 	{
 		return Vec2(
-			CalcF::lerp(from.x, to.x, amount),
-			CalcF::lerp(from.y, to.y, amount)
+			Calc<T>::lerp(from.x, to.x, amount),
+			Calc<T>::lerp(from.y, to.y, amount)
 		);
 	}
 	
@@ -157,8 +153,8 @@ namespace wvn
 	Vec2<T> Vec2<T>::spring(const Vec2& from, const Vec2& to, float bounciness, float tension, Vec2& intermediate)
 	{
 		return Vec2(
-			CalcF::spring(from.x, to.x, bounciness, tension, intermediate.x),
-			CalcF::spring(from.y, to.y, bounciness, tension, intermediate.y)
+			Calc<T>::spring(from.x, to.x, bounciness, tension, intermediate.x),
+			Calc<T>::spring(from.y, to.y, bounciness, tension, intermediate.y)
 		);
 	}
 
@@ -166,25 +162,25 @@ namespace wvn
 	Vec2<T> Vec2<T>::approach(const Vec2& from, const Vec2& to, float amount)
 	{
 		return Vec2(
-			CalcF::approach(from.x, to.x, amount),
-			CalcF::approach(from.y, to.y, amount)
+			Calc<T>::approach(from.x, to.x, amount),
+			Calc<T>::approach(from.y, to.y, amount)
 		);
 	}
 	
 	template <typename T>
-	float Vec2<T>::angle() const
+	T Vec2<T>::angle() const
 	{
-		return CalcF::atan2(y, x);
+		return Calc<T>::atan2(y, x);
 	}
 	
 	template <typename T>
-	float Vec2<T>::length() const
+	T Vec2<T>::length() const
 	{
-		return CalcF::sqrt(length_squared());
+		return Calc<T>::sqrt(length_squared());
 	}
 	
 	template <typename T>
-	float Vec2<T>::length_squared() const
+	T Vec2<T>::length_squared() const
 	{
 		return (x * x) + (y * y);
 	}
@@ -193,8 +189,8 @@ namespace wvn
 	Vec2<T> Vec2<T>::abs() const
 	{
 		return Vec2(
-			CalcF::abs(this->x),
-			CalcF::abs(this->y)
+			Calc<T>::abs(this->x),
+			Calc<T>::abs(this->y)
 		);
 	}
 
@@ -203,19 +199,16 @@ namespace wvn
 	{
 		float len = length();
 
-		if (len == 0.0f)
-			return zero();
-
 		return Vec2(
-			x / len,
-			y / len
+			this->x / len,
+			this->y / len
 		);
 	}
 	
 	template <typename T>
 	Vec2<T> Vec2<T>::perpendicular() const
 	{
-		return Vec2(-y, x);
+		return Vec2(-this->y, this->x);
 	}
 
 	template <typename T> bool Vec2<T>::operator == (const Vec2& other) const { return this->x == other.x && this->y == other.y; }
@@ -240,3 +233,5 @@ namespace wvn
 	template <typename T> const Vec2<T>& Vec2<T>::up()		{ static const Vec2 UP		= Vec2( 0, -1); return UP;		}
 	template <typename T> const Vec2<T>& Vec2<T>::down()	{ static const Vec2 DOWN	= Vec2( 0,  1); return DOWN;	}
 }
+
+#endif // VEC2_H

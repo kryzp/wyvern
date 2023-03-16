@@ -7,12 +7,12 @@ using namespace wvn::sfx;
 
 OpenALBackend::OpenALBackend()
 {
-	dev::LogMgr::get_singleton().print("[OPENAL] Initialized!");
+	dev::LogMgr::get_singleton()->print("[OPENAL] Initialized!");
 }
 
 OpenALBackend::~OpenALBackend()
 {
-	dev::LogMgr::get_singleton().print("[OPENAL] Destroyed!");
+	dev::LogMgr::get_singleton()->print("[OPENAL] Destroyed!");
 }
 
 AudioBackendProperties OpenALBackend::properties()

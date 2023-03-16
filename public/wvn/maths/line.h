@@ -1,10 +1,11 @@
-#pragma once
+#ifndef LINE_H
+#define LINE_H
 
 #include <wvn/maths/vec2.h>
 
 namespace wvn
 {
-	/*
+	/**
 	 * Representation of a line between two points.
 	 */
 	struct Line
@@ -23,3 +24,5 @@ namespace wvn
 		float angle() const;
 	};
 }
+
+#endif // LINE_H

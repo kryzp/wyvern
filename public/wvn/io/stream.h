@@ -1,10 +1,11 @@
-#pragma once
+#ifndef STREAM_H
+#define STREAM_H
 
 #include <wvn/util/types.h>
 
 namespace wvn::io
 {
-	/*
+	/**
 	 * Representation of a generic stream of data.
 	 */
 	class Stream
@@ -27,3 +28,5 @@ namespace wvn::io
 		void* p_stream;
 	};
 }
+
+#endif // STREAM_H

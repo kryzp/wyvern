@@ -9,6 +9,10 @@
 #include <wvn/plugin/graphics/vulkan_plugin.h>
 #endif
 
+#if WVN_USE_OPENGL
+#include <wvn/plugin/graphics/opengl_plugin.h>
+#endif
+
 #if WVN_USE_OPENAL
 #include <wvn/plugin/audio/openal_plugin.h>
 #endif
@@ -16,7 +20,7 @@
 using namespace wvn;
 using namespace wvn::plug;
 
-/*
+/**
  * Note:
  * Plugin order *matters* here!
  * System plugins are loaded first, then rendering, then finally audio.
@@ -37,6 +41,10 @@ Vector<Plugin*> PluginLoader::load_plugins()
 		{
 #if WVN_USE_VULKAN
 			plugins.push_back(new VulkanPlugin());
+#endif
+
+#if WVN_USE_OPENGL
+			plugins.push_back(new OpenGLPlugin());
 #endif
 		}
 

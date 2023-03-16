@@ -10,6 +10,10 @@
 #include <vulkan/vulkan.h>
 #endif
 
+#if WVN_USE_OPENGL
+#include <SDL_opengl.h>
+#endif
+
 using namespace wvn;
 using namespace wvn::sys;
 
@@ -17,13 +21,13 @@ SDL2Backend::SDL2Backend()
 	: m_window(nullptr)
 {
 	if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
-		dev::LogMgr::get_singleton().print("[SDL2] %s", SDL_GetError());
-		WVN_ERROR("[SDL2] Failed to initialize!");
+		dev::LogMgr::get_singleton()->print("[SDL2] %s", SDL_GetError());
+		WVN_ERROR("[SDL2|DEBUG] Failed to initialize!");
 	}
 
 	u64 flags = SDL_WINDOW_ALLOW_HIGHDPI;
 
-	const auto& cfg = Root::get_singleton().config();
+	const auto& cfg = Root::get_singleton()->config();
 
 	if (cfg.has_flag(Config::FLAG_RESIZABLE)) {
 		flags |= SDL_WINDOW_RESIZABLE;
@@ -36,10 +40,10 @@ SDL2Backend::SDL2Backend()
 	m_window = SDL_CreateWindow(cfg.name, 0, 0, cfg.width, cfg.height, flags);
 
 	if (!m_window) {
-		WVN_ERROR("[SDL2] Failed to create window.");
+		WVN_ERROR("[SDL2|DEBUG] Failed to create window.");
 	}
 
-	dev::LogMgr::get_singleton().print("[SDL2] Initialized!");
+	dev::LogMgr::get_singleton()->print("[SDL2] Initialized!");
 }
 
 SDL2Backend::~SDL2Backend()
@@ -47,7 +51,7 @@ SDL2Backend::~SDL2Backend()
 	SDL_DestroyWindow(m_window);
 	SDL_Quit();
 
-	dev::LogMgr::get_singleton().print("[SDL2] Destroyed!");
+	dev::LogMgr::get_singleton()->print("[SDL2] Destroyed!");
 }
 
 SystemBackendProperties SDL2Backend::properties()
@@ -68,56 +72,55 @@ void SDL2Backend::poll_events()
 		switch (e.type)
 		{
 			case SDL_QUIT:
-				Root::get_singleton().exit();
+				Root::get_singleton()->exit();
 				break;
 
 			case SDL_WINDOWEVENT_RESIZED:
-				Root::get_singleton().current_renderer_backend()->on_window_resize(e.window.data1, e.window.data2);
+				Root::get_singleton()->renderer_backend()->on_window_resize(e.window.data1, e.window.data2);
 				break;
 
 			case SDL_MOUSEWHEEL:
-				InputMgr::get_singleton().on_mouse_wheel(e.wheel.x, e.wheel.y);
+				inp::InputMgr::get_singleton()->on_mouse_wheel(e.wheel.x, e.wheel.y);
 				break;
 
 			case SDL_MOUSEMOTION:
 				int spx, spy;
 				SDL_GetGlobalMouseState(&spx, &spy);
-				InputMgr::get_singleton().on_mouse_screen_move(spx, spy);
-				InputMgr::get_singleton().on_mouse_move(e.motion.x, e.motion.y);
+				inp::InputMgr::get_singleton()->on_mouse_screen_move(spx, spy);
+				inp::InputMgr::get_singleton()->on_mouse_move(e.motion.x, e.motion.y);
 				break;
 
 			case SDL_MOUSEBUTTONDOWN:
-				InputMgr::get_singleton().on_mouse_down(e.button.button);
+				inp::InputMgr::get_singleton()->on_mouse_down(e.button.button);
 				break;
 
 			case SDL_MOUSEBUTTONUP:
-				InputMgr::get_singleton().on_mouse_up(e.button.button);
+				inp::InputMgr::get_singleton()->on_mouse_up(e.button.button);
 				break;
 
 			case SDL_KEYDOWN:
-				InputMgr::get_singleton().on_key_down(e.key.keysym.scancode);
+				inp::InputMgr::get_singleton()->on_key_down(e.key.keysym.scancode);
 				break;
 
 			case SDL_KEYUP:
-				InputMgr::get_singleton().on_key_up(e.key.keysym.scancode);
+				inp::InputMgr::get_singleton()->on_key_up(e.key.keysym.scancode);
 				break;
 
 			case SDL_TEXTINPUT:
-				InputMgr::get_singleton().on_text_utf8(e.text.text);
+				inp::InputMgr::get_singleton()->on_text_utf8(e.text.text);
 				break;
 
 			case SDL_JOYBUTTONDOWN:
-				//InputMgr::get_singleton().on_joystick_button_down(e.jball.which, e.jbutton.button);
+				//inp::InputMgr::get_singleton()->on_joystick_button_down(e.jball.which, e.jbutton.button);
 				break;
 
 			case SDL_JOYBUTTONUP:
-				//InputMgr::get_singleton().on_joystick_button_up(e.jball.which, e.jbutton.button);
+				//inp::InputMgr::get_singleton()->on_joystick_button_up(e.jball.which, e.jbutton.button);
 				break;
 
 			case SDL_JOYAXISMOTION:
-
-				/*
-				InputMgr::get_singleton().on_joystick_motion(
+				/**
+				inp::InputMgr::get_singleton()->on_joystick_motion(
 					e.jaxis.which,
 					(e.jaxis.axis == 0) ? inp::JS_AXIS_H : inp::JS_AXIS_V,
 					static_cast<float>(e.jaxis.value) / static_cast<float>(SDL_JOYSTICK_AXIS_MAX - ((e.jaxis.value >= 0) ? 1.0f : 0.0f))
@@ -157,13 +160,13 @@ void SDL2Backend::set_window_position(const Vec2I& position)
 Vec2I SDL2Backend::get_window_size()
 {
 	Vec2I result = Vec2I::zero();
-	SDL_GetWindowSize(m_window, &result.w, &result.h);
+	SDL_GetWindowSize(m_window, &result.x, &result.y);
 	return result;
 }
 
 void SDL2Backend::set_window_size(const Vec2I& size)
 {
-	SDL_SetWindowSize(m_window, size.w, size.h);
+	SDL_SetWindowSize(m_window, size.x, size.y);
 }
 
 Vec2I SDL2Backend::get_draw_size()
@@ -171,7 +174,7 @@ Vec2I SDL2Backend::get_draw_size()
 	Vec2I result = Vec2I::zero();
 
 #if WVN_USE_VULKAN
-	SDL_Vulkan_GetDrawableSize(m_window, &result.w, &result.h);
+	SDL_Vulkan_GetDrawableSize(m_window, &result.x, &result.y);
 #endif
 
 	return result;

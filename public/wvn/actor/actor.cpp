@@ -6,8 +6,8 @@ using namespace wvn;
 using namespace wvn::act;
 
 Actor::Actor()
-	: m_flags()
-	, m_id(INVALID_ID)
+	: m_flags(0)
+	, m_id(NULL_ID)
 {
 }
 
@@ -58,7 +58,7 @@ void Actor::clear_flags()
 /***********************************/
 
 ActorHandle::ActorHandle()
-	: m_id(Actor::INVALID_ID)
+	: m_id(Actor::NULL_ID)
 {
 }
 
@@ -80,7 +80,7 @@ ActorHandle::ActorHandle(const ActorHandle& other)
 ActorHandle::ActorHandle(ActorHandle&& other) noexcept
 	: m_id(std::move(other.m_id))
 {
-	other.m_id = Actor::INVALID_ID;
+	other.m_id = Actor::NULL_ID;
 }
 
 ActorHandle& ActorHandle::operator = (const ActorHandle& other)
@@ -98,32 +98,32 @@ ActorHandle& ActorHandle::operator = (ActorHandle&& other) noexcept
 
 bool ActorHandle::is_valid() const
 {
-	return ActorMgr::get_singleton().is_valid(*this);
+	return ActorMgr::get_singleton()->is_valid(*this);
 }
 
 ActorHandle::operator bool () const
 {
-	return ActorMgr::get_singleton().is_valid(*this);
+	return ActorMgr::get_singleton()->is_valid(*this);
 }
 
 Actor* ActorHandle::get()
 {
-	return ActorMgr::get_singleton().fetch(*this);
+	return ActorMgr::get_singleton()->fetch(*this);
 }
 
 const Actor* ActorHandle::get() const
 {
-	return ActorMgr::get_singleton().fetch(*this);
+	return ActorMgr::get_singleton()->fetch(*this);
 }
 
 Actor* ActorHandle::operator -> ()
 {
-	return ActorMgr::get_singleton().fetch(*this);
+	return ActorMgr::get_singleton()->fetch(*this);
 }
 
 const Actor* ActorHandle::operator -> () const
 {
-	return ActorMgr::get_singleton().fetch(*this);
+	return ActorMgr::get_singleton()->fetch(*this);
 }
 
 ActorID ActorHandle::id() const

@@ -1,8 +1,9 @@
-#pragma once
+#ifndef PLUGIN_H
+#define PLUGIN_H
 
 namespace wvn::plug
 {
-	/*
+	/**
 	 * Base "plugin"
 	 */
 	class Plugin
@@ -12,3 +13,5 @@ namespace wvn::plug
 		virtual void uninstall() = 0;
 	};
 }
+
+#endif // PLUGIN_H

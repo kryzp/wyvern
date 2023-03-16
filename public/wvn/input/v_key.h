@@ -1,4 +1,5 @@
-#pragma once
+#ifndef V_KEY_H
+#define V_KEY_H
 
 #include <wvn/container/vector.h>
 
@@ -9,7 +10,7 @@
 
 namespace wvn::inp
 {
-	/*
+	/**
 	 * Represents a "virtual key", a collection of keyboard, mouse and joystick keys
 	 * that all can be treated as a single key so it can all be queried at once.
 	 */
@@ -28,3 +29,5 @@ namespace wvn::inp
 		Vector<JoystickButton> joystick_buttons;
 	};
 }
+
+#endif // V_KEY_H

@@ -1,10 +1,11 @@
-#pragma once
+#ifndef MESH_MGR_H
+#define MESH_MGR_H
 
 #include <wvn/util/singleton.h>
 
 namespace wvn::gfx
 {
-	/*
+	/**
 	 * Responsible for the management of meshes.
 	 */
 	class MeshMgr : public Singleton<MeshMgr>
@@ -16,3 +17,4 @@ namespace wvn::gfx
 		~MeshMgr();
 	};
 }
+#endif // MESH_MGR_H

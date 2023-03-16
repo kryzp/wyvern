@@ -29,7 +29,7 @@ void LogMgr::print(const char* fmt, ...)
 	printf("%s\n", fmt1);
 	va_end(valist);
 
-	if (Root::get_singleton().config().on_log) {
-		Root::get_singleton().config().on_log(fmt1);
+	if (Root::get_singleton()->config().on_log) {
+		Root::get_singleton()->config().on_log(fmt1);
 	}
 }

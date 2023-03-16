@@ -1,4 +1,5 @@
-#pragma once
+#ifndef VK_BACKEND_H
+#define VK_BACKEND_H
 
 #include <vulkan/vulkan.h>
 
@@ -10,24 +11,19 @@
 
 #include <backend/graphics/vulkan/vk_shader.h>
 #include <backend/graphics/vulkan/vk_buffer.h>
+#include <backend/graphics/vulkan/vk_texture.h>
+#include <backend/graphics/vulkan/vk_framebuffer.h>
+#include <backend/graphics/vulkan/vk_mesh.h>
 
 #include <wvn/maths/mat4x4.h>
-
-// note: currently, this is INCREDIBLY BLOATED
-// and INCREDIBLY useless for actual rendering
-// there are lots of variables that need to be abstracted
-// out and things that need to be moved into separate
-// manager type objects. currently, it is just this way
-// while i get a basic scene going and learn the ropes of
-// vulkan rendering.
 
 namespace wvn::gfx
 {
 	struct UniformBufferObject
 	{
-		Mat4x4 model;
-		Mat4x4 view;
-		Mat4x4 proj;
+		alignas(16) Mat4x4 model;
+		alignas(16) Mat4x4 view;
+		alignas(16) Mat4x4 proj;
 	};
 
 	struct QueueFamilyIdx
@@ -72,10 +68,10 @@ namespace wvn::gfx
 
 	struct QueueData
 	{
-		VkQueue graphics_queue;
-		VkQueue present_queue;
-		VkQueue compute_queue;
-		VkQueue transfer_queue;
+		VkQueue graphics;
+		VkQueue present;
+		VkQueue compute;
+		VkQueue transfer;
 	};
 
 	struct LogicalDeviceData
@@ -112,7 +108,6 @@ namespace wvn::gfx
 		void on_window_resize(int width, int height) override;
 
 		Texture* create_texture(u32 width, u32 height) override;
-		Shader* create_shader(const Vector<char>& vert_source, const Vector<char>& frag_source) override;
 		RenderTarget* create_render_target(u32 width, u32 height) override;
 		Mesh* create_mesh() override;
 
@@ -131,11 +126,14 @@ namespace wvn::gfx
 		void create_uniform_buffers();
         void create_descriptor_pool();
         void create_descriptor_sets();
+		void create_texture_image();
 
 		void create_image_views();
 		void clean_up_swap_chain();
 		void rebuild_swap_chain();
 		void create_swap_chain_framebuffers();
+
+		VulkanShader* create_shader(const Vector<char>& vert_source, const Vector<char>& frag_source);
 
 		u32 assign_physical_device_usability(VkPhysicalDevice device, VkPhysicalDeviceProperties properties, VkPhysicalDeviceFeatures features, bool* essentials_completed);
 		QueueFamilyIdx find_queue_families(VkPhysicalDevice device);
@@ -179,8 +177,8 @@ namespace wvn::gfx
 
 		// swap chain
 		VkSwapchainKHR m_swap_chain;
-		Vector<VkImage> m_swap_chain_images;
-		Vector<VkImageView> m_swap_chain_image_views;
+		Vector<VulkanImage> m_swap_chain_images;
+		Vector<VulkanImageView> m_swap_chain_image_views;
 		VkFormat m_swap_chain_image_format;
 		VkExtent2D m_swap_chain_extent;
 		Vector<VkFramebuffer> m_swap_chain_framebuffers;
@@ -191,6 +189,7 @@ namespace wvn::gfx
 		PhysicalDeviceData m_physical_data;
 
 		// TEMP //
+		VulkanTexture m_temp_texture;
 		VulkanShader* m_temp_shader;
 		// TEMP //
 
@@ -199,3 +198,5 @@ namespace wvn::gfx
 #endif
 	};
 }
+
+#endif // VK_BACKEND_H
