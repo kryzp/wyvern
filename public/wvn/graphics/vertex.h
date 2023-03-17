@@ -11,7 +11,7 @@ namespace wvn::gfx
 	 */
 	struct Vertex
 	{
-		Vec2F pos;
+		Vec3F pos;
 		Vec2F uv;
 		DisplayColour col;
 	};

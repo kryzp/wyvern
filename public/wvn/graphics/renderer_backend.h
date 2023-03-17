@@ -42,10 +42,6 @@ namespace wvn::gfx
 		virtual void wait_for_sync() = 0;
 
 		virtual void on_window_resize(int width, int height) = 0;
-
-		virtual Texture* create_texture(u32 width, u32 height) = 0;
-		virtual RenderTarget* create_render_target(u32 width, u32 height) = 0;
-		virtual Mesh* create_mesh() = 0;
 	};
 }
 

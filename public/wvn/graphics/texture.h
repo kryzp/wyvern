@@ -12,6 +12,9 @@ namespace wvn::gfx
 	{
 		TEX_FMT_NONE = 0,
 		TEX_FMT_R8G8B8A8_SRGB,
+		TEX_FMT_D32_SFLOAT,
+		TEX_FMT_D32_SFLOAT_S8_UINT,
+		TEX_FMT_D24_UNORM_S8_UINT,
 		TEX_FMT_MAX
 	};
 
@@ -21,6 +24,17 @@ namespace wvn::gfx
 		TEX_TILE_OPTIMAL,
 		TEX_TILE_LINEAR,
 		TEX_TILE_MAX
+	};
+
+	enum TextureUsage
+	{
+	};
+
+	// todo: is this name appropriate?
+	struct TextureMetaData
+	{
+		TextureFormat format;
+		TextureTiling tiling;
 	};
 
 	/**
@@ -34,6 +48,8 @@ namespace wvn::gfx
 
 		virtual void create(const Image& image) = 0;
 		virtual void create(u32 width, u32 height, TextureFormat format, TextureTiling tiling) = 0;
+
+		virtual TextureMetaData meta_data() const = 0;
 	};
 }
 

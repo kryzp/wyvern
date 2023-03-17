@@ -19,10 +19,6 @@ namespace wvn::gfx
 		void wait_for_sync() override;
 
 		void on_window_resize(int width, int height) override;
-
-		Texture* create_texture(u32 width, u32 height) override;
-		RenderTarget* create_render_target(u32 width, u32 height) override;
-		Mesh* create_mesh() override;
 	};
 }
 

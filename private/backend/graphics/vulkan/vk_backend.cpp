@@ -4,6 +4,7 @@
 // I love Vulkan. Thank u Khronos (tm) (c) (r) <3
 
 #include <backend/graphics/vulkan/vk_backend.h>
+#include <backend/graphics/vulkan/vk_util.h>
 
 #include <wvn/root.h>
 #include <wvn/system/system_backend.h>
@@ -14,9 +15,6 @@
 #include <wvn/maths/vec3.h>
 
 #include <backend/graphics/vulkan/vk_texture.h>
-#include <backend/graphics/vulkan/vk_framebuffer.h>
-#include <backend/graphics/vulkan/vk_shader.h>
-#include <backend/graphics/vulkan/vk_mesh.h>
 
 /// debug ///
 #include <wvn/io/file_stream.h>
@@ -29,15 +27,34 @@ using namespace wvn::gfx;
 
 // TEMP //
 static Vertex VERTICES[] = {
-	{ { -0.5f, -0.5f }, { 1.0f, 0.0f }, { 1.0f, 0.0f, 0.0f } },
-	{ {  0.5f, -0.5f }, { 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f } },
-	{ {  0.5f,  0.5f }, { 0.0f, 1.0f }, { 1.0f, 1.0f, 0.0f } },
-	{ { -0.5f,  0.5f }, { 1.0f, 1.0f }, { 0.0f, 0.0f, 1.0f } },
+	{ { -0.5f, -0.5f, -0.5f }, { 1.0f, 0.0f }, { 1.0f, 0.0f, 0.0f } },
+	{ {  0.5f, -0.5f, -0.5f }, { 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f } },
+	{ {  0.5f,  0.5f, -0.5f }, { 0.0f, 1.0f }, { 1.0f, 1.0f, 0.0f } },
+	{ { -0.5f,  0.5f, -0.5f }, { 1.0f, 1.0f }, { 0.0f, 1.0f, 1.0f } },
+	{ { -0.5f, -0.5f,  0.5f }, { 1.0f, 0.0f }, { 1.0f, 0.0f, 0.0f } },
+	{ {  0.5f, -0.5f,  0.5f }, { 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f } },
+	{ {  0.5f,  0.5f,  0.5f }, { 0.0f, 1.0f }, { 1.0f, 1.0f, 0.0f } },
+	{ { -0.5f,  0.5f,  0.5f }, { 1.0f, 1.0f }, { 0.0f, 1.0f, 1.0f } },
 };
 
 static u16 INDICES[] = {
 	0, 1, 2,
-	2, 3, 0
+	2, 3, 0,
+
+	5, 4, 7,
+	7, 6, 5,
+
+	1, 5, 6,
+	6, 2, 1,
+
+	4, 0, 3,
+	3, 7, 4,
+
+	4, 5, 1,
+	1, 0, 4,
+
+	3, 2, 6,
+	6, 7, 3
 };
 // TEMP //
 
@@ -179,7 +196,7 @@ static Array<VkVertexInputAttributeDescription, 3> get_vertex_attribute_descript
 	// position part
 	result[0].binding = 0;
 	result[0].location = 0;
-	result[0].format = VK_FORMAT_R32G32_SFLOAT;
+	result[0].format = VK_FORMAT_R32G32B32_SFLOAT;
 	result[0].offset = offsetof(Vertex, pos);
 
 	// uv part
@@ -236,8 +253,9 @@ VulkanBackend::VulkanBackend()
 	, m_queues()
 	, m_logical_data()
 	, m_physical_data()
+	, m_temp_vert_module(VK_NULL_HANDLE)
+	, m_temp_frag_module(VK_NULL_HANDLE)
 	, m_temp_texture()
-	, m_temp_shader(nullptr)
 #if WVN_DEBUG
 	, m_debug_messenger()
 #endif
@@ -317,8 +335,9 @@ VulkanBackend::VulkanBackend()
 	create_render_pass();
 	create_descriptor_set_layout();
 	create_graphics_pipeline();
-	create_swap_chain_framebuffers();
 	create_command_pool(phys_idx);
+	create_depth_texture();
+	create_swap_chain_framebuffers();
 	create_texture_image();
 	create_vertex_buffer();
 	create_index_buffer();
@@ -333,13 +352,17 @@ VulkanBackend::VulkanBackend()
 
 VulkanBackend::~VulkanBackend()
 {
-	vkDeviceWaitIdle(m_logical_data.device);
+	vkDeviceWaitIdle(m_logical_data.device); // sync up
 
 	// //
 
 	clean_up_swap_chain();
 
+	m_depth.clean_up();
 	m_temp_texture.clean_up();
+
+	vkDestroyShaderModule(m_logical_data.device, m_temp_frag_module, nullptr);
+	vkDestroyShaderModule(m_logical_data.device, m_temp_vert_module, nullptr);
 
 	vkDestroyPipeline(m_logical_data.device, m_graphics_pipeline, nullptr);
 	vkDestroyPipelineLayout(m_logical_data.device, m_pipeline_layout, nullptr);
@@ -354,8 +377,6 @@ VulkanBackend::~VulkanBackend()
 
 	m_index_buffer.clean_up();
 	m_vertex_buffer.clean_up();
-
-	m_temp_shader->clean_up();
 
 	for (u32 i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
 		vkDestroyFence(m_logical_data.device, m_in_flight_fences[i], nullptr);
@@ -375,6 +396,8 @@ VulkanBackend::~VulkanBackend()
 
 	vkDestroySurfaceKHR(m_instance, m_surface, nullptr);
 	vkDestroyInstance(m_instance, nullptr);
+
+	// //
 
 	dev::LogMgr::get_singleton()->print("[VULKAN] Destroyed!");
 }
@@ -488,9 +511,9 @@ void VulkanBackend::create_swap_chain(const QueueFamilyIdx& phys_idx)
 {
 	SwapChainSupportDetails details = query_swap_chain_support(m_physical_data.device);
 
-	auto surf_fmt  = choose_swap_surface_format(details.surface_formats);
-	auto pres_mode = choose_swap_present_mode(details.present_modes);
-	auto extent    = choose_swap_extent(details.capabilities);
+	auto surf_fmt  = vkutil::choose_swap_surface_format(details.surface_formats);
+	auto pres_mode = vkutil::choose_swap_present_mode(details.present_modes);
+	auto extent    = vkutil::choose_swap_extent(details.capabilities);
 
 	u32 img_count = details.capabilities.minImageCount + 1;
 
@@ -560,8 +583,7 @@ void VulkanBackend::create_image_views()
 	m_swap_chain_image_views.resize(m_swap_chain_images.size());
 
 	for (u64 i = 0; i < m_swap_chain_images.size(); i++) {
-		m_swap_chain_image_views[i].init(m_logical_data.device);
-		m_swap_chain_image_views[i].create(m_swap_chain_images[i].image(), m_swap_chain_image_format);
+		m_swap_chain_image_views[i].create(m_logical_data.device, m_swap_chain_images[i].image(), m_swap_chain_image_format, VK_IMAGE_ASPECT_COLOR_BIT);
 	}
 
 	dev::LogMgr::get_singleton()->print("[VULKAN] Created image views!");
@@ -569,6 +591,8 @@ void VulkanBackend::create_image_views()
 
 void VulkanBackend::create_graphics_pipeline()
 {
+	Array<VkPipelineShaderStageCreateInfo, 2> shader_stages;
+
 	//////// debug /////////
 	io::FileStream vert_fs = io::FileStream("/Users/kryzp/Documents/Projects/wyvern/test/res/vert.spv", "r");
 	io::FileStream frag_fs = io::FileStream("/Users/kryzp/Documents/Projects/wyvern/test/res/frag.spv", "r");
@@ -576,22 +600,27 @@ void VulkanBackend::create_graphics_pipeline()
 	WVN_ASSERT(vert_fs.size() > 0, "[VULKAN|DEBUG] Vertex file must not be empty.");
 	WVN_ASSERT(frag_fs.size() > 0, "[VULKAN|DEBUG] Fragment file must not be empty.");
 
-	Vector<char> vert_source;
-	Vector<char> frag_source;
+	Vector<char> vert_source(vert_fs.size()); vert_fs.read(vert_source.data(), vert_fs.size());
+	Vector<char> frag_source(frag_fs.size()); frag_fs.read(frag_source.data(), frag_fs.size());
 
-	vert_source.resize(vert_fs.size());
-	frag_source.resize(frag_fs.size());
+	m_temp_vert_module = create_shader_module(vert_source);
+	m_temp_frag_module = create_shader_module(frag_source);
 
-	vert_fs.read(vert_source.data(), vert_fs.size());
-	frag_fs.read(frag_source.data(), frag_fs.size());
+	// vertex
+	shader_stages[0].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+	shader_stages[0].stage = VK_SHADER_STAGE_VERTEX_BIT;
+	shader_stages[0].module = m_temp_vert_module;
+	shader_stages[0].pName = "main";
 
-	m_temp_shader = create_shader(vert_source, frag_source);
+	// fragment
+	shader_stages[1].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+	shader_stages[1].stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+	shader_stages[1].module = m_temp_frag_module;
+	shader_stages[1].pName = "main";
 	//////// debug /////////
 
 	auto binding_desc = get_vertex_binding_description();
 	auto attribs_desc = get_vertex_attribute_description();
-
-	VkPipelineShaderStageCreateInfo shader_stages[2] = { m_temp_shader->vert_info, m_temp_shader->frag_info };
 
 	VkPipelineVertexInputStateCreateInfo vertex_input_state_create_info = {};
 	vertex_input_state_create_info.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
@@ -652,6 +681,16 @@ void VulkanBackend::create_graphics_pipeline()
 	multisample_state_create_info.alphaToOneEnable = VK_FALSE;
 
 	VkPipelineDepthStencilStateCreateInfo depth_stencil_state_create_info = {};
+	depth_stencil_state_create_info.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+	depth_stencil_state_create_info.depthTestEnable  = VK_TRUE;
+	depth_stencil_state_create_info.depthWriteEnable = VK_TRUE;
+	depth_stencil_state_create_info.depthCompareOp = VK_COMPARE_OP_LESS;
+	depth_stencil_state_create_info.depthBoundsTestEnable = VK_FALSE;
+	depth_stencil_state_create_info.minDepthBounds = 0.0f;
+	depth_stencil_state_create_info.maxDepthBounds = 1.0f;
+	depth_stencil_state_create_info.stencilTestEnable = VK_FALSE;
+	depth_stencil_state_create_info.front = {};
+	depth_stencil_state_create_info.back  = {};
 
 	VkPipelineColorBlendAttachmentState colour_blend_attachment_state = {};
 	colour_blend_attachment_state.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
@@ -688,8 +727,8 @@ void VulkanBackend::create_graphics_pipeline()
 
 	VkGraphicsPipelineCreateInfo graphics_pipeline_create_info = {};
 	graphics_pipeline_create_info.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-	graphics_pipeline_create_info.stageCount = 2; // vert -> frag
-	graphics_pipeline_create_info.pStages = shader_stages;
+	graphics_pipeline_create_info.pStages = shader_stages.data();
+	graphics_pipeline_create_info.stageCount = shader_stages.size();
 	graphics_pipeline_create_info.pVertexInputState = &vertex_input_state_create_info;
 	graphics_pipeline_create_info.pInputAssemblyState = &input_assembly_state_create_info;
 	graphics_pipeline_create_info.pViewportState = &viewport_state_create_info;
@@ -714,41 +753,60 @@ void VulkanBackend::create_graphics_pipeline()
 
 void VulkanBackend::create_render_pass()
 {
-	VkAttachmentDescription swap_chain_colour_attachment = {};
-	swap_chain_colour_attachment.format = m_swap_chain_image_format;
-	swap_chain_colour_attachment.samples = VK_SAMPLE_COUNT_1_BIT;
-	swap_chain_colour_attachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-	swap_chain_colour_attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-	swap_chain_colour_attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE; // we dont use the stencil buffer YET
-	swap_chain_colour_attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-	swap_chain_colour_attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-	swap_chain_colour_attachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+	Array<VkAttachmentDescription, 2> attachment_descriptions;
+
+	// swap chain colour attachment
+	attachment_descriptions[0].format = m_swap_chain_image_format;
+	attachment_descriptions[0].samples = VK_SAMPLE_COUNT_1_BIT;
+	attachment_descriptions[0].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+	attachment_descriptions[0].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+	attachment_descriptions[0].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE; // todo: we dont use the stencil buffer YET
+	attachment_descriptions[0].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+	attachment_descriptions[0].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+	attachment_descriptions[0].finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 
 	VkAttachmentReference swap_chain_colour_attachment_ref = {};
 	swap_chain_colour_attachment_ref.attachment = 0;
 	swap_chain_colour_attachment_ref.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
-	VkSubpassDescription swap_chain_subpass = {};
-	swap_chain_subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-	swap_chain_subpass.colorAttachmentCount = 1;
-	swap_chain_subpass.pColorAttachments = &swap_chain_colour_attachment_ref;
+	// depth attachment
+	attachment_descriptions[1].format = vkutil::find_depth_format(m_physical_data.device);
+	attachment_descriptions[1].samples = VK_SAMPLE_COUNT_1_BIT;
+	attachment_descriptions[1].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+	attachment_descriptions[1].storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+	attachment_descriptions[1].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+	attachment_descriptions[1].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+	attachment_descriptions[1].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+	attachment_descriptions[1].finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
-	VkSubpassDependency subpass_dependency = {};
-	subpass_dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-	subpass_dependency.dstSubpass = 0;
-	subpass_dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-	subpass_dependency.srcAccessMask = 0;
-	subpass_dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-	subpass_dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+	VkAttachmentReference depth_attachment_ref = {};
+	depth_attachment_ref.attachment = 1;
+	depth_attachment_ref.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+	// //
+
+	VkSubpassDescription swap_chain_sub_pass = {};
+	swap_chain_sub_pass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+	swap_chain_sub_pass.pColorAttachments = &swap_chain_colour_attachment_ref;
+	swap_chain_sub_pass.colorAttachmentCount = 1;
+	swap_chain_sub_pass.pDepthStencilAttachment = &depth_attachment_ref;
+
+	VkSubpassDependency sub_pass_dependency = {};
+	sub_pass_dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+	sub_pass_dependency.dstSubpass = 0;
+	sub_pass_dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+	sub_pass_dependency.srcAccessMask = 0;
+	sub_pass_dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+	sub_pass_dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
 
 	VkRenderPassCreateInfo render_pass_create_info = {};
 	render_pass_create_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-	render_pass_create_info.attachmentCount = 1;
-	render_pass_create_info.pAttachments = &swap_chain_colour_attachment;
+	render_pass_create_info.pAttachments = attachment_descriptions.data();
+	render_pass_create_info.attachmentCount = attachment_descriptions.size();
+	render_pass_create_info.pSubpasses = &swap_chain_sub_pass;
 	render_pass_create_info.subpassCount = 1;
-	render_pass_create_info.pSubpasses = &swap_chain_subpass;
+	render_pass_create_info.pDependencies = &sub_pass_dependency;
 	render_pass_create_info.dependencyCount = 1;
-	render_pass_create_info.pDependencies = &subpass_dependency;
 
 	if (VkResult result = vkCreateRenderPass(m_logical_data.device, &render_pass_create_info, nullptr, &m_render_pass); result != VK_SUCCESS) {
 		dev::LogMgr::get_singleton()->print("[VULKAN] Result: %d", result);
@@ -758,19 +816,22 @@ void VulkanBackend::create_render_pass()
 	dev::LogMgr::get_singleton()->print("[VULKAN] Created render pass!");
 }
 
-void VulkanBackend::create_swap_chain_framebuffers()
+void VulkanBackend::create_swap_chain_framebuffers() // todo: abstract framebuffer
 {
 	m_swap_chain_framebuffers.resize(m_swap_chain_image_views.size());
 
 	for (u64 i = 0; i < m_swap_chain_image_views.size(); i++)
 	{
-		VkImageView* attachments = &m_swap_chain_image_views[i].view();
+		Array<VkImageView, 2> attachments;
+
+		attachments[0] = m_swap_chain_image_views[i].view();
+		attachments[1] = m_depth.view().view();
 
 		VkFramebufferCreateInfo framebufferInfo{};
 		framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
 		framebufferInfo.renderPass = m_render_pass;
-		framebufferInfo.attachmentCount = 1;
-		framebufferInfo.pAttachments = attachments;
+		framebufferInfo.pAttachments = attachments.data();
+		framebufferInfo.attachmentCount = attachments.size();
 		framebufferInfo.width = m_swap_chain_extent.width;
 		framebufferInfo.height = m_swap_chain_extent.height;
 		framebufferInfo.layers = 1;
@@ -799,17 +860,16 @@ void VulkanBackend::clean_up_swap_chain()
 
 void VulkanBackend::rebuild_swap_chain()
 {
-	// wait until draw size isnt zero
+	// wait until draw size isn't zero
 	while (Root::get_singleton()->system_backend()->get_draw_size() == Vec2I::zero()) { }
 
 	vkDeviceWaitIdle(m_logical_data.device);
 
 	clean_up_swap_chain();
 
-	QueueFamilyIdx phys_idx = find_queue_families(m_physical_data.device);
-
-	create_swap_chain(phys_idx);
+	create_swap_chain(find_queue_families(m_physical_data.device));
 	create_image_views();
+	create_depth_texture();
 	create_swap_chain_framebuffers();
 }
 
@@ -1004,6 +1064,8 @@ void VulkanBackend::create_uniform_buffers()
 			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
 		);
 	}
+
+	dev::LogMgr::get_singleton()->print("[VULKAN] Created uniform buffers!");
 }
 
 void VulkanBackend::create_vertex_buffer()
@@ -1062,7 +1124,7 @@ void VulkanBackend::create_texture_image()
 {
 	Image temp_image("../images/kitty.png");
 
-	m_temp_texture.init(m_logical_data.device, m_physical_data.device);
+	m_temp_texture.init(m_logical_data.device, m_physical_data.device, m_physical_data.properties);
 	m_temp_texture.create(temp_image);
 
 	m_staging_buffer.create(
@@ -1078,6 +1140,7 @@ void VulkanBackend::create_texture_image()
 		VK_FORMAT_R8G8B8A8_SRGB,
 		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
 		m_command_pool,
+		m_logical_data.device,
 		m_queues.graphics
 	);
 
@@ -1093,10 +1156,35 @@ void VulkanBackend::create_texture_image()
 		VK_FORMAT_R8G8B8A8_SRGB,
 		VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
 		m_command_pool,
+		m_logical_data.device,
 		m_queues.graphics
 	);
 
 	m_staging_buffer.clean_up();
+
+	dev::LogMgr::get_singleton()->print("[VULKAN] Created texture (kitty)!");
+}
+
+void VulkanBackend::create_depth_texture()
+{
+	VkFormat format = vkutil::find_depth_format(m_physical_data.device);
+
+	m_depth.init(m_logical_data.device, m_physical_data.device, m_physical_data.properties);
+
+	m_depth.create(
+		m_swap_chain_extent.width, m_swap_chain_extent.height,
+		vkutil::get_wvn_texture_format(format), TEX_TILE_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_IMAGE_ASPECT_DEPTH_BIT
+	);
+
+	m_depth.image().transition_layout(
+		format,
+		VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+		m_command_pool,
+		m_logical_data.device,
+		m_queues.graphics
+	);
+
+	dev::LogMgr::get_singleton()->print("[VULKAN] Created depth texture!");
 }
 
 u32 VulkanBackend::assign_physical_device_usability(
@@ -1242,53 +1330,7 @@ SwapChainSupportDetails VulkanBackend::query_swap_chain_support(VkPhysicalDevice
 	return result;
 }
 
-VkSurfaceFormatKHR VulkanBackend::choose_swap_surface_format(const Vector<VkSurfaceFormatKHR>& available_surface_formats)
-{
-	// todo: this could be ranked based on how good each format is rather than choosing the first one that fits
-
-	for (auto& available_format : available_surface_formats)
-	{
-		if (available_format.format == VK_FORMAT_B8G8R8A8_SRGB && available_format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
-		{
-			return available_format;
-		}
-	}
-
-	return available_surface_formats[0];
-}
-
-VkPresentModeKHR VulkanBackend::choose_swap_present_mode(const Vector<VkPresentModeKHR>& available_present_modes)
-{
-	for (const auto& available_present_mode : available_present_modes)
-	{
-		if (available_present_mode == VK_PRESENT_MODE_MAILBOX_KHR)
-		{
-			return available_present_mode;
-		}
-	}
-
-	return VK_PRESENT_MODE_FIFO_KHR;
-}
-
-VkExtent2D VulkanBackend::choose_swap_extent(const VkSurfaceCapabilitiesKHR& capabilities)
-{
-	if (capabilities.currentExtent.width != CalcU::max_value())
-	{
-		return capabilities.currentExtent;
-	}
-	else
-	{
-		Vec2I wh = Root::get_singleton()->system_backend()->get_window_size();
-		VkExtent2D actual_extent = { static_cast<u32>(wh.x), static_cast<u32>(wh.y) };
-
-		actual_extent.width  = CalcU::clamp(actual_extent.width,  capabilities.minImageExtent.width,  capabilities.maxImageExtent.width );
-		actual_extent.height = CalcU::clamp(actual_extent.height, capabilities.minImageExtent.height, capabilities.maxImageExtent.height);
-
-		return actual_extent;
-	}
-}
-
-VkShaderModule VulkanBackend::create_shader_module(const Vector<char>& source)
+VkShaderModule VulkanBackend::create_shader_module(const Vector<char>& source) const
 {
 	VkShaderModuleCreateInfo create_info = {};
 	create_info.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
@@ -1307,29 +1349,19 @@ VkShaderModule VulkanBackend::create_shader_module(const Vector<char>& source)
 	return module;
 }
 
-Texture* VulkanBackend::create_texture(u32 width, u32 height)
+const LogicalDeviceData& VulkanBackend::logical_data() const
 {
-	VulkanTexture* ret = new VulkanTexture();
-	ret->create(width, height, TEX_FMT_R8G8B8A8_SRGB, TEX_TILE_OPTIMAL);
-	return ret;
+	return m_logical_data;
 }
 
-VulkanShader* VulkanBackend::create_shader(const Vector<char>& vert_source, const Vector<char>& frag_source)
+const PhysicalDeviceData& VulkanBackend::physical_data() const
 {
-	VkShaderModule vert_module = create_shader_module(vert_source);
-	VkShaderModule frag_module = create_shader_module(frag_source);
-
-	return new VulkanShader(vert_module, frag_module, m_logical_data.device);
+	return m_physical_data;
 }
 
-RenderTarget* VulkanBackend::create_render_target(u32 width, u32 height)
+const QueueData& VulkanBackend::queues() const
 {
-	return new VulkanFramebuffer();
-}
-
-Mesh* VulkanBackend::create_mesh()
-{
-	return new VulkanMesh();
+	return m_queues;
 }
 
 void VulkanBackend::wait_for_sync()
@@ -1360,7 +1392,8 @@ void VulkanBackend::render(const RenderPass& pass)
 
 	// update uniform buffer
 	{
-		static float cx = 0.0f, cy = 0.0f, cz = -5.0f, t = 0.0f;
+		static float cx = 0.0f, cy = 0.0f, cz = -5.0f, t = 0.0f, s = 0.0f;
+		s += 0.01f;
 
 		auto cam_pos = Vec3F(cx, cy, cz);
 		auto look_at = cam_pos + Vec3F::forward();
@@ -1390,8 +1423,8 @@ void VulkanBackend::render(const RenderPass& pass)
 		}
 
 		UniformBufferObject ubo = {};
-		ubo.model = Mat4x4::create_rotation(t, Vec3F::forward());
-		ubo.view  = Mat4x4::create_lookat(cam_pos, look_at, Vec3F::up());
+		ubo.model = Mat4x4::create_rotation(s, Vec3F(1, 1, 1));
+		ubo.view  = Mat4x4::create_lookat(cam_pos, look_at, Vec3F::up()) * Mat4x4::create_rotation(t, Vec3F::forward());
 		ubo.proj  = Mat4x4::create_perspective(CalcF::PI * 0.25f, ASPECT, 0.01f, 50.0f);
 		m_uniform_buffers[m_current_frame].send_data(&ubo);
 	}
@@ -1411,8 +1444,9 @@ void VulkanBackend::render(const RenderPass& pass)
 			WVN_ERROR("[VULKAN|DEBUG] Failed to begin recording command buffer.");
 		}
 
-		VkClearValue clear_colour = {};
-		pass.clear_colour.premultiplied().export_to_float(clear_colour.color.float32);
+		Array<VkClearValue, 2> clear_colours;
+		pass.clear_colour.premultiplied().export_to_float(clear_colours[0].color.float32); // colour attachment { r, g, b, a }
+		clear_colours[1].depthStencil = { 1.0f, 0 }; // { depth, stencil }
 
 		VkRenderPassBeginInfo render_pass_begin_info = {};
 		render_pass_begin_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
@@ -1420,8 +1454,8 @@ void VulkanBackend::render(const RenderPass& pass)
 		render_pass_begin_info.framebuffer = m_swap_chain_framebuffers[img_idx];
 		render_pass_begin_info.renderArea.offset = { 0, 0 };
 		render_pass_begin_info.renderArea.extent = m_swap_chain_extent;
-		render_pass_begin_info.clearValueCount = 1;
-		render_pass_begin_info.pClearValues = &clear_colour;
+		render_pass_begin_info.pClearValues = clear_colours.data();
+		render_pass_begin_info.clearValueCount = clear_colours.size();
 
 		VkViewport viewport = {};
 
@@ -1489,8 +1523,8 @@ void VulkanBackend::render(const RenderPass& pass)
 	}
 
 	VkSemaphore wait_semaphores[] = { m_image_available_semaphores[m_current_frame]};
-	VkPipelineStageFlags wait_stages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
 	VkSemaphore signal_semaphores[] = { m_render_finished_semaphores[m_current_frame] };
+	VkPipelineStageFlags wait_stages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
 
 	VkSubmitInfo submit_info = {};
 	submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;

@@ -79,9 +79,17 @@ Mat4x3 Mat4x3::create_scale(float scale)
 Mat4x3 Mat4x3::create_rotation(const Quaternion& q)
 {
 	return Mat4x3(
-		1.0f - 2.0f * ((q.s * q.s) + (q.i * q.i)), 2.0f * ((q.i * q.j) - (q.s * q.k)), 2.0f * ((q.i * q.k) + (q.s * q.j)),
-		2.0f * ((q.i * q.j) + (q.s * q.k)), 1.0f - 2.0f * ((q.s * q.s) + (q.j * q.j)), 2.0f * ((q.j * q.k) - (q.s * q.i)),
-		2.0f * ((q.i * q.k) - (q.s * q.j)), 2.0f * ((q.j * q.k) + (q.s * q.i)), 1.0f - 2.0f * ((q.s * q.s) + (q.k * q.k)),
+		1.0f - 2.0f * ((q.s * q.s) + (q.i * q.i)),
+		2.0f * ((q.i * q.j) - (q.s * q.k)),
+		2.0f * ((q.i * q.k) + (q.s * q.j)),
+
+		2.0f * ((q.i * q.j) + (q.s * q.k)),
+		1.0f - 2.0f * ((q.s * q.s) + (q.j * q.j)),
+		2.0f * ((q.j * q.k) - (q.s * q.i)),
+
+		2.0f * ((q.i * q.k) - (q.s * q.j)),
+		2.0f * ((q.j * q.k) + (q.s * q.i)),
+		1.0f - 2.0f * ((q.s * q.s) + (q.k * q.k)),
 		0, 0, 0
 	);
 }
@@ -105,17 +113,21 @@ Mat4x3 Mat4x3::create_transform(
 {
 	Mat4x3 mat = Mat4x3::identity();
 
-	if (origin != wvn::Vec3F::zero())
+	if (origin != wvn::Vec3F::zero()) {
 		mat *= create_translation(-origin);
+	}
 
-	if (scale != wvn::Size3::zero())
+	if (scale != wvn::Size3::zero()) {
 		mat *= create_scale(scale);
+	}
 
-	if (quat != Quaternion::zero())
+	if (quat != Quaternion::zero()) {
 		mat *= create_rotation(quat);
+	}
 
-	if (position != wvn::Vec3F::zero())
+	if (position != wvn::Vec3F::zero()) {
 		mat *= create_translation(position);
+	}
 
 	return mat;
 }

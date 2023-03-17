@@ -1,45 +1,24 @@
 #include <backend/graphics/vulkan/vk_image.h>
 #include <backend/graphics/vulkan/vk_util.h>
+#include <backend/graphics/vulkan/vk_backend.h>
 #include <wvn/devenv/log_mgr.h>
+#include <wvn/root.h>
 
 using namespace wvn;
 using namespace wvn::gfx;
 
 VulkanImage::VulkanImage()
-	: m_device(VK_NULL_HANDLE)
-	, m_physical_device(VK_NULL_HANDLE)
-	, m_image(VK_NULL_HANDLE)
+	: m_image(VK_NULL_HANDLE)
 	, m_memory(VK_NULL_HANDLE)
 	, m_layout(VK_IMAGE_LAYOUT_UNDEFINED)
 {
-}
-
-VulkanImage::VulkanImage(
-	VkDevice device, VkPhysicalDevice physical_device,
-	VkMemoryPropertyFlags properties,
-	u32 width, u32 height,
-	TextureFormat format, TextureTiling tiling
-)
-	: m_device(device)
-	, m_physical_device(physical_device)
-	, m_image(VK_NULL_HANDLE)
-	, m_memory(VK_NULL_HANDLE)
-	, m_layout(VK_IMAGE_LAYOUT_UNDEFINED)
-{
-	create(properties, width, height, vkutil::get_vk_texture_format(format), vkutil::get_vk_texture_tile(tiling));
 }
 
 VulkanImage::~VulkanImage()
 {
 }
 
-void VulkanImage::init(VkDevice device, VkPhysicalDevice physical_device)
-{
-	this->m_device = device;
-	this->m_physical_device = physical_device;
-}
-
-void VulkanImage::clean_up()
+void VulkanImage::clean_up(VkDevice device)
 {
 	if (m_image == VK_NULL_HANDLE &&
 		m_memory == VK_NULL_HANDLE)
@@ -47,17 +26,18 @@ void VulkanImage::clean_up()
 		return;
 	}
 
-	vkDestroyImage(m_device, m_image, nullptr);
-	vkFreeMemory(m_device, m_memory, nullptr);
+	vkDestroyImage(device, m_image, nullptr);
+	vkFreeMemory(device, m_memory, nullptr);
 
 	m_image = VK_NULL_HANDLE;
 	m_memory = VK_NULL_HANDLE;
 }
 
 void VulkanImage::create(
+	VkDevice device, VkPhysicalDevice physical_device,
 	VkMemoryPropertyFlags properties,
 	u32 width, u32 height,
-	VkFormat format, VkImageTiling tiling
+	VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage
 )
 {
 	VkImageCreateInfo create_info = {};
@@ -71,37 +51,37 @@ void VulkanImage::create(
 	create_info.format = format;
 	create_info.tiling = tiling;
 	create_info.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-	create_info.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+	create_info.usage = usage;
 	create_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 	create_info.samples = VK_SAMPLE_COUNT_1_BIT;
 	create_info.flags = 0;
 
-	if (VkResult result = vkCreateImage(m_device, &create_info, nullptr, &m_image); result != VK_SUCCESS) {
+	if (VkResult result = vkCreateImage(device, &create_info, nullptr, &m_image); result != VK_SUCCESS) {
 		dev::LogMgr::get_singleton()->print("[VULKAN:IMAGE] Result: %d", result);
 		WVN_ERROR("[VULKAN:IMAGE|DEBUG] Failed to create command pool.");
 	}
 
 	VkMemoryRequirements memory_requirements = {};
-	vkGetImageMemoryRequirements(m_device, m_image, &memory_requirements);
+	vkGetImageMemoryRequirements(device, m_image, &memory_requirements);
 
 	VkMemoryAllocateInfo alloc_info = {};
 	alloc_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 	alloc_info.allocationSize = memory_requirements.size;
-	alloc_info.memoryTypeIndex = vkutil::find_memory_type(m_physical_device, memory_requirements.memoryTypeBits, properties);
+	alloc_info.memoryTypeIndex = vkutil::find_memory_type(physical_device, memory_requirements.memoryTypeBits, properties);
 
-	if (VkResult result = vkAllocateMemory(m_device, &alloc_info, nullptr, &m_memory); result != VK_SUCCESS) {
+	if (VkResult result = vkAllocateMemory(device, &alloc_info, nullptr, &m_memory); result != VK_SUCCESS) {
 		dev::LogMgr::get_singleton()->print("[VULKAN:IMAGE] Result: %d", result);
 		WVN_ERROR("[VULKAN:IMAGE|DEBUG] Failed to allocate memory for image.");
 	}
 
-	vkBindImageMemory(m_device, m_image, m_memory, 0);
+	vkBindImageMemory(device, m_image, m_memory, 0);
 
 	dev::LogMgr::get_singleton()->print("[VULKAN:IMAGE] Created!");
 }
 
-void VulkanImage::transition_layout(VkFormat fmt, VkImageLayout new_layout, VkCommandPool cmd_pool, VkQueue graphics_queue)
+void VulkanImage::transition_layout(VkFormat fmt, VkImageLayout new_layout, VkCommandPool cmd_pool, VkDevice device, VkQueue graphics)
 {
-	VkCommandBuffer cmd_buf = vkutil::begin_single_time_commands(m_device, cmd_pool);
+	VkCommandBuffer cmd_buf = vkutil::begin_single_time_commands(cmd_pool, device);
 	{
 		VkImageMemoryBarrier barrier = {};
 		barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -137,9 +117,29 @@ void VulkanImage::transition_layout(VkFormat fmt, VkImageLayout new_layout, VkCo
 			src_stage = VK_PIPELINE_STAGE_TRANSFER_BIT;
 			dst_stage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
 		}
+		else if (m_layout == VK_IMAGE_LAYOUT_UNDEFINED && new_layout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
+		{
+			barrier.srcAccessMask = 0;
+			barrier.dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+
+			src_stage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+			dst_stage = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+		}
 		else
 		{
 			WVN_ERROR("[VULKAN:IMAGE|DEBUG] Unsupported layout transition for image.");
+		}
+
+		if (new_layout == VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
+		{
+			barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+
+			if (vkutil::has_stencil_component(fmt)) {
+				barrier.subresourceRange.aspectMask |= VK_IMAGE_ASPECT_STENCIL_BIT;
+			}
+		} else
+		{
+			barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 		}
 
 		vkCmdPipelineBarrier(
@@ -153,7 +153,7 @@ void VulkanImage::transition_layout(VkFormat fmt, VkImageLayout new_layout, VkCo
 
 		m_layout = new_layout;
 	}
-	vkutil::end_single_time_commands(m_device, cmd_pool, cmd_buf, graphics_queue);
+	vkutil::end_single_time_commands(cmd_pool, cmd_buf, device, graphics);
 }
 
 VkImage& VulkanImage::image() { return m_image; }

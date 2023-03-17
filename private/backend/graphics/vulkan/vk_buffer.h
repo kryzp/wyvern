@@ -17,8 +17,8 @@ namespace wvn::gfx
 
 		void send_data(const void* data);
 
-		void copy_to(const VulkanBuffer& other, VkCommandPool cmd_pool, VkQueue graphics_queue);
-		void copy_to_image(VkImage image, u32 width, u32 height, VkCommandPool cmd_pool, VkQueue graphics_queue);
+		void copy_to(const VulkanBuffer& other, VkCommandPool cmd_pool, VkQueue graphics);
+		void copy_to_image(VkImage image, u32 width, u32 height, VkCommandPool cmd_pool, VkQueue graphics);
 
 		VkDevice device() const;
 		VkPhysicalDevice physical_device() const;

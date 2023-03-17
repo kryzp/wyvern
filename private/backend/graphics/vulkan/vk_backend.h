@@ -6,14 +6,12 @@
 #include <wvn/container/vector.h>
 #include <wvn/container/optional.h>
 
+#include <wvn/root.h>
 #include <wvn/util/types.h>
 #include <wvn/graphics/renderer_backend.h>
 
-#include <backend/graphics/vulkan/vk_shader.h>
 #include <backend/graphics/vulkan/vk_buffer.h>
 #include <backend/graphics/vulkan/vk_texture.h>
-#include <backend/graphics/vulkan/vk_framebuffer.h>
-#include <backend/graphics/vulkan/vk_mesh.h>
 
 #include <wvn/maths/mat4x4.h>
 
@@ -107,9 +105,9 @@ namespace wvn::gfx
 
 		void on_window_resize(int width, int height) override;
 
-		Texture* create_texture(u32 width, u32 height) override;
-		RenderTarget* create_render_target(u32 width, u32 height) override;
-		Mesh* create_mesh() override;
+		const LogicalDeviceData& logical_data() const;
+		const PhysicalDeviceData& physical_data() const;
+		const QueueData& queues() const;
 
 	private:
 		void enumerate_physical_devices();
@@ -127,24 +125,19 @@ namespace wvn::gfx
         void create_descriptor_pool();
         void create_descriptor_sets();
 		void create_texture_image();
-
+		void create_depth_texture();
 		void create_image_views();
 		void clean_up_swap_chain();
 		void rebuild_swap_chain();
 		void create_swap_chain_framebuffers();
-
-		VulkanShader* create_shader(const Vector<char>& vert_source, const Vector<char>& frag_source);
 
 		u32 assign_physical_device_usability(VkPhysicalDevice device, VkPhysicalDeviceProperties properties, VkPhysicalDeviceFeatures features, bool* essentials_completed);
 		QueueFamilyIdx find_queue_families(VkPhysicalDevice device);
 		bool check_device_extension_support(VkPhysicalDevice device);
 
 		SwapChainSupportDetails query_swap_chain_support(VkPhysicalDevice device);
-		VkSurfaceFormatKHR choose_swap_surface_format(const Vector<VkSurfaceFormatKHR>& available_surface_formats);
-		VkPresentModeKHR choose_swap_present_mode(const Vector<VkPresentModeKHR>& available_present_modes);
-		VkExtent2D choose_swap_extent(const VkSurfaceCapabilitiesKHR& capabilities);
 
-		VkShaderModule create_shader_module(const Vector<char>& source);
+		VkShaderModule create_shader_module(const Vector<char>& source) const;
 
 		// core
 		VkInstance m_instance;
@@ -188,9 +181,13 @@ namespace wvn::gfx
 		LogicalDeviceData m_logical_data;
 		PhysicalDeviceData m_physical_data;
 
+		// depth
+		VulkanTexture m_depth;
+
 		// TEMP //
+		VkShaderModule m_temp_vert_module;
+		VkShaderModule m_temp_frag_module;
 		VulkanTexture m_temp_texture;
-		VulkanShader* m_temp_shader;
 		// TEMP //
 
 #if WVN_DEBUG

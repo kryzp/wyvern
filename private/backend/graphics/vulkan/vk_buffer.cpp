@@ -1,5 +1,6 @@
 #include <backend/graphics/vulkan/vk_buffer.h>
 #include <backend/graphics/vulkan/vk_util.h>
+#include <backend/graphics/vulkan/vk_backend.h>
 #include <wvn/devenv/log_mgr.h>
 #include <wvn/util/types.h>
 
@@ -79,9 +80,9 @@ void VulkanBuffer::send_data(const void* data)
 	vkUnmapMemory(m_device, m_memory);
 }
 
-void VulkanBuffer::copy_to(const VulkanBuffer& other, VkCommandPool cmd_pool, VkQueue graphics_queue)
+void VulkanBuffer::copy_to(const VulkanBuffer& other, VkCommandPool cmd_pool, VkQueue graphics)
 {
-	VkCommandBuffer cmd_buf = vkutil::begin_single_time_commands(m_device, cmd_pool);
+	VkCommandBuffer cmd_buf = vkutil::begin_single_time_commands(cmd_pool, m_device);
 	{
 		VkBufferCopy region = {};
 		region.srcOffset = 0;
@@ -96,12 +97,12 @@ void VulkanBuffer::copy_to(const VulkanBuffer& other, VkCommandPool cmd_pool, Vk
 			&region
 		);
 	}
-	vkutil::end_single_time_commands(m_device, cmd_pool, cmd_buf, graphics_queue);
+	vkutil::end_single_time_commands(cmd_pool, cmd_buf, m_device, graphics);
 }
 
-void VulkanBuffer::copy_to_image(VkImage image, u32 width, u32 height, VkCommandPool cmd_pool, VkQueue graphics_queue)
+void VulkanBuffer::copy_to_image(VkImage image, u32 width, u32 height, VkCommandPool cmd_pool, VkQueue graphics)
 {
-	VkCommandBuffer cmd_buf = vkutil::begin_single_time_commands(m_device, cmd_pool);
+	VkCommandBuffer cmd_buf = vkutil::begin_single_time_commands(cmd_pool, m_device);
 	{
 		VkBufferImageCopy region = {};
 		region.bufferOffset = 0;
@@ -123,7 +124,7 @@ void VulkanBuffer::copy_to_image(VkImage image, u32 width, u32 height, VkCommand
 			&region
 		);
 	}
-	vkutil::end_single_time_commands(m_device, cmd_pool, cmd_buf, graphics_queue);
+	vkutil::end_single_time_commands(cmd_pool, cmd_buf, m_device, graphics);
 }
 
 VkDevice VulkanBuffer::device() const { return m_device; }

@@ -12,15 +12,13 @@ namespace wvn::gfx
 		VulkanImageView();
 		~VulkanImageView();
 
-		void init(VkDevice device);
 		void clean_up();
 
-		void create(VkImage image, VkFormat format);
+		void create(VkDevice device, VkImage image, VkFormat format, VkImageAspectFlags aspect_flags);
 
 		VkImageView& view();
 
 	private:
-		VkDevice m_device;
 		VkImageView m_view;
 	};
 }

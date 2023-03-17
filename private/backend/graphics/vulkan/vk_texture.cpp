@@ -16,32 +16,21 @@ VulkanTexture::VulkanTexture()
 {
 }
 
-VulkanTexture::VulkanTexture(VkDevice device, VkPhysicalDevice physical_device)
-	: m_image()
-	, m_view()
-	, m_sampler()
-	, m_width(0)
-	, m_height(0)
-	, m_format()
-	, m_tiling()
-{
-}
-
 VulkanTexture::~VulkanTexture()
 {
 	clean_up();
 }
 
-void VulkanTexture::init(VkDevice device, VkPhysicalDevice physical_device)
+void VulkanTexture::init(VkDevice device, VkPhysicalDevice physical_device, VkPhysicalDeviceProperties properties)
 {
-	m_image.init(device, physical_device);
-	m_view.init(device);
-	m_sampler.init(device, physical_device);
+	m_device = device;
+	m_physical_device = physical_device;
+	m_properties = properties;
 }
 
 void VulkanTexture::clean_up()
 {
-	m_image.clean_up();
+	m_image.clean_up(m_device);
 	m_view.clean_up();
 	m_sampler.clean_up();
 }
@@ -53,21 +42,30 @@ void VulkanTexture::create(const Image& image)
 
 void VulkanTexture::create(u32 width, u32 height, TextureFormat format, TextureTiling tiling)
 {
+	create(width, height, format, tiling, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_IMAGE_ASPECT_COLOR_BIT);
+}
+
+void VulkanTexture::create(u32 width, u32 height, TextureFormat format, TextureTiling tiling, VkImageUsageFlags usage, VkImageAspectFlags aspect_flags)
+{
 	this->m_width = width;
 	this->m_height = height;
 
 	this->m_format = format;
 	this->m_tiling = tiling;
 
+	VkFormat vkfmt = vkutil::get_vk_texture_format(format);
+	VkImageTiling vktile = vkutil::get_vk_texture_tile(tiling);
+
 	m_image.create(
+		m_device, m_physical_device,
 		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
 		width, height,
-		vkutil::get_vk_texture_format(format), vkutil::get_vk_texture_tile(tiling)
+		vkfmt, vktile, usage
 	);
 
-	m_view.create(m_image.image(), vkutil::get_vk_texture_format(format));
+	m_view.create(m_device, m_image.image(), vkfmt, aspect_flags);
 
-	m_sampler.create(TextureSampler(TEX_FILTER_LINEAR, TEX_WRAP_CLAMP, TEX_WRAP_CLAMP, TEX_WRAP_CLAMP));
+	m_sampler.create(m_device, m_properties, TextureSampler(TEX_FILTER_LINEAR, TEX_WRAP_CLAMP, TEX_WRAP_CLAMP, TEX_WRAP_CLAMP));
 }
 
 VulkanImage& VulkanTexture::image() { return m_image; }
@@ -78,3 +76,12 @@ int VulkanTexture::width() const { return m_width; }
 int VulkanTexture::height() const { return m_height; }
 VulkanTextureSampler& VulkanTexture::sampler() { return m_sampler; }
 const VulkanTextureSampler& VulkanTexture::sampler() const { return m_sampler; }
+
+TextureMetaData VulkanTexture::meta_data() const
+{
+	TextureMetaData data = {};
+	data.format = m_format;
+	data.tiling = m_tiling;
+
+	return data;
+}
