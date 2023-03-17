@@ -569,7 +569,7 @@ void VulkanBackend::create_swap_chain(const QueueFamilyIdx& phys_idx)
 	vkGetSwapchainImagesKHR(m_logical_data.device, m_swap_chain, &img_count, images);
 
 	for (int i = 0; i < img_count; i++) {
-		m_swap_chain_images[i].image() = images[i];
+		m_swap_chain_images[i] = images[i];
 	}
 
 	this->m_swap_chain_image_format = surf_fmt.format;
@@ -582,8 +582,29 @@ void VulkanBackend::create_image_views()
 {
 	m_swap_chain_image_views.resize(m_swap_chain_images.size());
 
-	for (u64 i = 0; i < m_swap_chain_images.size(); i++) {
-		m_swap_chain_image_views[i].create(m_logical_data.device, m_swap_chain_images[i].image(), m_swap_chain_image_format, VK_IMAGE_ASPECT_COLOR_BIT);
+	for (u64 i = 0; i < m_swap_chain_images.size(); i++)
+	{
+		VkImageViewCreateInfo view_info = {};
+		view_info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+		view_info.image = m_swap_chain_images[i];
+		view_info.viewType = VK_IMAGE_VIEW_TYPE_2D;
+		view_info.format = m_swap_chain_image_format;
+
+		view_info.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		view_info.subresourceRange.baseMipLevel = 0;
+		view_info.subresourceRange.levelCount = 1;
+		view_info.subresourceRange.baseArrayLayer = 0;
+		view_info.subresourceRange.layerCount = 1;
+
+		view_info.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+		view_info.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+		view_info.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+		view_info.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+
+		if (VkResult result = vkCreateImageView(m_logical_data.device, &view_info, nullptr, &m_swap_chain_image_views[i]); result != VK_SUCCESS) {
+			dev::LogMgr::get_singleton()->print("[VULKAN] Result: %d", result);
+			WVN_ERROR("[VULKAN|DEBUG] Failed to create texture image view.");
+		}
 	}
 
 	dev::LogMgr::get_singleton()->print("[VULKAN] Created image views!");
@@ -824,19 +845,19 @@ void VulkanBackend::create_swap_chain_framebuffers() // todo: abstract framebuff
 	{
 		Array<VkImageView, 2> attachments;
 
-		attachments[0] = m_swap_chain_image_views[i].view();
-		attachments[1] = m_depth.view().view();
+		attachments[0] = m_swap_chain_image_views[i];
+		attachments[1] = m_depth.image_view();
 
-		VkFramebufferCreateInfo framebufferInfo{};
-		framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-		framebufferInfo.renderPass = m_render_pass;
-		framebufferInfo.pAttachments = attachments.data();
-		framebufferInfo.attachmentCount = attachments.size();
-		framebufferInfo.width = m_swap_chain_extent.width;
-		framebufferInfo.height = m_swap_chain_extent.height;
-		framebufferInfo.layers = 1;
+		VkFramebufferCreateInfo framebuffer_info = {};
+		framebuffer_info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+		framebuffer_info.renderPass = m_render_pass;
+		framebuffer_info.pAttachments = attachments.data();
+		framebuffer_info.attachmentCount = attachments.size();
+		framebuffer_info.width = m_swap_chain_extent.width;
+		framebuffer_info.height = m_swap_chain_extent.height;
+		framebuffer_info.layers = 1;
 
-		if (VkResult result = vkCreateFramebuffer(m_logical_data.device, &framebufferInfo, nullptr, &m_swap_chain_framebuffers[i]); result != VK_SUCCESS) {
+		if (VkResult result = vkCreateFramebuffer(m_logical_data.device, &framebuffer_info, nullptr, &m_swap_chain_framebuffers[i]); result != VK_SUCCESS) {
 			dev::LogMgr::get_singleton()->print("[VULKAN] Result (Index: %d): %d", i, result);
 			WVN_ERROR("[VULKAN|DEBUG] Failed to create framebuffer.");
 		}
@@ -852,7 +873,7 @@ void VulkanBackend::clean_up_swap_chain()
 	}
 
 	for (auto& view : m_swap_chain_image_views) {
-		vkDestroyImageView(m_logical_data.device, view.view(), nullptr);
+		vkDestroyImageView(m_logical_data.device, view, nullptr);
 	}
 
 	vkDestroySwapchainKHR(m_logical_data.device, m_swap_chain, nullptr);
@@ -1033,7 +1054,7 @@ void VulkanBackend::create_descriptor_sets()
 		// sampler
 		VkDescriptorImageInfo image_info = {};
 		image_info.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-		image_info.imageView = m_temp_texture.view().view();
+		image_info.imageView = m_temp_texture.image_view();
 		image_info.sampler = m_temp_texture.sampler().sampler();
 		descriptors[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 		descriptors[1].dstSet = m_descriptor_sets[i];
@@ -1136,27 +1157,23 @@ void VulkanBackend::create_texture_image()
 
 	m_staging_buffer.send_data(temp_image.pixels());
 
-	m_temp_texture.image().transition_layout(
+	m_temp_texture.transition_layout(
 		VK_FORMAT_R8G8B8A8_SRGB,
 		VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
 		m_command_pool,
-		m_logical_data.device,
 		m_queues.graphics
 	);
 
-	m_staging_buffer.copy_to_image(
-		m_temp_texture.image().image(),
-		m_temp_texture.width(),
-		m_temp_texture.height(),
+	m_staging_buffer.copy_to_texture(
+		m_temp_texture,
 		m_command_pool,
 		m_queues.graphics
 	);
 
-	m_temp_texture.image().transition_layout(
+	m_temp_texture.transition_layout(
 		VK_FORMAT_R8G8B8A8_SRGB,
 		VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
 		m_command_pool,
-		m_logical_data.device,
 		m_queues.graphics
 	);
 
@@ -1173,14 +1190,13 @@ void VulkanBackend::create_depth_texture()
 
 	m_depth.create(
 		m_swap_chain_extent.width, m_swap_chain_extent.height,
-		vkutil::get_wvn_texture_format(format), TEX_TILE_OPTIMAL, VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT, VK_IMAGE_ASPECT_DEPTH_BIT
+		vkutil::get_wvn_texture_format(format), TEX_TILE_OPTIMAL
 	);
 
-	m_depth.image().transition_layout(
+	m_depth.transition_layout(
 		format,
 		VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
 		m_command_pool,
-		m_logical_data.device,
 		m_queues.graphics
 	);
 

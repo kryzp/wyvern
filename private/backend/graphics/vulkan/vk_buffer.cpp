@@ -3,6 +3,7 @@
 #include <backend/graphics/vulkan/vk_backend.h>
 #include <wvn/devenv/log_mgr.h>
 #include <wvn/util/types.h>
+#include <backend/graphics/vulkan/vk_texture.h>
 
 using namespace wvn;
 using namespace wvn::gfx;
@@ -100,7 +101,7 @@ void VulkanBuffer::copy_to(const VulkanBuffer& other, VkCommandPool cmd_pool, Vk
 	vkutil::end_single_time_commands(cmd_pool, cmd_buf, m_device, graphics);
 }
 
-void VulkanBuffer::copy_to_image(VkImage image, u32 width, u32 height, VkCommandPool cmd_pool, VkQueue graphics)
+void VulkanBuffer::copy_to_texture(const VulkanTexture& texture, VkCommandPool cmd_pool, VkQueue graphics)
 {
 	VkCommandBuffer cmd_buf = vkutil::begin_single_time_commands(cmd_pool, m_device);
 	{
@@ -113,12 +114,12 @@ void VulkanBuffer::copy_to_image(VkImage image, u32 width, u32 height, VkCommand
 		region.imageSubresource.baseArrayLayer = 0;
 		region.imageSubresource.layerCount = 1;
 		region.imageOffset = { 0, 0, 0 };
-		region.imageExtent = { width, height, 1 };
+		region.imageExtent = { texture.width(), texture.height(), 1 };
 
 		vkCmdCopyBufferToImage(
 			cmd_buf,
 			m_buffer,
-			image,
+			texture.image(),
 			VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
 			1,
 			&region

@@ -102,7 +102,7 @@ VkFormat vkutil::find_depth_format(VkPhysicalDevice device)
 
 bool vkutil::has_stencil_component(VkFormat format)
 {
-	return format == VK_FORMAT_D32_SFLOAT  || format == VK_FORMAT_D32_SFLOAT_S8_UINT || VK_FORMAT_D24_UNORM_S8_UINT;
+	return (format == VK_FORMAT_D32_SFLOAT) || (format == VK_FORMAT_D32_SFLOAT_S8_UINT) || (format == VK_FORMAT_D24_UNORM_S8_UINT);
 }
 
 VkFormat vkutil::get_vk_texture_format(TextureFormat fmt)

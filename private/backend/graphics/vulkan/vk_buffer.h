@@ -6,6 +6,8 @@
 
 namespace wvn::gfx
 {
+	class VulkanTexture;
+
 	class VulkanBuffer
 	{
 	public:
@@ -18,7 +20,7 @@ namespace wvn::gfx
 		void send_data(const void* data);
 
 		void copy_to(const VulkanBuffer& other, VkCommandPool cmd_pool, VkQueue graphics);
-		void copy_to_image(VkImage image, u32 width, u32 height, VkCommandPool cmd_pool, VkQueue graphics);
+		void copy_to_texture(const VulkanTexture& texture, VkCommandPool cmd_pool, VkQueue graphics);
 
 		VkDevice device() const;
 		VkPhysicalDevice physical_device() const;

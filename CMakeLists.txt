@@ -82,8 +82,6 @@ add_library(${PROJECT_NAME}
 	private/backend/graphics/vulkan/vk_util.cpp
 	private/backend/graphics/vulkan/vk_texture.cpp
 	private/backend/graphics/vulkan/vk_texture_sampler.cpp
-	private/backend/graphics/vulkan/vk_image.cpp
-	private/backend/graphics/vulkan/vk_image_view.cpp
 
 	private/backend/graphics/opengl/opengl_backend.cpp
 

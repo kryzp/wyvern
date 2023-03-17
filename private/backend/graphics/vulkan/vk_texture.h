@@ -3,8 +3,6 @@
 
 #include <vulkan/vulkan.h>
 
-#include <backend/graphics/vulkan/vk_image.h>
-#include <backend/graphics/vulkan/vk_image_view.h>
 #include <backend/graphics/vulkan/vk_buffer.h>
 #include <backend/graphics/vulkan/vk_texture_sampler.h>
 
@@ -26,36 +24,40 @@ namespace wvn::gfx
 
 		void create(const Image& image) override;
 		void create(u32 width, u32 height, TextureFormat format, TextureTiling tiling) override;
-		void create(u32 width, u32 height, TextureFormat format, TextureTiling tiling, VkImageUsageFlags usage, VkImageAspectFlags aspect_flags);
 
-		VulkanImage& image();
-		const VulkanImage& image() const;
+		void transition_layout(VkFormat fmt, VkImageLayout new_layout, VkCommandPool cmd_pool, VkQueue graphics);
 
-		VulkanImageView& view();
-		const VulkanImageView& view() const;
+		VkImage image() const;
+		VkImageView image_view() const;
 
 		VulkanTextureSampler& sampler();
 		const VulkanTextureSampler& sampler() const;
 
 		TextureMetaData meta_data() const override;
 
-		int width() const;
-		int height() const;
+		u32 width() const;
+		u32 height() const;
 
 	private:
+		void create_internal_resources();
+		VkImageView generate_view() const;
+
 		VkDevice m_device;
 		VkPhysicalDevice m_physical_device;
 		VkPhysicalDeviceProperties m_properties;
 
-		VulkanImage m_image;
-		VulkanImageView m_view;
+		VkImage m_image;
+		VkDeviceMemory m_image_memory;
+		VkImageLayout m_image_layout;
+		VkImageView m_view;
+
 		VulkanTextureSampler m_sampler;
 
 		TextureFormat m_format;
 		TextureTiling m_tiling;
 
-		int m_width;
-		int m_height;
+		u32 m_width;
+		u32 m_height;
 	};
 }
 

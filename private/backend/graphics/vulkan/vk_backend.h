@@ -170,8 +170,8 @@ namespace wvn::gfx
 
 		// swap chain
 		VkSwapchainKHR m_swap_chain;
-		Vector<VulkanImage> m_swap_chain_images;
-		Vector<VulkanImageView> m_swap_chain_image_views;
+		Vector<VkImage> m_swap_chain_images;
+		Vector<VkImageView> m_swap_chain_image_views;
 		VkFormat m_swap_chain_image_format;
 		VkExtent2D m_swap_chain_extent;
 		Vector<VkFramebuffer> m_swap_chain_framebuffers;
