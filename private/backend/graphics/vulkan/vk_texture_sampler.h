@@ -4,6 +4,8 @@
 #include <vulkan/vulkan.h>
 #include <wvn/graphics/texture_sampler.h>
 
+// todo: move into the texture class?
+
 namespace wvn::gfx
 {
 	class VulkanTextureSampler

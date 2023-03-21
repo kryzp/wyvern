@@ -4,6 +4,7 @@
 #include <vulkan/vulkan.h>
 #include <wvn/util/types.h>
 #include <wvn/graphics/texture.h>
+#include <wvn/graphics/gpu_buffer.h>
 #include <wvn/container/vector.h>
 
 namespace wvn::gfx
@@ -23,7 +24,6 @@ namespace wvn::gfx
 		VkFormat get_vk_texture_format(TextureFormat fmt);
 		TextureFormat get_wvn_texture_format(VkFormat fmt);
 		VkImageTiling get_vk_texture_tile(TextureTiling tiling);
-		TextureTiling get_wvn_texture_tile(VkImageTiling tiling);
 		VkFilter get_vk_filter(TextureFilter filter);
 		VkSamplerAddressMode get_vk_address_mode(TextureWrap wrap);
 

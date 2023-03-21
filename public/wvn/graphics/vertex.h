@@ -1,7 +1,7 @@
 #ifndef VERTEX_H
 #define VERTEX_H
 
-#include <wvn/maths/vec2.h>
+#include <wvn/maths/vec3.h>
 #include <wvn/maths/colour.h>
 
 namespace wvn::gfx

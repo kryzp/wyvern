@@ -17,7 +17,7 @@ namespace wvn::gfx
 
 	public:
 		TextureMgr();
-		~TextureMgr();
+		virtual ~TextureMgr();
 
 		Ref<Texture> create(const Image& image);
 	};

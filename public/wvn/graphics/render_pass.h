@@ -5,6 +5,7 @@
 #include <wvn/maths/rect.h>
 #include <wvn/container/optional.h>
 
+#include <wvn/graphics/render_target.h>
 #include <wvn/graphics/mesh.h>
 #include <wvn/graphics/material.h>
 
@@ -23,6 +24,7 @@ namespace wvn::gfx
 
 		Ref<Material> material;
 		Ref<Mesh> mesh;
+		Ref<RenderTarget> target;
 	};
 }
 

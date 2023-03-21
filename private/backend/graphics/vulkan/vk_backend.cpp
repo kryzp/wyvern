@@ -18,45 +18,11 @@
 
 /// debug ///
 #include <wvn/io/file_stream.h>
-/// debug ///
-
 #include <wvn/input/input_mgr.h>
+/// debug ///
 
 using namespace wvn;
 using namespace wvn::gfx;
-
-// TEMP //
-static Vertex VERTICES[] = {
-	{ { -0.5f, -0.5f, -0.5f }, { 1.0f, 0.0f }, { 1.0f, 0.0f, 0.0f } },
-	{ {  0.5f, -0.5f, -0.5f }, { 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f } },
-	{ {  0.5f,  0.5f, -0.5f }, { 0.0f, 1.0f }, { 1.0f, 1.0f, 0.0f } },
-	{ { -0.5f,  0.5f, -0.5f }, { 1.0f, 1.0f }, { 0.0f, 1.0f, 1.0f } },
-	{ { -0.5f, -0.5f,  0.5f }, { 1.0f, 0.0f }, { 1.0f, 0.0f, 0.0f } },
-	{ {  0.5f, -0.5f,  0.5f }, { 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f } },
-	{ {  0.5f,  0.5f,  0.5f }, { 0.0f, 1.0f }, { 1.0f, 1.0f, 0.0f } },
-	{ { -0.5f,  0.5f,  0.5f }, { 1.0f, 1.0f }, { 0.0f, 1.0f, 1.0f } },
-};
-
-static u16 INDICES[] = {
-	0, 1, 2,
-	2, 3, 0,
-
-	5, 4, 7,
-	7, 6, 5,
-
-	1, 5, 6,
-	6, 2, 1,
-
-	4, 0, 3,
-	3, 7, 4,
-
-	4, 5, 1,
-	1, 0, 4,
-
-	3, 2, 6,
-	6, 7, 3
-};
-// TEMP //
 
 static const char* VALIDATION_LAYERS[] = {
 	"VK_LAYER_KHRONOS_validation" // idk what the #define macro name for this is
@@ -220,7 +186,6 @@ static VkVertexInputBindingDescription get_vertex_binding_description()
 	result.binding = 0;
 	result.stride = sizeof(Vertex);
 	result.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-
 	return result;
 }
 
@@ -230,9 +195,7 @@ VulkanBackend::VulkanBackend()
 	, m_current_frame(0)
 	, m_command_pool(VK_NULL_HANDLE)
 	, m_command_buffers()
-	, m_staging_buffer()
-	, m_vertex_buffer()
-	, m_index_buffer()
+	, m_staging_buffer(nullptr)
 	, m_uniform_buffers()
 	, m_image_available_semaphores()
 	, m_render_finished_semaphores()
@@ -339,14 +302,17 @@ VulkanBackend::VulkanBackend()
 	create_depth_texture();
 	create_swap_chain_framebuffers();
 	create_texture_image();
-	create_vertex_buffer();
-	create_index_buffer();
 	create_uniform_buffers();
     create_descriptor_pool();
     create_descriptor_sets();
 	create_command_buffers();
 	create_sync_objects();
 
+	m_buffer_mgr = new VulkanBufferMgr(m_logical_data.device, m_physical_data.device, m_command_pool, m_queues.graphics);
+	m_texture_mgr = new VulkanTextureMgr();
+	m_shader_mgr = new VulkanShaderMgr();
+
+	// finished :D
 	dev::LogMgr::get_singleton()->print("[VULKAN] Initialized!");
 }
 
@@ -355,6 +321,10 @@ VulkanBackend::~VulkanBackend()
 	vkDeviceWaitIdle(m_logical_data.device); // sync up
 
 	// //
+
+	delete m_shader_mgr;
+	delete m_texture_mgr;
+	delete m_buffer_mgr;
 
 	clean_up_swap_chain();
 
@@ -369,14 +339,11 @@ VulkanBackend::~VulkanBackend()
 	vkDestroyRenderPass(m_logical_data.device, m_render_pass, nullptr);
 
 	for (u64 i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-		m_uniform_buffers[i].clean_up();
+		m_uniform_buffers[i]->clean_up();
 	}
 
 	vkDestroyDescriptorPool(m_logical_data.device, m_descriptor_pool, nullptr);
 	vkDestroyDescriptorSetLayout(m_logical_data.device, m_descriptor_set_layout, nullptr);
-
-	m_index_buffer.clean_up();
-	m_vertex_buffer.clean_up();
 
 	for (u32 i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
 		vkDestroyFence(m_logical_data.device, m_in_flight_fences[i], nullptr);
@@ -1038,7 +1005,7 @@ void VulkanBackend::create_descriptor_sets()
 
 		// ubo
 		VkDescriptorBufferInfo descriptor_buffer_info = {};
-		descriptor_buffer_info.buffer = m_uniform_buffers[i].buffer();
+		descriptor_buffer_info.buffer = m_uniform_buffers[i]->buffer();
 		descriptor_buffer_info.offset = 0;
 		descriptor_buffer_info.range = sizeof(UniformBufferObject);
 		descriptors[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -1077,68 +1044,20 @@ void VulkanBackend::create_uniform_buffers()
 	VkDeviceSize buffer_size = sizeof(UniformBufferObject);
 	m_uniform_buffers.resize(MAX_FRAMES_IN_FLIGHT);
 
-	for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-		m_uniform_buffers[i].create(
+	for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+	{
+		m_uniform_buffers[i] = create_ref<VulkanBuffer>(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
+
+		m_uniform_buffers[i]->create(
 			m_logical_data.device, m_physical_data.device,
-			buffer_size,
-			VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+			m_command_pool,
+			m_queues.graphics,
+			buffer_size
 		);
 	}
 
 	dev::LogMgr::get_singleton()->print("[VULKAN] Created uniform buffers!");
-}
-
-void VulkanBackend::create_vertex_buffer()
-{
-	VkDeviceSize buffer_size = sizeof(VERTICES[0]) * ARRAY_LENGTH(VERTICES);
-
-	m_staging_buffer.create(
-		m_logical_data.device, m_physical_data.device,
-		buffer_size,
-		VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
-	);
-
-	m_staging_buffer.send_data(VERTICES);
-
-	m_vertex_buffer.create(
-		m_logical_data.device, m_physical_data.device,
-		buffer_size,
-		VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
-	);
-
-	m_staging_buffer.copy_to(m_vertex_buffer, m_command_pool, m_queues.graphics);
-	m_staging_buffer.clean_up();
-
-	dev::LogMgr::get_singleton()->print("[VULKAN] Created vertex buffer!");
-}
-
-void VulkanBackend::create_index_buffer()
-{
-	VkDeviceSize buffer_size = sizeof(INDICES[0]) * ARRAY_LENGTH(INDICES);
-
-	m_staging_buffer.create(
-		m_logical_data.device, m_physical_data.device,
-		buffer_size,
-		VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
-	);
-
-	m_staging_buffer.send_data(INDICES);
-
-	m_index_buffer.create(
-		m_logical_data.device, m_physical_data.device,
-		buffer_size,
-		VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT
-	);
-
-	m_staging_buffer.copy_to(m_index_buffer, m_command_pool, m_queues.graphics);
-	m_staging_buffer.clean_up();
-
-	dev::LogMgr::get_singleton()->print("[VULKAN] Created index buffer!");
 }
 
 void VulkanBackend::create_texture_image()
@@ -1148,14 +1067,17 @@ void VulkanBackend::create_texture_image()
 	m_temp_texture.init(m_logical_data.device, m_physical_data.device, m_physical_data.properties);
 	m_temp_texture.create(temp_image);
 
-	m_staging_buffer.create(
+	m_staging_buffer = create_ref<VulkanBuffer>(VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
+
+	m_staging_buffer->create(
 		m_logical_data.device, m_physical_data.device,
-		temp_image.size(),
-		VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+		m_command_pool,
+		m_queues.graphics,
+		temp_image.size()
 	);
 
-	m_staging_buffer.send_data(temp_image.pixels());
+	m_staging_buffer->write_data(temp_image.pixels(), temp_image.size());
 
 	m_temp_texture.transition_layout(
 		VK_FORMAT_R8G8B8A8_SRGB,
@@ -1164,7 +1086,7 @@ void VulkanBackend::create_texture_image()
 		m_queues.graphics
 	);
 
-	m_staging_buffer.copy_to_texture(
+	m_staging_buffer->copy_to_texture(
 		m_temp_texture,
 		m_command_pool,
 		m_queues.graphics
@@ -1177,9 +1099,9 @@ void VulkanBackend::create_texture_image()
 		m_queues.graphics
 	);
 
-	m_staging_buffer.clean_up();
+	m_staging_buffer->clean_up();
 
-	dev::LogMgr::get_singleton()->print("[VULKAN] Created texture (kitty)!");
+	dev::LogMgr::get_singleton()->print("[VULKAN] Created texture (kitty ;3)!");
 }
 
 void VulkanBackend::create_depth_texture()
@@ -1440,9 +1362,9 @@ void VulkanBackend::render(const RenderPass& pass)
 
 		UniformBufferObject ubo = {};
 		ubo.model = Mat4x4::create_rotation(s, Vec3F(1, 1, 1));
-		ubo.view  = Mat4x4::create_lookat(cam_pos, look_at, Vec3F::up()) * Mat4x4::create_rotation(t, Vec3F::forward());
+		ubo.view  = Mat4x4::create_lookat(cam_pos, look_at, Vec3F::up()) * Mat4x4::create_rotation(t, Vec3F::up());
 		ubo.proj  = Mat4x4::create_perspective(CalcF::PI * 0.25f, ASPECT, 0.01f, 50.0f);
-		m_uniform_buffers[m_current_frame].send_data(&ubo);
+		m_uniform_buffers[m_current_frame]->write_data(&ubo, sizeof(UniformBufferObject));
 	}
 
 	vkResetFences(m_logical_data.device, 1, &m_in_flight_fences[m_current_frame]);
@@ -1461,7 +1383,7 @@ void VulkanBackend::render(const RenderPass& pass)
 		}
 
 		Array<VkClearValue, 2> clear_colours;
-		pass.clear_colour.premultiplied().export_to_float(clear_colours[0].color.float32); // colour attachment { r, g, b, a }
+		pass.clear_colour.premultiplied().export_to_float(clear_colours[0].color.float32); // { r, g, b, a }
 		clear_colours[1].depthStencil = { 1.0f, 0 }; // { depth, stencil }
 
 		VkRenderPassBeginInfo render_pass_begin_info = {};
@@ -1515,20 +1437,24 @@ void VulkanBackend::render(const RenderPass& pass)
 
 		vkCmdBeginRenderPass(current_buffer, &render_pass_begin_info, VK_SUBPASS_CONTENTS_INLINE);
 		{
+			const auto& MESH = pass.mesh;
+			const auto& VBUF = static_cast<VulkanBuffer*>(pass.mesh->vertex_buffer());
+			const auto& IBUF = static_cast<VulkanBuffer*>(pass.mesh->index_buffer());
+
 			vkCmdBindPipeline(current_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_graphics_pipeline);
 
 			vkCmdSetViewport(current_buffer, 0, 1, &viewport);
 			vkCmdSetScissor(current_buffer, 0, 1, &scissor);
 
-			VkBuffer vertex_buffers[] = { m_vertex_buffer.buffer() };
+			VkBuffer vertex_buffers[] = { VBUF->buffer() };
 			VkDeviceSize offsets[] = { 0 };
 
 			vkCmdBindVertexBuffers(current_buffer, 0, 1, vertex_buffers, offsets);
-			vkCmdBindIndexBuffer(current_buffer, m_index_buffer.buffer(), 0, VK_INDEX_TYPE_UINT16);
+			vkCmdBindIndexBuffer(current_buffer, IBUF->buffer(), 0, VK_INDEX_TYPE_UINT16);
 
 			vkCmdBindDescriptorSets(current_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline_layout, 0, 1, &m_descriptor_sets[m_current_frame], 0, nullptr);
 
-			vkCmdDrawIndexed(current_buffer, ARRAY_LENGTH(INDICES), 1, 0, 0, 0);
+			vkCmdDrawIndexed(current_buffer, MESH->indices().size(), 1, 0, 0, 0);
 		}
 		vkCmdEndRenderPass(current_buffer);
 

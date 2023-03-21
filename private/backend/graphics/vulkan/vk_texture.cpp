@@ -125,7 +125,7 @@ void VulkanTexture::transition_layout(VkFormat fmt, VkImageLayout new_layout, Vk
 		}
 		else
 		{
-			WVN_ERROR("[VULKAN:IMAGE|DEBUG] Unsupported layout transition for image.");
+			WVN_ERROR("[VULKAN:TEXTURE|DEBUG] Unsupported layout transition for image.");
 		}
 
 		vkCmdPipelineBarrier(
@@ -168,8 +168,8 @@ void VulkanTexture::create_internal_resources()
 	}
 
 	if (VkResult result = vkCreateImage(m_device, &create_info, nullptr, &m_image); result != VK_SUCCESS) {
-		dev::LogMgr::get_singleton()->print("[VULKAN:IMAGE] Result: %d", result);
-		WVN_ERROR("[VULKAN:IMAGE|DEBUG] Failed to create command pool.");
+		dev::LogMgr::get_singleton()->print("[VULKAN:TEXTURE] Result: %d", result);
+		WVN_ERROR("[VULKAN:TEXTURE|DEBUG] Failed to create command pool.");
 	}
 
 	VkMemoryRequirements memory_requirements = {};
@@ -181,8 +181,8 @@ void VulkanTexture::create_internal_resources()
 	alloc_info.memoryTypeIndex = vkutil::find_memory_type(m_physical_device, memory_requirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
 	if (VkResult result = vkAllocateMemory(m_device, &alloc_info, nullptr, &m_image_memory); result != VK_SUCCESS) {
-		dev::LogMgr::get_singleton()->print("[VULKAN:IMAGE] Result: %d", result);
-		WVN_ERROR("[VULKAN:IMAGE|DEBUG] Failed to allocate memory for image.");
+		dev::LogMgr::get_singleton()->print("[VULKAN:TEXTURE] Result: %d", result);
+		WVN_ERROR("[VULKAN:TEXTURE|DEBUG] Failed to allocate memory for image.");
 	}
 
 	vkBindImageMemory(m_device, m_image, m_image_memory, 0);
@@ -218,8 +218,8 @@ VkImageView VulkanTexture::generate_view() const
 	VkImageView ret = {};
 
 	if (VkResult result = vkCreateImageView(m_device, &view_info, nullptr, &ret); result != VK_SUCCESS) {
-		dev::LogMgr::get_singleton()->print("[VULKAN] Result: %d", result);
-		WVN_ERROR("[VULKAN|DEBUG] Failed to create texture image view.");
+		dev::LogMgr::get_singleton()->print("[VULKAN:TEXTURE] Result: %d", result);
+		WVN_ERROR("[VULKAN|DEBUG:TEXTURE] Failed to create texture image view.");
 	}
 
 	return ret;

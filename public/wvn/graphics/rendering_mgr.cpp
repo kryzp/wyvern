@@ -11,6 +11,39 @@ WVN_IMPL_SINGLETON(RenderingMgr);
 RenderingMgr::RenderingMgr()
 {
 	dev::LogMgr::get_singleton()->print("[RENDERING] Initialized!");
+
+	Vector<Vertex> box_vertices = {
+		{ { -0.5f, -0.5f, -0.5f }, { 1.0f, 0.0f }, { 1.0f, 0.0f, 0.0f } },
+		{ {  0.5f, -0.5f, -0.5f }, { 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f } },
+		{ {  0.5f,  0.5f, -0.5f }, { 0.0f, 1.0f }, { 1.0f, 1.0f, 0.0f } },
+		{ { -0.5f,  0.5f, -0.5f }, { 1.0f, 1.0f }, { 0.0f, 1.0f, 1.0f } },
+		{ { -0.5f, -0.5f,  0.5f }, { 1.0f, 0.0f }, { 1.0f, 0.0f, 0.0f } },
+		{ {  0.5f, -0.5f,  0.5f }, { 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f } },
+		{ {  0.5f,  0.5f,  0.5f }, { 0.0f, 1.0f }, { 1.0f, 1.0f, 0.0f } },
+		{ { -0.5f,  0.5f,  0.5f }, { 1.0f, 1.0f }, { 0.0f, 1.0f, 1.0f } },
+	};
+
+	Vector<u16> box_indices = {
+		0, 1, 2,
+		2, 3, 0,
+
+		5, 4, 7,
+		7, 6, 5,
+
+		1, 5, 6,
+		6, 2, 1,
+
+		4, 0, 3,
+		3, 7, 4,
+
+		4, 5, 1,
+		1, 0, 4,
+
+		3, 2, 6,
+		6, 7, 3
+	};
+
+	m = create_ref<Mesh>(box_vertices, box_indices);
 }
 
 RenderingMgr::~RenderingMgr()
@@ -24,19 +57,10 @@ void RenderingMgr::render_scene()
 
 	renderer->wait_for_sync();
 
-	static float time = 0.0f;
-	time += 1.0f / 500.0f;
-
-	RenderPass pass = {
-		.clear_colour = Colour(
-			(CalcF::cos(time * 4.0f) + 1.0f) * 0.5f * 255.0f,
-			(CalcF::sin(time * CalcF::PI) + 1.0f) * 0.5f * 255.0f,
-			(CalcF::sin(time * 2.0f + 3.0f) + 1.0f) * 0.5f * 255.0f,
-			255
-		)
-	};
-
-	renderer->render(pass);
+	renderer->render({
+		.clear_colour = Colour::black(),
+		.mesh = m
+	});
 }
 
 void RenderingMgr::swap_buffers()

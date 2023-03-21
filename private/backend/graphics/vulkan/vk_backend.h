@@ -13,6 +13,10 @@
 #include <backend/graphics/vulkan/vk_buffer.h>
 #include <backend/graphics/vulkan/vk_texture.h>
 
+#include <backend/graphics/vulkan/vk_buffer_mgr.h>
+#include <backend/graphics/vulkan/vk_texture_mgr.h>
+#include <backend/graphics/vulkan/vk_shader_mgr.h>
+
 #include <wvn/maths/mat4x4.h>
 
 namespace wvn::gfx
@@ -118,8 +122,8 @@ namespace wvn::gfx
 		void create_command_pool(const QueueFamilyIdx& phys_idx);
 		void create_command_buffers();
 		void create_sync_objects();
-		void create_vertex_buffer();
-		void create_index_buffer();
+		//void create_vertex_buffer();
+		//void create_index_buffer();
 		void create_descriptor_set_layout();
 		void create_uniform_buffers();
         void create_descriptor_pool();
@@ -144,15 +148,18 @@ namespace wvn::gfx
 		VkSurfaceKHR m_surface;
 		u64 m_current_frame;
 
+		// mgrs
+		VulkanBufferMgr* m_buffer_mgr;
+		VulkanTextureMgr* m_texture_mgr;
+		VulkanShaderMgr* m_shader_mgr;
+
 		// commands
 		VkCommandPool m_command_pool;
 		Vector<VkCommandBuffer> m_command_buffers;
 
 		// vertex stuff
-		VulkanBuffer m_staging_buffer;
-		VulkanBuffer m_vertex_buffer;
-		VulkanBuffer m_index_buffer;
-		Vector<VulkanBuffer> m_uniform_buffers;
+		Ref<VulkanBuffer> m_staging_buffer;
+		Vector<Ref<VulkanBuffer>> m_uniform_buffers;
 
 		// sync
 		Vector<VkSemaphore> m_image_available_semaphores;

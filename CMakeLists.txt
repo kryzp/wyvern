@@ -34,10 +34,14 @@ add_library(${PROJECT_NAME}
 	public/wvn/graphics/mesh_mgr.cpp
 	public/wvn/graphics/texture.cpp
 	public/wvn/graphics/texture_mgr.cpp
+	public/wvn/graphics/shader.cpp
+	public/wvn/graphics/shader_mgr.cpp
 	public/wvn/graphics/render_target.cpp
 	public/wvn/graphics/font.cpp
 	public/wvn/graphics/image.cpp
 	public/wvn/graphics/material.cpp
+	public/wvn/graphics/gpu_buffer.cpp
+	public/wvn/graphics/gpu_buffer_mgr.cpp
 
 	public/wvn/network/network_mgr.cpp
 	public/wvn/network/ip_address.cpp
@@ -79,9 +83,12 @@ add_library(${PROJECT_NAME}
 
 	private/backend/graphics/vulkan/vk_backend.cpp
 	private/backend/graphics/vulkan/vk_buffer.cpp
+	private/backend/graphics/vulkan/vk_buffer_mgr.cpp
 	private/backend/graphics/vulkan/vk_util.cpp
 	private/backend/graphics/vulkan/vk_texture.cpp
+	private/backend/graphics/vulkan/vk_texture_mgr.cpp
 	private/backend/graphics/vulkan/vk_texture_sampler.cpp
+	private/backend/graphics/vulkan/vk_shader_mgr.cpp
 
 	private/backend/graphics/opengl/opengl_backend.cpp
 

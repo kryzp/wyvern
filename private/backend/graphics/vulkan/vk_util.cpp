@@ -155,20 +155,6 @@ VkImageTiling vkutil::get_vk_texture_tile(TextureTiling tiling)
 	}
 }
 
-TextureTiling vkutil::get_wvn_texture_tile(VkImageTiling tiling)
-{
-	switch (tiling)
-	{
-		case VK_IMAGE_TILING_LINEAR:
-			return TEX_TILE_LINEAR;
-		case VK_IMAGE_TILING_OPTIMAL:
-			return TEX_TILE_OPTIMAL;
-		default:
-		WVN_ERROR("[VULKAN:UTIL|DEBUG] Failed to find TextureTiling given VkImageTiling.");
-			return TEX_TILE_MAX;
-	}
-}
-
 VkFilter vkutil::get_vk_filter(TextureFilter filter)
 {
 	switch (filter)
@@ -209,7 +195,7 @@ VkCommandBuffer vkutil::begin_single_time_commands(VkCommandPool cmd_pool, VkDev
 
 	if (VkResult result = vkAllocateCommandBuffers(device, &alloc_info, &cmd_buf); result != VK_SUCCESS) {
 		dev::LogMgr::get_singleton()->print("[VULKAN] Result: %d", result);
-		WVN_ERROR("[VULKAN|DEBUG] Failed to reallocate command buffers when copying buffer.");
+		WVN_ERROR("[VULKAN:UTIL|DEBUG] Failed to reallocate command buffers when copying buffer.");
 	}
 
 	VkCommandBufferBeginInfo begin_info = {};
@@ -218,7 +204,7 @@ VkCommandBuffer vkutil::begin_single_time_commands(VkCommandPool cmd_pool, VkDev
 
 	if (VkResult result = vkBeginCommandBuffer(cmd_buf, &begin_info); result != VK_SUCCESS) {
 		dev::LogMgr::get_singleton()->print("[VULKAN] Result: %d", result);
-		WVN_ERROR("[VULKAN|DEBUG] Failed to begin command buffer when copying buffer.");
+		WVN_ERROR("[VULKAN:UTIL|DEBUG] Failed to begin command buffer when copying buffer.");
 	}
 
 	return cmd_buf;
