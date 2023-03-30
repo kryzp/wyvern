@@ -1,7 +1,8 @@
 #include <wvn/graphics/rendering_mgr.h>
 #include <wvn/graphics/renderer_backend.h>
-#include <wvn/root.h>
+#include <wvn/graphics/texture_mgr.h>
 #include <wvn/devenv/log_mgr.h>
+#include <wvn/root.h>
 
 using namespace wvn;
 using namespace wvn::gfx;
@@ -10,8 +11,6 @@ WVN_IMPL_SINGLETON(RenderingMgr);
 
 RenderingMgr::RenderingMgr()
 {
-	dev::LogMgr::get_singleton()->print("[RENDERING] Initialized!");
-
 	Vector<Vertex> box_vertices = {
 		{ { -0.5f, -0.5f, -0.5f }, { 1.0f, 0.0f }, { 1.0f, 0.0f, 0.0f } },
 		{ {  0.5f, -0.5f, -0.5f }, { 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f } },
@@ -43,7 +42,10 @@ RenderingMgr::RenderingMgr()
 		6, 7, 3
 	};
 
-	m = create_ref<Mesh>(box_vertices, box_indices);
+	m = new Mesh(box_vertices, box_indices);
+	t = TextureMgr::get_singleton()->create("../images/kitty.png");
+
+	dev::LogMgr::get_singleton()->print("[RENDERING] Initialized!");
 }
 
 RenderingMgr::~RenderingMgr()
@@ -55,7 +57,7 @@ void RenderingMgr::render_scene()
 {
 	auto* renderer = Root::get_singleton()->renderer_backend();
 
-	renderer->wait_for_sync();
+	renderer->set_texture(0, t);
 
 	renderer->render({
 		.clear_colour = Colour::black(),
@@ -65,4 +67,5 @@ void RenderingMgr::render_scene()
 
 void RenderingMgr::swap_buffers()
 {
+	Root::get_singleton()->renderer_backend()->swap_buffers();
 }

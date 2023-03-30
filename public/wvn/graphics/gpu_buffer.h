@@ -1,6 +1,7 @@
 #ifndef HARDWARE_BUFFER_H
 #define HARDWARE_BUFFER_H
 
+#include <wvn/graphics/texture.h>
 #include <wvn/util/types.h>
 
 namespace wvn::gfx
@@ -27,6 +28,7 @@ namespace wvn::gfx
 		virtual void read_data(void* dst, u64 length) = 0;
 		virtual void write_data(const void* src, u64 length) = 0;
 		virtual void write_to(const GPUBuffer* dst, u64 length) = 0;
+		virtual void write_to_tex(const Texture* texture, u64 size) = 0;
 
 		virtual GPUBufferUsage usage() const = 0;
 	};

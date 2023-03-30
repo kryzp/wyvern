@@ -4,7 +4,6 @@
 #include <wvn/maths/calc.h>
 #include <wvn/maths/mat3x2.h>
 #include <wvn/maths/random.h>
-#include <wvn/root.h>
 
 namespace wvn
 {
@@ -42,7 +41,6 @@ namespace wvn
 		static const Vec2& up();
 		static const Vec2& down();
 
-		static Vec2 random_unit();
 		static Vec2 transform(const Vec2& vec, const Mat3x2& mat);
 		static T dot(const Vec2& a, const Vec2& b);
 		static Vec2 from_angle(float angle, float length);
@@ -110,12 +108,6 @@ namespace wvn
 	{
 	}
 
-	template <typename T>
-	Vec2<T> Vec2<T>::random_unit()
-	{
-		return from_angle(Root::get_singleton()->random.real32(0.0, Calc<T>::TAU), 1.0);
-	}
-	
 	template <typename T>
 	Vec2<T> Vec2<T>::transform(const Vec2& vec, const Mat3x2& mat)
 	{

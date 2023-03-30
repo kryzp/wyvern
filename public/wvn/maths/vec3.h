@@ -5,7 +5,6 @@
 #include <wvn/maths/random.h>
 #include <wvn/maths/vec2.h>
 #include <wvn/maths/mat4x3.h>
-#include <wvn/root.h>
 
 namespace wvn
 {
@@ -45,10 +44,9 @@ namespace wvn
 		static const Vec3& right();
 		static const Vec3& up();
 		static const Vec3& down();
-		static const Vec3& forward(); // todo: maybe rename to fwd()?
-		static const Vec3& backward(); // todo: maybe rename to bwd()?
+		static const Vec3& forward();
+		static const Vec3& backward();
 
-		static Vec3 random_unit();
 		static Vec3 from_angle(float theta, float phi, float radius);
 		static T dot(const Vec3& a, const Vec3& b);
 		static Vec3 cross(const Vec3& a, const Vec3& b);
@@ -125,22 +123,12 @@ namespace wvn
 	}
 
 	template <typename T>
-	Vec3<T> Vec3<T>::random_unit()
-	{
-		return from_angle(
-			Root::get_singleton()->random.real32(0.0, Calc<T>::TAU),
-			Root::get_singleton()->random.real32(0.0, Calc<T>::TAU),
-			1.0
-		);
-	}
-
-	template <typename T>
 	Vec3<T> Vec3<T>::from_angle(float theta, float phi, float radius)
 	{
 		return Vec3(
 			radius * Calc<T>::cos(theta) * Calc<T>::cos(phi),
 			radius * Calc<T>::sin(theta),
-			radius * Calc<T>::cos(theta) * Calc<T>::sin(theta)
+			radius * Calc<T>::cos(theta) * Calc<T>::sin(phi)
 		);
 	}
 

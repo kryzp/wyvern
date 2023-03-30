@@ -1,4 +1,5 @@
 #include <backend/graphics/vulkan/vk_texture.h>
+#include <backend/graphics/vulkan/vk_backend.h>
 #include <backend/graphics/vulkan/vk_util.h>
 #include <wvn/devenv/log_mgr.h>
 
@@ -6,9 +7,7 @@ using namespace wvn;
 using namespace wvn::gfx;
 
 VulkanTexture::VulkanTexture()
-	: m_device(VK_NULL_HANDLE)
-	, m_physical_device(VK_NULL_HANDLE)
-	, m_properties()
+	: m_backend(nullptr)
 	, m_image(VK_NULL_HANDLE)
 	, m_image_memory(VK_NULL_HANDLE)
 	, m_image_layout()
@@ -26,11 +25,9 @@ VulkanTexture::~VulkanTexture()
 	clean_up();
 }
 
-void VulkanTexture::init(VkDevice device, VkPhysicalDevice physical_device, VkPhysicalDeviceProperties properties)
+void VulkanTexture::init(VulkanBackend* backend)
 {
-	m_device = device;
-	m_physical_device = physical_device;
-	m_properties = properties;
+	this->m_backend = backend;
 }
 
 void VulkanTexture::clean_up()
@@ -40,8 +37,8 @@ void VulkanTexture::clean_up()
 	if (m_image != VK_NULL_HANDLE ||
 		m_image_memory != VK_NULL_HANDLE)
 	{
-		vkDestroyImage(m_device, m_image, nullptr);
-		vkFreeMemory(m_device, m_image_memory, nullptr);
+		vkDestroyImage(m_backend->device, m_image, nullptr);
+		vkFreeMemory(m_backend->device, m_image_memory, nullptr);
 
 		m_image = VK_NULL_HANDLE;
 		m_image_memory = VK_NULL_HANDLE;
@@ -49,7 +46,7 @@ void VulkanTexture::clean_up()
 
 	if (m_view != VK_NULL_HANDLE)
 	{
-		vkDestroyImageView(m_device, m_view, nullptr);
+		vkDestroyImageView(m_backend->device, m_view, nullptr);
 
 		m_view = VK_NULL_HANDLE;
 	}
@@ -70,12 +67,14 @@ void VulkanTexture::create(u32 width, u32 height, TextureFormat format, TextureT
 
 	create_internal_resources();
 
-	m_sampler.create(m_device, m_properties, TextureSampler(TEX_FILTER_LINEAR, TEX_WRAP_CLAMP, TEX_WRAP_CLAMP, TEX_WRAP_CLAMP));
+	m_sampler.filter = TEX_FILTER_LINEAR;
+	m_sampler.wrap_x = m_sampler.wrap_y = m_sampler.wrap_z = TEX_WRAP_CLAMP;
+	m_sampler.create(m_backend->device, m_backend->physical_data.properties);
 }
 
-void VulkanTexture::transition_layout(VkFormat fmt, VkImageLayout new_layout, VkCommandPool cmd_pool, VkQueue graphics)
+void VulkanTexture::transition_layout(VkImageLayout new_layout)
 {
-	VkCommandBuffer cmd_buf = vkutil::begin_single_time_commands(cmd_pool, m_device);
+	VkCommandBuffer cmd_buf = vkutil::begin_single_time_commands(m_backend->command_pools[m_backend->frame()], m_backend->device);
 	{
 		VkImageMemoryBarrier barrier = {};
 		barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -139,7 +138,7 @@ void VulkanTexture::transition_layout(VkFormat fmt, VkImageLayout new_layout, Vk
 
 		m_image_layout = new_layout;
 	}
-	vkutil::end_single_time_commands(cmd_pool, cmd_buf, m_device, graphics);
+	vkutil::end_single_time_commands(m_backend->command_pools[m_backend->frame()], cmd_buf, m_backend->device, m_backend->queues.graphics);
 }
 
 void VulkanTexture::create_internal_resources()
@@ -167,25 +166,25 @@ void VulkanTexture::create_internal_resources()
 		create_info.usage |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
 	}
 
-	if (VkResult result = vkCreateImage(m_device, &create_info, nullptr, &m_image); result != VK_SUCCESS) {
+	if (VkResult result = vkCreateImage(m_backend->device, &create_info, nullptr, &m_image); result != VK_SUCCESS) {
 		dev::LogMgr::get_singleton()->print("[VULKAN:TEXTURE] Result: %d", result);
 		WVN_ERROR("[VULKAN:TEXTURE|DEBUG] Failed to create command pool.");
 	}
 
 	VkMemoryRequirements memory_requirements = {};
-	vkGetImageMemoryRequirements(m_device, m_image, &memory_requirements);
+	vkGetImageMemoryRequirements(m_backend->device, m_image, &memory_requirements);
 
 	VkMemoryAllocateInfo alloc_info = {};
 	alloc_info.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 	alloc_info.allocationSize = memory_requirements.size;
-	alloc_info.memoryTypeIndex = vkutil::find_memory_type(m_physical_device, memory_requirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+	alloc_info.memoryTypeIndex = vkutil::find_memory_type(m_backend->physical_data.device, memory_requirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-	if (VkResult result = vkAllocateMemory(m_device, &alloc_info, nullptr, &m_image_memory); result != VK_SUCCESS) {
+	if (VkResult result = vkAllocateMemory(m_backend->device, &alloc_info, nullptr, &m_image_memory); result != VK_SUCCESS) {
 		dev::LogMgr::get_singleton()->print("[VULKAN:TEXTURE] Result: %d", result);
 		WVN_ERROR("[VULKAN:TEXTURE|DEBUG] Failed to allocate memory for image.");
 	}
 
-	vkBindImageMemory(m_device, m_image, m_image_memory, 0);
+	vkBindImageMemory(m_backend->device, m_image, m_image_memory, 0);
 
 	m_view = generate_view();
 }
@@ -217,7 +216,7 @@ VkImageView VulkanTexture::generate_view() const
 
 	VkImageView ret = {};
 
-	if (VkResult result = vkCreateImageView(m_device, &view_info, nullptr, &ret); result != VK_SUCCESS) {
+	if (VkResult result = vkCreateImageView(m_backend->device, &view_info, nullptr, &ret); result != VK_SUCCESS) {
 		dev::LogMgr::get_singleton()->print("[VULKAN:TEXTURE] Result: %d", result);
 		WVN_ERROR("[VULKAN|DEBUG:TEXTURE] Failed to create texture image view.");
 	}

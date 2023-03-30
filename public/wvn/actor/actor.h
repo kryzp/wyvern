@@ -17,8 +17,6 @@ namespace wvn::act
 	class Actor
 	{
 		friend class ActorHandle;
-
-		// todo: this will become friend class Scene once scenes are properly implemented
 		friend class ActorMgr;
 
 	public:

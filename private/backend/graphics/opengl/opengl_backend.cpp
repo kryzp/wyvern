@@ -19,14 +19,22 @@ RendererBackendProperties OpenGLBackend::properties()
 	return properties;
 }
 
-void OpenGLBackend::render(const RenderPass& pass)
+void OpenGLBackend::set_texture(u32 idx, const Texture* texture)
 {
 }
 
-void OpenGLBackend::wait_for_sync()
+void OpenGLBackend::set_sampler(u32 idx, const TextureSampler& sampler)
 {
 }
 
 void OpenGLBackend::on_window_resize(int width, int height)
+{
+}
+
+void OpenGLBackend::render(const RenderPass& pass)
+{
+}
+
+void OpenGLBackend::swap_buffers()
 {
 }

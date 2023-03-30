@@ -10,7 +10,7 @@ namespace wvn::gfx
 	class VulkanBufferMgr : public GPUBufferMgr
 	{
 	public:
-		VulkanBufferMgr(VkDevice device, VkPhysicalDevice physical_device, VkCommandPool command_pool, VkQueue graphics_queue);
+		VulkanBufferMgr(VulkanBackend* backend);
 		~VulkanBufferMgr() override;
 
 		GPUBuffer* create_staging_buffer(u64 size) override;
@@ -18,10 +18,7 @@ namespace wvn::gfx
 		GPUBuffer* create_index_buffer(u64 index_count) override;
 
 	private:
-		VkDevice m_device;
-		VkPhysicalDevice m_physical_device;
-		VkCommandPool m_command_pool;
-		VkQueue m_graphics_queue;
+		VulkanBackend* m_backend;
 
 		Vector<GPUBuffer*> m_vertex_buffers;
 		Vector<GPUBuffer*> m_index_buffers;

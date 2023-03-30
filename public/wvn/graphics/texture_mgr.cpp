@@ -12,7 +12,3 @@ TextureMgr::TextureMgr()
 TextureMgr::~TextureMgr()
 {
 }
-
-Ref<Texture> TextureMgr::create(const wvn::gfx::Image& image)
-{
-}

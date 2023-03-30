@@ -19,7 +19,8 @@ namespace wvn::gfx
 		TextureMgr();
 		virtual ~TextureMgr();
 
-		Ref<Texture> create(const Image& image);
+		virtual Texture* create(const Image& image) = 0;
+		virtual Texture* create(u32 width, u32 height, TextureFormat format, TextureTiling tiling, const byte* data, u64 size) = 0;
 	};
 }
 #endif // TEXTURE_MGR_H

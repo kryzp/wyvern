@@ -15,8 +15,10 @@ namespace wvn::gfx
 		RendererBackendProperties properties() override;
 
 		void render(const RenderPass& pass) override;
+		void swap_buffers() override;
 
-		void wait_for_sync() override;
+		void set_texture(u32 idx, const Texture* texture) override;
+		void set_sampler(u32 idx, const TextureSampler& sampler) override;
 
 		void on_window_resize(int width, int height) override;
 	};

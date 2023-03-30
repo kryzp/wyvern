@@ -50,7 +50,7 @@ namespace wvn::gfx
 
 		struct Atlas
 		{
-			Ref<Texture> texture;
+			Texture* texture;
 		};
 
 		Font();
@@ -67,7 +67,7 @@ namespace wvn::gfx
 
 		const Info& info() const;
 		const Atlas& atlas() const;
-		const Character& character(int idx) const;
+		const Character& character(char ch) const;
 
 	private:
 		Info m_info;

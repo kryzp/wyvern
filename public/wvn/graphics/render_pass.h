@@ -4,6 +4,7 @@
 #include <wvn/maths/colour.h>
 #include <wvn/maths/rect.h>
 #include <wvn/container/optional.h>
+#include <wvn/camera.h>
 
 #include <wvn/graphics/render_target.h>
 #include <wvn/graphics/mesh.h>
@@ -17,14 +18,14 @@ namespace wvn::gfx
 	 */
 	struct RenderPass
 	{
-		Colour clear_colour;
-
+		Optional<Colour> clear_colour;
 		Optional<RectF> viewport;
 		Optional<RectI> scissor;
 
-		Ref<Material> material;
-		Ref<Mesh> mesh;
-		Ref<RenderTarget> target;
+		Camera* camera;
+		Material* material;
+		Mesh* mesh;
+		RenderTarget* target;
 	};
 }
 

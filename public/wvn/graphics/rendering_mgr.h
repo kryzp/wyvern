@@ -3,6 +3,7 @@
 
 #include <wvn/util/singleton.h>
 #include <wvn/graphics/mesh.h>
+#include <wvn/graphics/texture.h>
 
 namespace wvn::gfx
 {
@@ -21,7 +22,8 @@ namespace wvn::gfx
 		void render_scene();
 		void swap_buffers();
 
-		Ref<Mesh> m;
+		Mesh* m;
+		Texture* t;
 	};
 }
 

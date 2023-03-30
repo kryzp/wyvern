@@ -46,6 +46,6 @@ namespace wvn::dev
 	};
 }
 
-#define WVN_PROFILE(name) ::wvn::dev::AutoProfiler p(name);
+#define WVN_PROFILE(name) ::wvn::dev::AutoProfiler __wvn_profiler_scope(name);
 
 #endif // PROFILER_H

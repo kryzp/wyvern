@@ -19,13 +19,13 @@ namespace wvn::gfx
 		VulkanTexture();
 		~VulkanTexture() override;
 
-		void init(VkDevice device, VkPhysicalDevice physical_device, VkPhysicalDeviceProperties properties);
+		void init(VulkanBackend* backend);
 		void clean_up();
 
-		void create(const Image& image) override;
-		void create(u32 width, u32 height, TextureFormat format, TextureTiling tiling) override;
+		void create(const Image& image);
+		void create(u32 width, u32 height, TextureFormat format, TextureTiling tiling);
 
-		void transition_layout(VkFormat fmt, VkImageLayout new_layout, VkCommandPool cmd_pool, VkQueue graphics);
+		void transition_layout(VkImageLayout new_layout);
 
 		VkImage image() const;
 		VkImageView image_view() const;
@@ -33,18 +33,16 @@ namespace wvn::gfx
 		VulkanTextureSampler& sampler();
 		const VulkanTextureSampler& sampler() const;
 
-		TextureMetaData meta_data() const override;
+		u32 width() const override;
+		u32 height() const override;
 
-		u32 width() const;
-		u32 height() const;
+		TextureMetaData meta_data() const override;
 
 	private:
 		void create_internal_resources();
 		VkImageView generate_view() const;
 
-		VkDevice m_device;
-		VkPhysicalDevice m_physical_device;
-		VkPhysicalDeviceProperties m_properties;
+		VulkanBackend* m_backend;
 
 		VkImage m_image;
 		VkDeviceMemory m_image_memory;

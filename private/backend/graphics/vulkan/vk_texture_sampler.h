@@ -4,19 +4,18 @@
 #include <vulkan/vulkan.h>
 #include <wvn/graphics/texture_sampler.h>
 
-// todo: move into the texture class?
-
 namespace wvn::gfx
 {
-	class VulkanTextureSampler
+	class VulkanTextureSampler : public TextureSampler
 	{
 	public:
 		VulkanTextureSampler();
+		VulkanTextureSampler(TextureFilter filter, TextureWrap wrap_x, TextureWrap wrap_y, TextureWrap wrap_z);
 		~VulkanTextureSampler();
 
 		void clean_up();
 
-		void create(VkDevice device, VkPhysicalDeviceProperties properties, const TextureSampler& style);
+		void create(VkDevice device, VkPhysicalDeviceProperties properties);
 
 		VkSampler sampler() const;
 

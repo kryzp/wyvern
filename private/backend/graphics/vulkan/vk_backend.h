@@ -4,6 +4,7 @@
 #include <vulkan/vulkan.h>
 
 #include <wvn/container/vector.h>
+#include <wvn/container/array.h>
 #include <wvn/container/optional.h>
 
 #include <wvn/root.h>
@@ -76,11 +77,6 @@ namespace wvn::gfx
 		VkQueue transfer;
 	};
 
-	struct LogicalDeviceData
-	{
-		VkDevice device;
-	};
-
 	struct PhysicalDeviceData
 	{
 		VkPhysicalDevice device;
@@ -97,6 +93,19 @@ namespace wvn::gfx
 
 	class VulkanBackend : public RendererBackend
 	{
+		struct FrameData // todo: not implemented yet but just replace all the messy arrays with just one array of this struct :)))
+		{
+			Ref<VulkanBuffer> uniform_buffer;
+			VkFence in_flight_fence;
+			VkSemaphore render_finished_semaphore;
+			VkSemaphore image_available_semaphore;
+			VkCommandPool command_pool;
+			VkCommandBuffer command_buffer;
+		};
+
+		// something like:
+		// Array<FrameData, MAX_FRAMES_IN_FLIGHT> m_frame_data;
+
 	public:
 		VulkanBackend();
 		~VulkanBackend() override;
@@ -104,14 +113,21 @@ namespace wvn::gfx
 		RendererBackendProperties properties() override;
 
 		void render(const RenderPass& pass) override;
-
-		void wait_for_sync() override;
+		void swap_buffers() override;
+		void wait_for_sync();
 
 		void on_window_resize(int width, int height) override;
 
-		const LogicalDeviceData& logical_data() const;
-		const PhysicalDeviceData& physical_data() const;
-		const QueueData& queues() const;
+		void set_texture(u32 idx, const Texture* texture) override;
+		void set_sampler(u32 idx, const TextureSampler& sampler) override;
+
+		u64 frame() const;
+
+		VkDevice device;
+		PhysicalDeviceData physical_data;
+		QueueData queues;
+
+		Vector<VkCommandPool> command_pools;
 
 	private:
 		void enumerate_physical_devices();
@@ -119,21 +135,22 @@ namespace wvn::gfx
 		void create_swap_chain(const QueueFamilyIdx& phys_idx);
 		void create_graphics_pipeline();
 		void create_render_pass();
-		void create_command_pool(const QueueFamilyIdx& phys_idx);
+		void create_command_pools(const QueueFamilyIdx& phys_idx);
 		void create_command_buffers();
 		void create_sync_objects();
-		//void create_vertex_buffer();
-		//void create_index_buffer();
 		void create_descriptor_set_layout();
 		void create_uniform_buffers();
         void create_descriptor_pool();
         void create_descriptor_sets();
-		void create_texture_image();
 		void create_depth_texture();
 		void create_image_views();
 		void clean_up_swap_chain();
 		void rebuild_swap_chain();
 		void create_swap_chain_framebuffers();
+		void acquire_next_image();
+
+		const Vector<VkDescriptorSet>& get_descriptor_sets();
+		void update_descriptor_sets();
 
 		u32 assign_physical_device_usability(VkPhysicalDevice device, VkPhysicalDeviceProperties properties, VkPhysicalDeviceFeatures features, bool* essentials_completed);
 		QueueFamilyIdx find_queue_families(VkPhysicalDevice device);
@@ -147,19 +164,13 @@ namespace wvn::gfx
 		VkInstance m_instance;
 		VkSurfaceKHR m_surface;
 		u64 m_current_frame;
+		Vector<VkCommandBuffer> m_command_buffers;
+		Vector<Ref<VulkanBuffer>> m_uniform_buffers;
 
 		// mgrs
 		VulkanBufferMgr* m_buffer_mgr;
 		VulkanTextureMgr* m_texture_mgr;
 		VulkanShaderMgr* m_shader_mgr;
-
-		// commands
-		VkCommandPool m_command_pool;
-		Vector<VkCommandBuffer> m_command_buffers;
-
-		// vertex stuff
-		Ref<VulkanBuffer> m_staging_buffer;
-		Vector<Ref<VulkanBuffer>> m_uniform_buffers;
 
 		// sync
 		Vector<VkSemaphore> m_image_available_semaphores;
@@ -174,6 +185,8 @@ namespace wvn::gfx
 		VkDescriptorSetLayout m_descriptor_set_layout;
         VkDescriptorPool m_descriptor_pool;
         Vector<VkDescriptorSet> m_descriptor_sets;
+		Array<VkWriteDescriptorSet, 2> m_descriptor_writes;
+		Array<VkDescriptorImageInfo, 1> m_image_infos;
 
 		// swap chain
 		VkSwapchainKHR m_swap_chain;
@@ -182,11 +195,7 @@ namespace wvn::gfx
 		VkFormat m_swap_chain_image_format;
 		VkExtent2D m_swap_chain_extent;
 		Vector<VkFramebuffer> m_swap_chain_framebuffers;
-
-		// data
-		QueueData m_queues;
-		LogicalDeviceData m_logical_data;
-		PhysicalDeviceData m_physical_data;
+		u32 m_curr_image_idx;
 
 		// depth
 		VulkanTexture m_depth;
@@ -194,7 +203,6 @@ namespace wvn::gfx
 		// TEMP //
 		VkShaderModule m_temp_vert_module;
 		VkShaderModule m_temp_frag_module;
-		VulkanTexture m_temp_texture;
 		// TEMP //
 
 #if WVN_DEBUG

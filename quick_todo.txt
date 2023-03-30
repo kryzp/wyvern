@@ -1,5 +1,6 @@
 * Make a documentation!!!!!
 * Create testing programs, so I stop introducing bugs with every new change :/
+* tons of // todo to do (:/)
 
 - [~] Actor System
   - [~] Actor Manager

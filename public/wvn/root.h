@@ -5,8 +5,7 @@
 #include <wvn/container/function.h>
 #include <wvn/util/singleton.h>
 #include <wvn/maths/random.h>
-
-//#include <wvn/camera.h>
+#include <wvn/camera.h>
 
 namespace wvn
 {
@@ -87,6 +86,7 @@ namespace wvn
 		void add_plugin(plug::Plugin* plugin);
 
 		Random<> random;
+		Camera main_camera;
 
 	private:
 		void install_plugins();

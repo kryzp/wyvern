@@ -109,7 +109,7 @@ Root::~Root()
 
 	dev::LogMgr::get_singleton()->print("[ROOT] Destroyed!");
 
-	delete dev::LogMgr::get_singleton();
+	delete dev::LogMgr ::get_singleton();
 	delete dev::Console::get_singleton();
 
 	uninstall_plugins();
@@ -153,8 +153,9 @@ void Root::run()
 
 void Root::exit()
 {
-	if (m_config.on_exit)
+	if (m_config.on_exit) {
 		m_config.on_exit();
+	}
 
 	m_running = false;
 }

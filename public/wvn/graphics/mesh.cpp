@@ -16,7 +16,7 @@ Mesh::Mesh(const Vector<Vertex>& vtx, const Vector<u16>& idx)
 	m_vertex_buffer = GPUBufferMgr::get_singleton()->create_vertex_buffer(vtx.size());
 	m_index_buffer = GPUBufferMgr::get_singleton()->create_index_buffer(idx.size());
 
-	// temp: just to get something working
+	// todo temp: just to get something working (will be moved to meshmgr)
 	GPUBuffer* stage = GPUBufferMgr::get_singleton()->create_staging_buffer(vtx.size() * sizeof(Vertex));
 	stage->write_data(vtx.data(), vtx.size() * sizeof(Vertex));
 	stage->write_to(m_vertex_buffer, vtx.size() * sizeof(Vertex));

@@ -42,6 +42,7 @@ add_library(${PROJECT_NAME}
 	public/wvn/graphics/material.cpp
 	public/wvn/graphics/gpu_buffer.cpp
 	public/wvn/graphics/gpu_buffer_mgr.cpp
+	public/wvn/graphics/viewport.cpp
 
 	public/wvn/network/network_mgr.cpp
 	public/wvn/network/ip_address.cpp

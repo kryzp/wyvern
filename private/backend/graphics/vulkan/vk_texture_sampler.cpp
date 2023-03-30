@@ -7,7 +7,14 @@ using namespace wvn;
 using namespace wvn::gfx;
 
 VulkanTextureSampler::VulkanTextureSampler()
-	: m_sampler(VK_NULL_HANDLE)
+	: TextureSampler()
+	, m_sampler(VK_NULL_HANDLE)
+{
+}
+
+VulkanTextureSampler::VulkanTextureSampler(TextureFilter filter, TextureWrap wrap_x, TextureWrap wrap_y, TextureWrap wrap_z)
+	: TextureSampler(filter, wrap_x, wrap_y, wrap_z)
+	, m_sampler(VK_NULL_HANDLE)
 {
 }
 
@@ -22,20 +29,20 @@ void VulkanTextureSampler::clean_up()
 		return;
 	}
 
-	vkDestroySampler(static_cast<VulkanBackend*>(Root::get_singleton()->renderer_backend())->logical_data().device, m_sampler, nullptr);
+	vkDestroySampler(static_cast<VulkanBackend*>(Root::get_singleton()->renderer_backend())->device, m_sampler, nullptr);
 
 	m_sampler = VK_NULL_HANDLE;
 }
 
-void VulkanTextureSampler::create(VkDevice device, VkPhysicalDeviceProperties properties, const TextureSampler& style)
+void VulkanTextureSampler::create(VkDevice device, VkPhysicalDeviceProperties properties)
 {
 	VkSamplerCreateInfo create_info = {};
 	create_info.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-	create_info.magFilter = vkutil::get_vk_filter(style.filter);
-	create_info.magFilter = vkutil::get_vk_filter(style.filter);
-	create_info.addressModeU = vkutil::get_vk_address_mode(style.wrap_x);
-	create_info.addressModeV = vkutil::get_vk_address_mode(style.wrap_y);
-	create_info.addressModeW = vkutil::get_vk_address_mode(style.wrap_z);
+	create_info.magFilter = vkutil::get_vk_filter(filter);
+	create_info.magFilter = vkutil::get_vk_filter(filter);
+	create_info.addressModeU = vkutil::get_vk_address_mode(wrap_x);
+	create_info.addressModeV = vkutil::get_vk_address_mode(wrap_y);
+	create_info.addressModeW = vkutil::get_vk_address_mode(wrap_z);
 	create_info.anisotropyEnable = VK_TRUE;
 	create_info.maxAnisotropy = properties.limits.maxSamplerAnisotropy;
 	create_info.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;

@@ -2,6 +2,7 @@
 #include <wvn/maths/calc.h>
 #include <wvn/io/file_stream.h>
 #include <wvn/graphics/texture.h>
+#include <wvn/graphics/texture_mgr.h>
 
 #define STB_TRUETYPE_IMPLEMENTATION
 #include <third_party/stb_truetype.h>
@@ -48,7 +49,7 @@ void Font::load(float size, const String& path)
 
 	if (type == FONT_TYPE_OTF)
 	{
-		WVN_ERROR("[GFX:FONT|DEBUG] OTF Loading is currently not supported");
+		WVN_ERROR("[GFX:FONT|DEBUG] OTF Loading is currently not supported.");
 	}
 	else
 	{
@@ -60,7 +61,7 @@ void Font::load(float size, const String& path)
 		m_internal_info = new stbtt_fontinfo();
 
 		if (!stbtt_InitFont(M_INTERNAL_INFO, ttf_buffer, stbtt_GetFontOffsetForIndex(ttf_buffer, 0))) {
-			WVN_ERROR("[GFX:FONT|DEBUG] OTF Loading is currently not supported");
+			WVN_ERROR("[GFX:FONT|DEBUG] OTF Loading is currently not supported.");
 		}
 
 		stbtt_GetFontVMetrics(M_INTERNAL_INFO, &m_info.ascent, &m_info.descent, &m_info.line_gap);
@@ -100,19 +101,18 @@ void Font::load(float size, const String& path)
 			stbtt_pack_context pack_context = { 0 };
 
 			if (!stbtt_PackBegin(&pack_context, bitmap, WVN_FONT_ATLAS_W, WVN_FONT_ATLAS_H, WVN_FONT_ATLAS_W, 1, NULL)) {
-				WVN_ERROR("[GFX:FONT|DEBUG] Failed to initialize font");
+				WVN_ERROR("[GFX:FONT|DEBUG] Failed to initialize font.");
 			}
 
 			//stbtt_PackSetOversampling(&pack_context, m_info.oversample_x, m_info.oversample_y);
 
 			if (!stbtt_PackFontRange(&pack_context, ttf_buffer, 0, m_info.size, 0, WVN_FONT_CHARCOUNT, packed_chars)) {
-				WVN_ERROR("[GFX:FONT|DEBUG] Failed to pack font");
+				WVN_ERROR("[GFX:FONT|DEBUG] Failed to pack font.");
 			}
 
 			stbtt_PackEnd(&pack_context);
 
-			// TODO
-			//m_atlas.texture = Texture::create(WVN_FONT_ATLAS_W, WVN_FONT_ATLAS_H, TEX_FMT_RED, TEX_I_FMT_R32F, TEX_TYPE_UNSIGNED_BYTE, bitmap);
+			m_atlas.texture = TextureMgr::get_singleton()->create(WVN_FONT_ATLAS_W, WVN_FONT_ATLAS_H, TEX_FMT_R8_UNORM, TEX_TILE_NONE, bitmap, WVN_FONT_ATLAS_W * WVN_FONT_ATLAS_H);
 
 			m_characters = new Character[WVN_FONT_CHARCOUNT];
 
@@ -184,8 +184,8 @@ float Font::string_height(const char* str) const
 const Font::Info& Font::info() const { return m_info; }
 const Font::Atlas& Font::atlas() const { return m_atlas; }
 
-const Font::Character& Font::character(int idx) const
+const Font::Character& Font::character(char ch) const
 {
-	WVN_ASSERT(idx >= 0 && idx < WVN_FONT_CHARCOUNT, "Index must be within bounds of the character array [0 -> 255]");
-	return m_characters[idx];
+	WVN_ASSERT(ch >= 0 && ch < WVN_FONT_CHARCOUNT, "Index must be within bounds of the character array [0 -> 255]");
+	return m_characters[ch];
 }

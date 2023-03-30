@@ -19,7 +19,6 @@ public:
 		{
 			wvn::act::Event quit_evt("force.quit");
 			quit_evt.append_str("data.usage", "test");
-
 			quit_evt.send(this);
 		}
 	}
@@ -57,7 +56,11 @@ int main()
 
 	new wvn::Root(cfg);
 	{
-		wvn::act::ActorMgr::get_singleton()->create<Object>();
+		{
+			wvn::Root::get_singleton()->main_camera;
+			wvn::act::ActorMgr::get_singleton()->create<Object>();
+		}
+
 		wvn::Root::get_singleton()->run();
 	}
 	delete wvn::Root::get_singleton();

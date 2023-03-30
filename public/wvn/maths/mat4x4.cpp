@@ -82,7 +82,7 @@ Mat4x4 Mat4x4::create_perspective(float fov, float aspect, float near, float far
 
     Mat4x4 result = Mat4x4(0.0f);
 
-	const float tan_half_fov = CalcF::tan(fov / 2.0f);
+	const float tan_half_fov = CalcF::tan(fov * CalcF::DEG2RAD * 0.5f);
 
 	result.m11 = 1.0f / (aspect * tan_half_fov);
 	result.m22 = 1.0f / (tan_half_fov);
@@ -132,19 +132,19 @@ Mat4x4 Mat4x4::create_rotation(float angle, Vec3F axis)
 	float cos_inv   = 1.0f - cos_theta;
 
 	return Mat4x4(
-		(axis.x * axis.x * cos_inv) + cos_theta,
-		(axis.x * axis.y * cos_inv) + (axis.z * sin_theta),
-		(axis.x * axis.z * cos_inv) - (axis.y * sin_theta),
+		 (axis.x * axis.x * cos_inv) + cos_theta,
+		-(axis.x * axis.y * cos_inv) + (axis.z * sin_theta),
+		 (axis.x * axis.z * cos_inv) + (axis.y * sin_theta),
 		0,
 
-		(axis.y * axis.x * cos_inv) - (axis.z * sin_theta),
-		(axis.y * axis.y * cos_inv) + cos_theta,
-		(axis.y * axis.z * cos_inv) + (axis.x * sin_theta),
+		-(axis.y * axis.x * cos_inv) - (axis.z * sin_theta),
+		 (axis.y * axis.y * cos_inv) + cos_theta,
+		-(axis.y * axis.z * cos_inv) + (axis.x * sin_theta),
 		0,
 
-		(axis.z * axis.x * cos_inv) + (axis.y * sin_theta),
-		(axis.z * axis.y * cos_inv) - (axis.x * sin_theta),
-		(axis.z * axis.z * cos_inv) + cos_theta,
+		 (axis.z * axis.x * cos_inv) - (axis.y * sin_theta),
+		-(axis.z * axis.y * cos_inv) - (axis.x * sin_theta),
+		 (axis.z * axis.z * cos_inv) + cos_theta,
 		0,
 
 		0,

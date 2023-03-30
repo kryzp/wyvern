@@ -38,8 +38,10 @@ namespace wvn::gfx
 		virtual RendererBackendProperties properties() = 0;
 
 		virtual void render(const RenderPass& pass) = 0;
+		virtual void swap_buffers() = 0;
 
-		virtual void wait_for_sync() = 0;
+		virtual void set_texture(u32 idx, const Texture* texture) = 0;
+		virtual void set_sampler(u32 idx, const TextureSampler& sampler) = 0;
 
 		virtual void on_window_resize(int width, int height) = 0;
 	};

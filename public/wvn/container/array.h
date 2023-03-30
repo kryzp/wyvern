@@ -26,11 +26,11 @@ namespace wvn
 		constexpr u64 memory_size() const;
 		constexpr u64 size() const;
 
-		T& at(u64 idx);
-		const T& at(u64 idx) const;
-
 		T* data();
 		const T* data() const;
+
+		T& at(u64 idx);
+		const T& at(u64 idx) const;
 
 		T& operator [] (u64 idx);
 		const T& operator [] (u64 idx) const;
@@ -48,22 +48,25 @@ namespace wvn
 	template <typename T, u64 TSize>
 	Array<T, TSize>::Array(std::initializer_list<T> data)
 	{
-		for (u64 i = 0; i < TSize; i++)
+		for (u64 i = 0; i < TSize; i++) {
 			m_buf[i] = data.begin()[i];
+		}
 	}
 	
 	template <typename T, u64 TSize>
 	Array<T, TSize>::Array(const Array& other)
 	{
-		for (u64 i = 0; i < TSize; i++)
+		for (u64 i = 0; i < TSize; i++) {
 			m_buf[i] = other.m_buf[i];
+		}
 	}
 	
 	template <typename T, u64 TSize>
 	Array<T, TSize>& Array<T, TSize>::operator = (const Array& other)
 	{
-		for (u64 i = 0; i < TSize; i++)
+		for (u64 i = 0; i < TSize; i++) {
 			m_buf[i] = other.m_buf[i];
+		}
 	}
 	
 	template <typename T, u64 TSize>
@@ -74,8 +77,9 @@ namespace wvn
 	template <typename T, u64 TSize>
 	void Array<T, TSize>::fill(const T& value)
 	{
-		for (int i = 0; i < TSize; i++)
+		for (int i = 0; i < TSize; i++) {
 			m_buf[i] = value;
+		}
 	}
 
 	template <typename T, u64 TSize>
@@ -91,18 +95,6 @@ namespace wvn
 	}
 
 	template <typename T, u64 TSize>
-	T& Array<T, TSize>::at(u64 idx)
-	{
-		return m_buf[idx];
-	}
-
-	template <typename T, u64 TSize>
-	const T& Array<T, TSize>::at(u64 idx) const
-	{
-		return m_buf[idx];
-	}
-
-	template <typename T, u64 TSize>
 	T* Array<T, TSize>::data()
 	{
 		return m_buf;
@@ -113,16 +105,32 @@ namespace wvn
 	{
 		return m_buf;
 	}
+
+	template <typename T, u64 TSize>
+	T& Array<T, TSize>::at(u64 idx)
+	{
+		WVN_ASSERT(idx >= 0 && idx < TSize, "[DEBUG|ARRAY] Index must be within bounds.");
+		return m_buf[idx];
+	}
+
+	template <typename T, u64 TSize>
+	const T& Array<T, TSize>::at(u64 idx) const
+	{
+		WVN_ASSERT(idx >= 0 && idx < TSize, "[DEBUG|ARRAY] Index must be within bounds.");
+		return m_buf[idx];
+	}
 	
 	template <typename T, u64 TSize>
 	T& Array<T, TSize>::operator [] (u64 idx)
 	{
+		WVN_ASSERT(idx >= 0 && idx < TSize, "[DEBUG|ARRAY] Index must be within bounds.");
 		return m_buf[idx];
 	}
 	
 	template <typename T, u64 TSize>
 	const T& Array<T, TSize>::operator [] (u64 idx) const
 	{
+		WVN_ASSERT(idx >= 0 && idx < TSize, "[DEBUG|ARRAY] Index must be within bounds.");
 		return m_buf[idx];
 	}
 }

@@ -12,6 +12,7 @@ namespace wvn::gfx
 	{
 		TEX_FMT_NONE = 0,
 		TEX_FMT_R8G8B8A8_SRGB,
+		TEX_FMT_R8_UNORM,
 		TEX_FMT_D32_SFLOAT,
 		TEX_FMT_D32_SFLOAT_S8_UINT,
 		TEX_FMT_D24_UNORM_S8_UINT,
@@ -30,7 +31,6 @@ namespace wvn::gfx
 	{
 	};
 
-	// todo: is this name appropriate?
 	struct TextureMetaData
 	{
 		TextureFormat format;
@@ -46,9 +46,11 @@ namespace wvn::gfx
 		Texture();
 		virtual ~Texture();
 
-		virtual void create(const Image& image) = 0;
-		virtual void create(u32 width, u32 height, TextureFormat format, TextureTiling tiling) = 0;
+		//virtual void create(const Image& image) = 0;
+		//virtual void create(u32 width, u32 height, TextureFormat format, TextureTiling tiling) = 0;
 
+		virtual u32 width() const = 0;
+		virtual u32 height() const = 0;
 		virtual TextureMetaData meta_data() const = 0;
 	};
 }
