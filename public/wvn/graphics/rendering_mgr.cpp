@@ -12,14 +12,14 @@ WVN_IMPL_SINGLETON(RenderingMgr);
 RenderingMgr::RenderingMgr()
 {
 	Vector<Vertex> box_vertices = {
-		{ { -0.5f, -0.5f, -0.5f }, { 1.0f, 0.0f }, { 1.0f, 0.0f, 0.0f } },
-		{ {  0.5f, -0.5f, -0.5f }, { 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f } },
-		{ {  0.5f,  0.5f, -0.5f }, { 0.0f, 1.0f }, { 1.0f, 1.0f, 0.0f } },
-		{ { -0.5f,  0.5f, -0.5f }, { 1.0f, 1.0f }, { 0.0f, 1.0f, 1.0f } },
-		{ { -0.5f, -0.5f,  0.5f }, { 1.0f, 0.0f }, { 1.0f, 0.0f, 0.0f } },
-		{ {  0.5f, -0.5f,  0.5f }, { 0.0f, 0.0f }, { 0.0f, 1.0f, 0.0f } },
-		{ {  0.5f,  0.5f,  0.5f }, { 0.0f, 1.0f }, { 1.0f, 1.0f, 0.0f } },
-		{ { -0.5f,  0.5f,  0.5f }, { 1.0f, 1.0f }, { 0.0f, 1.0f, 1.0f } },
+		{ { -0.5f, -0.5f, -0.5f }, { 0.0f, 0.0f }, { 1.0f, 0.0f, 0.0f } },
+		{ {  0.5f, -0.5f, -0.5f }, { 1.0f, 0.0f }, { 0.0f, 1.0f, 0.0f } },
+		{ {  0.5f,  0.5f, -0.5f }, { 1.0f, 1.0f }, { 1.0f, 1.0f, 0.0f } },
+		{ { -0.5f,  0.5f, -0.5f }, { 0.0f, 1.0f }, { 0.0f, 1.0f, 1.0f } },
+		{ { -0.5f, -0.5f,  0.5f }, { 0.0f, 0.0f }, { 1.0f, 0.0f, 0.0f } },
+		{ {  0.5f, -0.5f,  0.5f }, { 1.0f, 0.0f }, { 0.0f, 1.0f, 0.0f } },
+		{ {  0.5f,  0.5f,  0.5f }, { 1.0f, 1.0f }, { 1.0f, 1.0f, 0.0f } },
+		{ { -0.5f,  0.5f,  0.5f }, { 0.0f, 1.0f }, { 0.0f, 1.0f, 1.0f } },
 	};
 
 	Vector<u16> box_indices = {
@@ -43,7 +43,7 @@ RenderingMgr::RenderingMgr()
 	};
 
 	m = new Mesh(box_vertices, box_indices);
-	t = TextureMgr::get_singleton()->create("../images/kitty.png");
+	t = TextureMgr::get_singleton()->create("../images/hampter.png");
 
 	dev::LogMgr::get_singleton()->print("[RENDERING] Initialized!");
 }

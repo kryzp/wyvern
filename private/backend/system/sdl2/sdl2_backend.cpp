@@ -111,21 +111,19 @@ void SDL2Backend::poll_events()
 				break;
 
 			case SDL_JOYBUTTONDOWN:
-				//inp::InputMgr::get_singleton()->on_joystick_button_down(e.jball.which, e.jbutton.button);
+				inp::InputMgr::get_singleton()->on_joystick_button_down(e.jball.which, e.jbutton.button);
 				break;
 
 			case SDL_JOYBUTTONUP:
-				//inp::InputMgr::get_singleton()->on_joystick_button_up(e.jball.which, e.jbutton.button);
+				inp::InputMgr::get_singleton()->on_joystick_button_up(e.jball.which, e.jbutton.button);
 				break;
 
 			case SDL_JOYAXISMOTION:
-				/**
 				inp::InputMgr::get_singleton()->on_joystick_motion(
 					e.jaxis.which,
 					(e.jaxis.axis == 0) ? inp::JS_AXIS_H : inp::JS_AXIS_V,
 					static_cast<float>(e.jaxis.value) / static_cast<float>(SDL_JOYSTICK_AXIS_MAX - ((e.jaxis.value >= 0) ? 1.0f : 0.0f))
 				);
-				*/
 				break;
 
 			default:
@@ -253,8 +251,9 @@ void SDL2Backend::set_window_mode(WindowMode toggle)
 
 void SDL2Backend::sleep_for(u64 ms)
 {
-	if (ms > 0)
+	if (ms > 0) {
 		SDL_Delay(ms);
+	}
 }
 
 u64 SDL2Backend::ticks()
