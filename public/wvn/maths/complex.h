@@ -16,7 +16,6 @@ namespace wvn
 		Complex();
 		Complex(double real);
 		Complex(double real, double imag);
-		Complex(_Complex double cc);
 		~Complex() = default;
 
 		static const Complex& zero();

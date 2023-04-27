@@ -6,7 +6,7 @@
 
 Naming Convention when logging: ```"[NAMESPACE(s):CLASS(|DEBUG/RELEASE IF ONLY APPLIES TO ONE)] message"```  
 
-I use a fully left-handed coordinate system because I'm left-handed.  
+I use a fully left-handed coordinate system because I'm left-handed. A notable effect of this is that the cross product will make use of the left hand rule instead of the right hand rule.  
 
 "Why don't you use shared pointers as much as you should do?" - I don't know. They just make me feel uneasy for some reason, so I usually just try to control the lifetime manually through ``new`` and ``delete``.
 

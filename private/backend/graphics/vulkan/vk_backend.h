@@ -93,7 +93,7 @@ namespace wvn::gfx
 
 	class VulkanBackend : public RendererBackend
 	{
-		struct FrameData // todo: not implemented yet but just replace all the messy arrays with just one array of this struct :)))
+		struct FrameData
 		{
 			Ref<VulkanBuffer> uniform_buffer;
 			VkFence in_flight_fence;
@@ -103,10 +103,9 @@ namespace wvn::gfx
 			VkCommandBuffer command_buffer;
 		};
 
-		// something like:
-		// Array<FrameData, MAX_FRAMES_IN_FLIGHT> m_frame_data;
-
 	public:
+		static constexpr u32 MAX_FRAMES_IN_FLIGHT = 2;
+
 		VulkanBackend();
 		~VulkanBackend() override;
 
@@ -119,15 +118,14 @@ namespace wvn::gfx
 		void on_window_resize(int width, int height) override;
 
 		void set_texture(u32 idx, const Texture* texture) override;
-		void set_sampler(u32 idx, const TextureSampler& sampler) override;
+		void set_sampler(u32 idx, TextureSampler* sampler) override;
 
 		u64 frame() const;
 
 		VkDevice device;
 		PhysicalDeviceData physical_data;
 		QueueData queues;
-
-		Vector<VkCommandPool> command_pools;
+		FrameData frames[MAX_FRAMES_IN_FLIGHT];
 
 	private:
 		void enumerate_physical_devices();
@@ -152,11 +150,10 @@ namespace wvn::gfx
 		const Vector<VkDescriptorSet>& get_descriptor_sets();
 		void update_descriptor_sets();
 
-		u32 assign_physical_device_usability(VkPhysicalDevice device, VkPhysicalDeviceProperties properties, VkPhysicalDeviceFeatures features, bool* essentials_completed);
-		QueueFamilyIdx find_queue_families(VkPhysicalDevice device);
-		bool check_device_extension_support(VkPhysicalDevice device);
-
-		SwapChainSupportDetails query_swap_chain_support(VkPhysicalDevice device);
+		u32 assign_physical_device_usability(VkPhysicalDevice physical_device, VkPhysicalDeviceProperties properties, VkPhysicalDeviceFeatures features, bool* essentials_completed);
+		QueueFamilyIdx find_queue_families(VkPhysicalDevice physical_device);
+		bool check_device_extension_support(VkPhysicalDevice physical_device);
+		SwapChainSupportDetails query_swap_chain_support(VkPhysicalDevice physical_device);
 
 		VkShaderModule create_shader_module(const Vector<char>& source) const;
 
@@ -164,19 +161,12 @@ namespace wvn::gfx
 		VkInstance m_instance;
 		VkSurfaceKHR m_surface;
 		u64 m_current_frame;
-		Vector<VkCommandBuffer> m_command_buffers;
-		Vector<Ref<VulkanBuffer>> m_uniform_buffers;
+		bool m_is_framebuffer_resized;
 
-		// mgrs
+		// managers
 		VulkanBufferMgr* m_buffer_mgr;
 		VulkanTextureMgr* m_texture_mgr;
 		VulkanShaderMgr* m_shader_mgr;
-
-		// sync
-		Vector<VkSemaphore> m_image_available_semaphores;
-		Vector<VkSemaphore> m_render_finished_semaphores;
-		Vector<VkFence> m_in_flight_fences;
-		bool m_is_framebuffer_resized;
 
 		// render pass
 		VkRenderPass m_render_pass;

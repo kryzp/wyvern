@@ -1,20 +1,20 @@
 #ifndef TRIANGLE_H
 #define TRIANGLE_H
 
-#include <wvn/maths/vec2.h>
+#include <wvn/maths/vec3.h>
 
 namespace wvn
 {
 	struct Triangle
 	{
-		Vec2F a;
-		Vec2F b;
-		Vec2F c;
+		Vec3F a;
+		Vec3F b;
+		Vec3F c;
 
 		Triangle();
-		Triangle(const Vec2F& a, const Vec2F& b, const Vec2F& c);
+		Triangle(const Vec3F& a, const Vec3F& b, const Vec3F& c);
 
-		Vec2F centre() const;
+		Vec3F centre() const;
 	};
 }
 

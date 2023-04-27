@@ -1,7 +1,7 @@
 #ifndef RANGE_H
 #define RANGE_H
 
-#include <wvn/maths/random.h>
+#include <wvn/root.h>
 
 namespace wvn
 {
@@ -11,6 +11,8 @@ namespace wvn
 		float max;
 
 		Range()
+			: min(0.0f)
+			, max(0.0f)
 		{
 		}
 
@@ -27,7 +29,7 @@ namespace wvn
 
 		float random() const
 		{
-			return Rand<std::mt19937>::get_singleton()->real(min, max);
+			return Root::get_singleton()->random.real32(min, max);
 		}
 	};
 }

@@ -73,6 +73,7 @@ add_library(${PROJECT_NAME}
 	public/wvn/maths/quaternion.cpp
 	public/wvn/maths/timer.cpp
 	public/wvn/maths/triangle.cpp
+	public/wvn/maths/transform_3d.cpp
 
 	public/wvn/plugin/plugin_loader.cpp
 	public/wvn/plugin/system/sdl2_plugin.cpp

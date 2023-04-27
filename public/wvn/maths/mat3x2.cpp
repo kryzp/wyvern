@@ -51,16 +51,6 @@ Vec2F Mat3x2::position() const
 	return Vec2F(m31, m32);
 }
 
-float* Mat3x2::value_ptr()
-{
-	return &m11;
-}
-
-const float* Mat3x2::value_ptr() const
-{
-    return &m11;
-}
-
 float Mat3x2::determinant() const
 {
 	return (m11 * m22) - (m21 * m12);
@@ -134,17 +124,21 @@ Mat3x2 Mat3x2::create_transform(const Vec2F& position, float rotation, const Vec
 {
 	Mat3x2 mat = Mat3x2::identity();
 
-	if (origin != wvn::Vec2F::zero())
+	if (origin != Vec2F::zero()) {
 		mat *= create_translation(-origin);
+	}
 
-	if (scale != wvn::Vec2F::one())
+	if (scale != Vec2F::one()) {
 		mat *= create_scale(scale);
+	}
 
-	if (rotation != 0.0f)
+	if (rotation != 0.0f) {
 		mat *= create_rotation(rotation);
+	}
 
-	if (position != wvn::Vec2F::zero())
+	if (position != Vec2F::zero()) {
 		mat *= create_translation(position);
+	}
 
 	return mat;
 }

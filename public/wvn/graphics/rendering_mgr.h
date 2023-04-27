@@ -24,6 +24,10 @@ namespace wvn::gfx
 
 		Mesh* m;
 		Texture* t;
+		TextureSampler* s;
+
+	private:
+		void camera_stuff();
 	};
 }
 

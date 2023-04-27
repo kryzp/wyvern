@@ -25,8 +25,8 @@ namespace wvn::gfx
 		GPUBuffer(GPUBufferUsage usage);
 		virtual ~GPUBuffer();
 
-		virtual void read_data(void* dst, u64 length) = 0;
-		virtual void write_data(const void* src, u64 length) = 0;
+		virtual void read_data(const void* src, u64 length) = 0;
+		virtual void write_data(void* dst, u64 length) = 0;
 		virtual void write_to(const GPUBuffer* dst, u64 length) = 0;
 		virtual void write_to_tex(const Texture* texture, u64 size) = 0;
 

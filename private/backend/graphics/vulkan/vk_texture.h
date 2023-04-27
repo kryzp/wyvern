@@ -30,9 +30,6 @@ namespace wvn::gfx
 		VkImage image() const;
 		VkImageView image_view() const;
 
-		VulkanTextureSampler& sampler();
-		const VulkanTextureSampler& sampler() const;
-
 		u32 width() const override;
 		u32 height() const override;
 
@@ -48,8 +45,6 @@ namespace wvn::gfx
 		VkDeviceMemory m_image_memory;
 		VkImageLayout m_image_layout;
 		VkImageView m_view;
-
-		VulkanTextureSampler m_sampler;
 
 		TextureFormat m_format;
 		TextureTiling m_tiling;

@@ -13,7 +13,7 @@ namespace wvn
 		void start();
 		void stop();
 		void pause();
-		void unpause();
+		void resume();
 		u64 reset();
 
 		u64 milliseconds() const;

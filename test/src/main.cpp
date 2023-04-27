@@ -57,7 +57,9 @@ int main()
 	new wvn::Root(cfg);
 	{
 		{
-			wvn::Root::get_singleton()->main_camera;
+			wvn::Root::get_singleton()->main_camera.fov  = 45.0f;
+			wvn::Root::get_singleton()->main_camera.near =  0.1f;
+			wvn::Root::get_singleton()->main_camera.far  = 10.0f;
 			wvn::act::ActorMgr::get_singleton()->create<Object>();
 		}
 

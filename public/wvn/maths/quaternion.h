@@ -6,10 +6,8 @@ namespace wvn
 	template <typename T> struct Vec3;
 
 	/**
-	 * Used for representing rotations via a 4D hypersphere.
-	 * Yeah.
-	 *
-	 * Euler angles are just cringe /shrug
+	 * Used for representing rotations by black magic.
+	 * Super interesting stuff!
 	 */
 	struct Quaternion
 	{
@@ -27,22 +25,38 @@ namespace wvn
 		};
 
 		Quaternion();
-		Quaternion(float x);
+		Quaternion(float v);
 		Quaternion(float s, float i, float j, float k);
 
 		static const Quaternion& zero();
 		static const Quaternion& one();
 
+		static Quaternion from_axis_angle(const Vec3<float>& axis, float angle);
+
 		static Quaternion from_euler(float pitch, float yaw, float roll);
 		static Vec3<float> to_euler(const Quaternion& quat);
 
-		Quaternion rotate_on_axis(float amount, const Vec3<float>& axis);
+		static float dot(const Quaternion& a, const Quaternion& b);
 
-		float* value_ptr();
-		const float* value_ptr() const;
+		Quaternion inverse() const;
+
+		float length_squared() const;
+		float length() const;
+
+		Quaternion rotate_on_axis(const Vec3<float>& axis, float angle) const;
 
 		bool operator == (const Quaternion& other) const;
 		bool operator != (const Quaternion& other) const;
+
+		Quaternion operator + (const Quaternion& other) const;
+		Quaternion operator - (const Quaternion& other) const;
+		Quaternion operator * (const Quaternion& other) const;
+
+		Quaternion operator - () const;
+
+		Quaternion& operator += (const Quaternion& other);
+		Quaternion& operator -= (const Quaternion& other);
+		Quaternion& operator *= (const Quaternion& other);
 	};
 }
 

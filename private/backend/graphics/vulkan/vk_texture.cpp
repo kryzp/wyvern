@@ -12,7 +12,6 @@ VulkanTexture::VulkanTexture()
 	, m_image_memory(VK_NULL_HANDLE)
 	, m_image_layout()
 	, m_view(VK_NULL_HANDLE)
-	, m_sampler()
 	, m_format()
 	, m_tiling()
 	, m_width(0)
@@ -32,8 +31,6 @@ void VulkanTexture::init(VulkanBackend* backend)
 
 void VulkanTexture::clean_up()
 {
-	m_sampler.clean_up();
-
 	if (m_image != VK_NULL_HANDLE ||
 		m_image_memory != VK_NULL_HANDLE)
 	{
@@ -66,15 +63,11 @@ void VulkanTexture::create(u32 width, u32 height, TextureFormat format, TextureT
 	this->m_tiling = tiling;
 
 	create_internal_resources();
-
-	m_sampler.filter = TEX_FILTER_LINEAR;
-	m_sampler.wrap_x = m_sampler.wrap_y = m_sampler.wrap_z = TEX_WRAP_CLAMP;
-	m_sampler.create(m_backend->device, m_backend->physical_data.properties);
 }
 
 void VulkanTexture::transition_layout(VkImageLayout new_layout)
 {
-	VkCommandBuffer cmd_buf = vkutil::begin_single_time_commands(m_backend->command_pools[m_backend->frame()], m_backend->device);
+	VkCommandBuffer cmd_buf = vkutil::begin_single_time_commands(m_backend->frames[m_backend->frame()].command_pool, m_backend->device);
 	{
 		VkImageMemoryBarrier barrier = {};
 		barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -138,7 +131,7 @@ void VulkanTexture::transition_layout(VkImageLayout new_layout)
 
 		m_image_layout = new_layout;
 	}
-	vkutil::end_single_time_commands(m_backend->command_pools[m_backend->frame()], cmd_buf, m_backend->device, m_backend->queues.graphics);
+	vkutil::end_single_time_commands(m_backend->frames[m_backend->frame()].command_pool, cmd_buf, m_backend->device, m_backend->queues.graphics);
 }
 
 void VulkanTexture::create_internal_resources()
@@ -236,5 +229,3 @@ VkImage VulkanTexture::image() const { return m_image; }
 VkImageView VulkanTexture::image_view() const { return m_view; }
 u32 VulkanTexture::width() const { return m_width; }
 u32 VulkanTexture::height() const { return m_height; }
-VulkanTextureSampler& VulkanTexture::sampler() { return m_sampler; }
-const VulkanTextureSampler& VulkanTexture::sampler() const { return m_sampler; }

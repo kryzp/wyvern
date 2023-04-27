@@ -46,9 +46,6 @@ namespace wvn::gfx
 		Texture();
 		virtual ~Texture();
 
-		//virtual void create(const Image& image) = 0;
-		//virtual void create(u32 width, u32 height, TextureFormat format, TextureTiling tiling) = 0;
-
 		virtual u32 width() const = 0;
 		virtual u32 height() const = 0;
 		virtual TextureMetaData meta_data() const = 0;

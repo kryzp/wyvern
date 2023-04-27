@@ -32,9 +32,6 @@ namespace wvn
 
 		static const Mat3x3& identity();
 
-		float* value_ptr();
-		const float* value_ptr() const;
-
 		float determinant() const;
 		Mat3x3 inverse() const;
 

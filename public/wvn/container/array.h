@@ -11,7 +11,7 @@ namespace wvn
 	 * Wrapper around a c-style array that provides some
 	 * utility functions and makes them easier to work with.
 	 */
-	template <typename T, u64 TSize>
+	template <typename T, u64 Size>
 	class Array
 	{
 	public:
@@ -36,7 +36,7 @@ namespace wvn
 		const T& operator [] (u64 idx) const;
 
 	private:
-		T m_buf[TSize];
+		T m_buf[Size];
 	};
 
 	template <typename T, u64 TSize>

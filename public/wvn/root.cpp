@@ -175,9 +175,9 @@ u64 Root::ticks() const
 	return m_system_backend->ticks();
 }
 
-float Root::calc_delta_time()
+float Root::calc_delta_time() const
 {
-	return 0.1f; // todo
+	return 1.0f / static_cast<float>(m_config.target_fps);
 }
 
 const Config& Root::config()

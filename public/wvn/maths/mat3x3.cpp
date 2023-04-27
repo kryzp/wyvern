@@ -34,16 +34,6 @@ Mat3x3::Mat3x3(
 {
 }
 
-float* Mat3x3::value_ptr()
-{
-	return data;
-}
-
-const float* Mat3x3::value_ptr() const
-{
-	return data;
-}
-
 float Mat3x3::determinant() const
 {
 	float d1 = (m33 * m22) - (m32 * m23);

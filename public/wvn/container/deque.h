@@ -161,7 +161,6 @@ namespace wvn
 		const T& operator [] (u64 idx) const;
 
 	private:
-		void realloc(u64 capacity);
 		void increase_size(int front_or_back);
 		void expand_front();
 		void expand_back();
@@ -285,11 +284,6 @@ namespace wvn
 
 		m_end.set_chunk(base);
 		m_end.m_cur = m_end.m_first + 1;
-	}
-
-	template <typename T, u64 ChunkSize>
-	void Deque<T, ChunkSize>::realloc(u64 capacity)
-	{
 	}
 
 	template <typename T, u64 ChunkSize>

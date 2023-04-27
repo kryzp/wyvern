@@ -18,7 +18,7 @@ namespace wvn::gfx
 		void swap_buffers() override;
 
 		void set_texture(u32 idx, const Texture* texture) override;
-		void set_sampler(u32 idx, const TextureSampler& sampler) override;
+		void set_sampler(u32 idx, TextureSampler* sampler) override;
 
 		void on_window_resize(int width, int height) override;
 	};

@@ -22,6 +22,8 @@ namespace wvn::gfx
 		Optional<RectF> viewport;
 		Optional<RectI> scissor;
 
+		Mat4x4 model_matrix;
+
 		Camera* camera;
 		Material* material;
 		Mesh* mesh;

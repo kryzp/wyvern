@@ -3,20 +3,18 @@
 using namespace wvn;
 
 Triangle::Triangle()
-	: a(Vec2F::zero())
-	, b(Vec2F::zero())
-	, c(Vec2F::zero())
+	: a(Vec3F::zero())
+	, b(Vec3F::zero())
+	, c(Vec3F::zero())
 {
 }
 
-Triangle::Triangle(const Vec2F& a, const Vec2F& b, const Vec2F& c)
-	: a(a)
-	, b(b)
-	, c(c)
+Triangle::Triangle(const Vec3F& a, const Vec3F& b, const Vec3F& c)
+	: a(a) , b(b) , c(c)
 {
 }
 
-Vec2F Triangle::centre() const
+Vec3F Triangle::centre() const
 {
 	return (a + b + c) / 3.0f;
 }

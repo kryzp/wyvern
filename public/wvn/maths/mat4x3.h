@@ -54,9 +54,6 @@ namespace wvn
 
 		Vec3<float> position() const;
 
-		float* value_ptr();
-		const float* value_ptr() const;
-
 		float determinant() const;
 		Mat4x3 inverse() const;
 
@@ -64,11 +61,13 @@ namespace wvn
 		Mat4x3 operator + (const Mat4x3& other) const;
 		Mat4x3 operator * (float scalar       ) const;
 		Mat4x3 operator * (const Mat4x3& other) const;
+		Mat4x3 operator / (float scalar       ) const;
 
 		Mat4x3& operator -= (const Mat4x3& other);
 		Mat4x3& operator += (const Mat4x3& other);
 		Mat4x3& operator *= (float scalar       );
 		Mat4x3& operator *= (const Mat4x3& other);
+		Mat4x3& operator /= (float scalar       );
 
 		float* operator [] (int idx);
 		const float* operator [] (int idx) const;

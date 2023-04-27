@@ -21,30 +21,59 @@ namespace wvn::gfx
 
 	struct TextureSampler
 	{
-		TextureFilter filter;
+	public:
+		struct Style
+		{
+			TextureFilter filter;
+			TextureWrap wrap_x;
+			TextureWrap wrap_y;
+			TextureWrap wrap_z;
 
-		TextureWrap wrap_x;
-		TextureWrap wrap_y;
-		TextureWrap wrap_z;
+			Style()
+				: filter(TEX_FILTER_NONE)
+				, wrap_x(TEX_WRAP_NONE)
+				, wrap_y(TEX_WRAP_NONE)
+				, wrap_z(TEX_WRAP_NONE)
+			{
+			}
+
+			Style(TextureFilter filter)
+				: filter(filter)
+				, wrap_x(TEX_WRAP_CLAMP)
+				, wrap_y(TEX_WRAP_CLAMP)
+				, wrap_z(TEX_WRAP_CLAMP)
+			{
+			}
+
+			Style(TextureFilter filter, TextureWrap wrap_x, TextureWrap wrap_y, TextureWrap wrap_z)
+				: filter(filter)
+				, wrap_x(wrap_x)
+				, wrap_y(wrap_y)
+				, wrap_z(wrap_z)
+			{
+			}
+
+			bool operator == (const Style& other) const { return this->filter == other.filter && this->wrap_x == other.wrap_x && this->wrap_y == other.wrap_y && this->wrap_z == other.wrap_z; }
+			bool operator != (const Style& other) const { return !(*this == other); }
+		};
+
+		bool dirty;
+		Style style;
 
 		TextureSampler()
-			: filter(TEX_FILTER_NONE)
-			, wrap_x(TEX_WRAP_NONE)
-			, wrap_y(TEX_WRAP_NONE)
-			, wrap_z(TEX_WRAP_NONE)
+			: dirty(true)
+			, style()
 		{
 		}
 
-		TextureSampler(TextureFilter filter, TextureWrap wrap_x, TextureWrap wrap_y, TextureWrap wrap_z)
-			: filter(filter)
-			, wrap_x(wrap_x)
-			, wrap_y(wrap_y)
-			, wrap_z(wrap_z)
+		TextureSampler(const Style& style)
+			: dirty(true)
+			, style(style)
 		{
 		}
 
-		bool operator == (const TextureSampler& other) const { return this->filter == other.filter && this->wrap_x == other.wrap_x && this->wrap_y == other.wrap_y && this->wrap_z == other.wrap_z; }
-		bool operator != (const TextureSampler& other) const { return !(*this == other); }
+		bool operator == (const TextureSampler& other) const { return this->style == other.style; }
+		bool operator != (const TextureSampler& other) const { return this->style != other.style; }
 	};
 }
 

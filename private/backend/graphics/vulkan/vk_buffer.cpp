@@ -68,22 +68,25 @@ void VulkanBuffer::clean_up()
     m_memory = VK_NULL_HANDLE;
 }
 
-void VulkanBuffer::read_data(void* dst, u64 length)
+void VulkanBuffer::read_data(const void* src, u64 length)
 {
-	// todo
+	void* dst = nullptr;
+	vkMapMemory(m_backend->device, m_memory, 0, length, 0, &dst);
+	mem::copy(dst, src, length);
+	vkUnmapMemory(m_backend->device, m_memory);
 }
 
-void VulkanBuffer::write_data(const void* src, u64 length)
+void VulkanBuffer::write_data(void* dst, u64 length)
 {
-	void* mapped_address = nullptr;
-	vkMapMemory(m_backend->device, m_memory, 0, length, 0, &mapped_address);
-	mem::copy(mapped_address, src, length);
+	void* src = nullptr;
+	vkMapMemory(m_backend->device, m_memory, 0, length, 0, &src);
+	mem::copy(dst, src, length);
 	vkUnmapMemory(m_backend->device, m_memory);
 }
 
 void VulkanBuffer::write_to(const GPUBuffer* other, u64 length)
 {
-	VkCommandBuffer cmd_buf = vkutil::begin_single_time_commands(m_backend->command_pools[m_backend->frame()], m_backend->device);
+	VkCommandBuffer cmd_buf = vkutil::begin_single_time_commands(m_backend->frames[m_backend->frame()].command_pool, m_backend->device);
 	{
 		VkBufferCopy region = {};
 		region.srcOffset = 0;
@@ -98,12 +101,12 @@ void VulkanBuffer::write_to(const GPUBuffer* other, u64 length)
 			&region
 		);
 	}
-	vkutil::end_single_time_commands(m_backend->command_pools[m_backend->frame()], cmd_buf, m_backend->device, m_backend->queues.graphics);
+	vkutil::end_single_time_commands(m_backend->frames[m_backend->frame()].command_pool, cmd_buf, m_backend->device, m_backend->queues.graphics);
 }
 
 void VulkanBuffer::write_to_tex(const Texture* texture, u64 size)
 {
-	VkCommandBuffer cmd_buf = vkutil::begin_single_time_commands(m_backend->command_pools[m_backend->frame()], m_backend->device);
+	VkCommandBuffer cmd_buf = vkutil::begin_single_time_commands(m_backend->frames[m_backend->frame()].command_pool, m_backend->device);
 	{
 		VkBufferImageCopy region = {};
 		region.bufferOffset = 0;
@@ -125,7 +128,7 @@ void VulkanBuffer::write_to_tex(const Texture* texture, u64 size)
 			&region
 		);
 	}
-	vkutil::end_single_time_commands(m_backend->command_pools[m_backend->frame()], cmd_buf, m_backend->device, m_backend->queues.graphics);
+	vkutil::end_single_time_commands(m_backend->frames[m_backend->frame()].command_pool, cmd_buf, m_backend->device, m_backend->queues.graphics);
 }
 
 VkBuffer VulkanBuffer::buffer() const { return m_buffer; }

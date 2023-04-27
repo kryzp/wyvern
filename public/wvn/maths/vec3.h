@@ -3,6 +3,7 @@
 
 #include <wvn/maths/calc.h>
 #include <wvn/maths/random.h>
+#include <wvn/maths/quaternion.h>
 #include <wvn/maths/vec2.h>
 #include <wvn/maths/mat4x3.h>
 
@@ -57,6 +58,8 @@ namespace wvn
 
 		static Vec3 reflect(const Vec3& v, const Vec3& n);
 		static Vec3 refract(const Vec3& uv, const Vec3& n, double n21);
+
+		Vec3<T> rotate(float angle, const Vec3<T>& axis);
 
 		T length() const;
 		T length_squared() const;
@@ -201,6 +204,23 @@ namespace wvn
 		Vec3 out_perp = n21 * (uv + (cost * n));
 		Vec3 out_para = -Calc<T>::sqrt(Calc<T>::abs(1.0 - out_perp.length_squared())) * n;
 		return out_perp + out_para;
+	}
+
+	template <typename T>
+	Vec3<T> Vec3<T>::rotate(float angle, const Vec3<T>& axis)
+	{
+		return Vec3<T>::transform(*this, Mat4x3::create_rotation(Quaternion::from_axis_angle(axis, angle)));
+		/*
+		T cost = Calc<T>::cos(angle);
+		T sint = Calc<T>::sin(angle);
+		T icost = 1.0 - cost;
+
+		return Vec3(
+			(this->x * ((axis.x * axis.x * icost) +           cost))  + (this->y * ((axis.x * axis.y * icost) - (axis.z * sint))) + (this->z * ((axis.x * axis.z * icost) + (axis.y * sint))),
+			(this->x * ((axis.y * axis.x * icost) + (axis.z * sint))) + (this->y * ((axis.y * axis.y * icost) +           cost))  + (this->z * ((axis.y * axis.z * icost) - (axis.x * sint))),
+			(this->x * ((axis.z * axis.x * icost) - (axis.y * sint))) + (this->y * ((axis.z * axis.y * icost) + (axis.x * sint))) + (this->z * ((axis.z * axis.z * icost) +  cost          ))
+		);
+		*/
 	}
 
 	template <typename T>

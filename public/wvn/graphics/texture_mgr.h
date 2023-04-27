@@ -21,6 +21,8 @@ namespace wvn::gfx
 
 		virtual Texture* create(const Image& image) = 0;
 		virtual Texture* create(u32 width, u32 height, TextureFormat format, TextureTiling tiling, const byte* data, u64 size) = 0;
+
+		virtual TextureSampler* create_sampler(const TextureSampler::Style& style) = 0;
 	};
 }
 #endif // TEXTURE_MGR_H

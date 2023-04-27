@@ -16,7 +16,7 @@ namespace wvn
 		T w, h, l;
 
 		Cuboid();
-		Cuboid(T value);
+		Cuboid(T v);
 		Cuboid(T w, T h, T l);
 		Cuboid(T x, T y, T z, T w, T h, T l);
 
@@ -25,6 +25,7 @@ namespace wvn
 		Cuboid(const Cuboid<Y>& other) noexcept
 			: x(other.x)
 			, y(other.y)
+			, z(other.z)
 			, w(other.w)
 			, h(other.h)
 			, l(other.l)
@@ -32,7 +33,7 @@ namespace wvn
 		}
 
 		static const Cuboid& zero();
-		static const Cuboid& one();
+		static const Cuboid& unit();
 
 		bool contains(const Vec3<T>& other) const;
 		bool intersects(const Cuboid& other) const;
@@ -41,6 +42,8 @@ namespace wvn
 		Vec3<T> size() const;
 
 		Rect<T> front_face() const;
+		Rect<T> bottom_face() const;
+		Rect<T> side_face() const;
 
 		T left() const;
 		T right() const;
@@ -79,9 +82,9 @@ namespace wvn
 	}
 
 	template <typename T>
-	Cuboid<T>::Cuboid(T value)
-		: x(value), y(value), z(value)
-		, w(value), h(value), l(value)
+	Cuboid<T>::Cuboid(T v)
+		: x(0), y(0), z(0)
+		, w(v), h(v), l(v)
 	{
 	}
 
@@ -115,7 +118,6 @@ namespace wvn
 			// Z
 			this->front() < other.z &&
 			this->back() > other.z
-
 		);
 	}
 
@@ -135,7 +137,6 @@ namespace wvn
 			// Z
 			this->front() < other.back() &&
 			this->back() > other.front()
-
 		);
 	}
 
@@ -155,6 +156,18 @@ namespace wvn
 	Rect<T> Cuboid<T>::front_face() const
 	{
 		return Rect<T>(x, y, w, h);
+	}
+
+	template <typename T>
+	Rect<T> Cuboid<T>::bottom_face() const
+	{
+		return Rect<T>(x, z, w, l);
+	}
+
+	template <typename T>
+	Rect<T> Cuboid<T>::side_face() const
+	{
+		return Rect<T>(z, y, l, h);
 	}
 
 	template <typename T>
@@ -190,13 +203,20 @@ namespace wvn
 	template <typename T>
 	T Cuboid<T>::back() const
 	{
-		return z + h;
+		return z + l;
 	}
 
 	template <typename T>
 	bool Cuboid<T>::operator == (const Cuboid& other) const
 	{
-		return this->x == other.x && this->y == other.y && this->z == other.z && this->w == other.w && this->h == other.h && this->l == other.l;
+		return (
+			this->x == other.x &&
+			this->y == other.y &&
+			this->z == other.z &&
+			this->w == other.w &&
+			this->h == other.h &&
+			this->l == other.l
+		);
 	}
 
 	template <typename T>
@@ -330,10 +350,10 @@ namespace wvn
 	}
 
 	template <typename T>
-	const Cuboid<T>& Cuboid<T>::one()
+	const Cuboid<T>& Cuboid<T>::unit()
 	{
-		static const Cuboid ONE = Cuboid(0, 0, 0, 1, 1, 1);
-		return ONE;
+		static const Cuboid UNIT = Cuboid(0, 0, 0, 1, 1, 1);
+		return UNIT;
 	}
 }
 

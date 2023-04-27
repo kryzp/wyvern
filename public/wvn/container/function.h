@@ -116,7 +116,7 @@ namespace wvn
 	template <typename Result, typename... Args>
 	Function<Result(Args...)>::~Function()
 	{
-		if (m_data) {
+		if (m_data && m_destroy_func) {
 			m_destroy_func(m_data);
 		}
 

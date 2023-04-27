@@ -4,7 +4,7 @@
 namespace wvn
 {
 	/**
-	 * List in which each element or node points to the next node.
+	 * List in which each link points to the next link.
 	 */
 	template <typename T>
 	class LinkedList
@@ -128,20 +128,25 @@ namespace wvn
 	template <typename T>
 	void LinkedList<T>::remove(Link* link)
 	{
-		if (!link)
+		if (!link) {
 			return;
+		}
 
-		if (link->next)
+		if (link->next) {
 			link->next->prev = link->prev;
+		}
 
-		if (link->prev)
+		if (link->prev) {
 			link->prev->next = link->next;
+		}
 
-		if (link == m_first)
+		if (link == m_first) {
 			m_first = link->next;
+		}
 
-		if (link == m_last)
+		if (link == m_last) {
 			m_last = link->prev;
+		}
 
 		link->next = nullptr;
 		link->prev = nullptr;

@@ -21,11 +21,6 @@ Complex::Complex(double real, double imag)
 {
 }
 
-Complex::Complex(_Complex double cc)
-{
-	// todo lol
-}
-
 Complex Complex::zeta(const Complex& s, unsigned iter)
 {
 	Complex result = Complex::zero();
@@ -82,22 +77,22 @@ Complex Complex::pow(const Complex& z, const Complex& p)
 	return part0 * part1;
 }
 
-Complex Complex::exp(const wvn::Complex& b)
+Complex Complex::exp(const Complex& b)
 {
 	return pow(b, Complex(CalcD::E));
 }
 
-Complex Complex::log(const wvn::Complex& z, const wvn::Complex& b)
+Complex Complex::log(const Complex& z, const Complex& b)
 {
 	return Complex::ln(z) / Complex::ln(b);
 }
 
-Complex Complex::log10(const wvn::Complex& z)
+Complex Complex::log10(const Complex& z)
 {
 	return Complex::ln(z) / Complex(2.302585093);
 }
 
-Complex Complex::log2(const wvn::Complex& z)
+Complex Complex::log2(const Complex& z)
 {
 	return Complex::ln(z) / Complex(0.693147180559945);
 }

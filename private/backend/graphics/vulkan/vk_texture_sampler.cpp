@@ -12,8 +12,8 @@ VulkanTextureSampler::VulkanTextureSampler()
 {
 }
 
-VulkanTextureSampler::VulkanTextureSampler(TextureFilter filter, TextureWrap wrap_x, TextureWrap wrap_y, TextureWrap wrap_z)
-	: TextureSampler(filter, wrap_x, wrap_y, wrap_z)
+VulkanTextureSampler::VulkanTextureSampler(const Style& style)
+	: TextureSampler(style)
 	, m_sampler(VK_NULL_HANDLE)
 {
 }
@@ -25,24 +25,26 @@ VulkanTextureSampler::~VulkanTextureSampler()
 
 void VulkanTextureSampler::clean_up()
 {
-	if (m_sampler == VK_NULL_HANDLE) {
-		return;
-	}
-
 	vkDestroySampler(static_cast<VulkanBackend*>(Root::get_singleton()->renderer_backend())->device, m_sampler, nullptr);
-
-	m_sampler = VK_NULL_HANDLE;
 }
 
-void VulkanTextureSampler::create(VkDevice device, VkPhysicalDeviceProperties properties)
+VkSampler VulkanTextureSampler::bind(VkDevice device, VkPhysicalDeviceProperties properties)
 {
+	if (!dirty) {
+		return m_sampler;
+	} else {
+		dirty = false;
+	}
+
+	clean_up();
+
 	VkSamplerCreateInfo create_info = {};
 	create_info.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-	create_info.magFilter = vkutil::get_vk_filter(filter);
-	create_info.magFilter = vkutil::get_vk_filter(filter);
-	create_info.addressModeU = vkutil::get_vk_address_mode(wrap_x);
-	create_info.addressModeV = vkutil::get_vk_address_mode(wrap_y);
-	create_info.addressModeW = vkutil::get_vk_address_mode(wrap_z);
+	create_info.magFilter = vkutil::get_vk_filter(style.filter);
+	create_info.magFilter = vkutil::get_vk_filter(style.filter);
+	create_info.addressModeU = vkutil::get_vk_address_mode(style.wrap_x);
+	create_info.addressModeV = vkutil::get_vk_address_mode(style.wrap_y);
+	create_info.addressModeW = vkutil::get_vk_address_mode(style.wrap_z);
 	create_info.anisotropyEnable = VK_TRUE;
 	create_info.maxAnisotropy = properties.limits.maxSamplerAnisotropy;
 	create_info.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
@@ -59,7 +61,7 @@ void VulkanTextureSampler::create(VkDevice device, VkPhysicalDeviceProperties pr
 		WVN_ERROR("[VULKAN:SAMPLER|DEBUG] Failed to create swap chain.");
 	}
 
-	dev::LogMgr::get_singleton()->print("[VULKAN:SAMPLER] Created!");
+	return m_sampler;
 }
 
 VkSampler VulkanTextureSampler::sampler() const { return m_sampler; }

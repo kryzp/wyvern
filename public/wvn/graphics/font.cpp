@@ -183,9 +183,4 @@ float Font::string_height(const char* str) const
 
 const Font::Info& Font::info() const { return m_info; }
 const Font::Atlas& Font::atlas() const { return m_atlas; }
-
-const Font::Character& Font::character(char ch) const
-{
-	WVN_ASSERT(ch >= 0 && ch < WVN_FONT_CHARCOUNT, "Index must be within bounds of the character array [0 -> 255]");
-	return m_characters[ch];
-}
+const Font::Character& Font::character(char ch) const { return m_characters[ch]; }

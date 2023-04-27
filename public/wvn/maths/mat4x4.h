@@ -54,9 +54,6 @@ namespace wvn
 
         static Mat4x4 create_perspective(float fov, float aspect, float near, float far);
 
-		float* value_ptr();
-        const float* value_ptr() const;
-
         float determinant() const;
         Mat4x4 inverse() const;
 

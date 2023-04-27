@@ -52,9 +52,6 @@ namespace wvn
 
 		Vec2<float> position() const;
 
-		float* value_ptr();
-        const float* value_ptr() const;
-
 		float determinant() const;
 		Mat3x2 inverse() const;
 

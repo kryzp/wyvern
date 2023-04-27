@@ -11,19 +11,15 @@ OpenGLBackend::~OpenGLBackend()
 {
 }
 
-RendererBackendProperties OpenGLBackend::properties()
-{
-	RendererBackendProperties properties = {};
-	properties.origin_bottom_left = true;
-
-	return properties;
-}
+RendererBackendProperties OpenGLBackend::properties() { return {
+	.origin_bottom_left = true
+}; }
 
 void OpenGLBackend::set_texture(u32 idx, const Texture* texture)
 {
 }
 
-void OpenGLBackend::set_sampler(u32 idx, const TextureSampler& sampler)
+void OpenGLBackend::set_sampler(u32 idx, TextureSampler* sampler)
 {
 }
 

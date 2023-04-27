@@ -10,13 +10,11 @@ namespace wvn::gfx
 	{
 	public:
 		VulkanTextureSampler();
-		VulkanTextureSampler(TextureFilter filter, TextureWrap wrap_x, TextureWrap wrap_y, TextureWrap wrap_z);
+		VulkanTextureSampler(const Style& style);
 		~VulkanTextureSampler();
 
 		void clean_up();
-
-		void create(VkDevice device, VkPhysicalDeviceProperties properties);
-
+		VkSampler bind(VkDevice device, VkPhysicalDeviceProperties properties);
 		VkSampler sampler() const;
 
 	private:

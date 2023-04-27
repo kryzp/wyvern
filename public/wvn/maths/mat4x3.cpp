@@ -79,18 +79,21 @@ Mat4x3 Mat4x3::create_scale(float scale)
 Mat4x3 Mat4x3::create_rotation(const Quaternion& q)
 {
 	return Mat4x3(
-		1.0f - 2.0f * ((q.s * q.s) + (q.i * q.i)),
-		2.0f * ((q.i * q.j) - (q.s * q.k)),
-		2.0f * ((q.i * q.k) + (q.s * q.j)),
+		1.0f - (2.0f * ((q.s * q.s)) + (q.i * q.i)),
+		2.0f * (        (q.i * q.j)  - (q.s * q.k)),
+		2.0f * (        (q.i * q.k)  + (q.s * q.j)),
 
-		2.0f * ((q.i * q.j) + (q.s * q.k)),
-		1.0f - 2.0f * ((q.s * q.s) + (q.j * q.j)),
-		2.0f * ((q.j * q.k) - (q.s * q.i)),
+		2.0f * (        (q.i * q.j)  + (q.s * q.k)),
+		1.0f - (2.0f * ((q.s * q.s)) + (q.j * q.j)),
+		2.0f * (        (q.j * q.k)  - (q.s * q.i)),
 
-		2.0f * ((q.i * q.k) - (q.s * q.j)),
-		2.0f * ((q.j * q.k) + (q.s * q.i)),
-		1.0f - 2.0f * ((q.s * q.s) + (q.k * q.k)),
-		0, 0, 0
+		2.0f * (        (q.i * q.k)  - (q.s * q.j)),
+		2.0f * (        (q.j * q.k)  + (q.s * q.i)),
+		1.0f - (2.0f * ((q.s * q.s)) + (q.k * q.k)),
+
+		0.0f,
+		0.0f,
+		0.0f
 	);
 }
 
@@ -135,16 +138,6 @@ Mat4x3 Mat4x3::create_transform(
 Vec3F Mat4x3::position() const
 {
 	return Vec3F(m31, m32, m33);
-}
-
-float* Mat4x3::value_ptr()
-{
-	return &m11;
-}
-
-const float* Mat4x3::value_ptr() const
-{
-	return &m11;
 }
 
 float Mat4x3::determinant() const
@@ -263,6 +256,27 @@ Mat4x3 Mat4x3::operator * (const Mat4x3& other) const
 	);
 }
 
+Mat4x3 Mat4x3::operator / (float scalar) const
+{
+	return Mat4x3(
+		m11 / scalar,
+		m12 / scalar,
+		m13 / scalar,
+
+		m21 / scalar,
+		m22 / scalar,
+		m23 / scalar,
+
+		m31 / scalar,
+		m32 / scalar,
+		m33 / scalar,
+
+		m41 / scalar,
+		m42 / scalar,
+		m43 / scalar
+	);
+}
+
 Mat4x3& Mat4x3::operator -= (const Mat4x3& other)
 {
 	(*this) = (*this) - other;
@@ -284,6 +298,12 @@ Mat4x3& Mat4x3::operator *= (float scalar)
 Mat4x3& Mat4x3::operator *= (const Mat4x3& other)
 {
 	(*this) = (*this) * other;
+	return *this;
+}
+
+Mat4x3& Mat4x3::operator /= (float scalar)
+{
+	(*this) = (*this) / scalar;
 	return *this;
 }
 

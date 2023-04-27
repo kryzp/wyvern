@@ -45,16 +45,6 @@ Mat4x4::Mat4x4(
 {
 }
 
-float* Mat4x4::value_ptr()
-{
-	return data;
-}
-
-const float* Mat4x4::value_ptr() const
-{
-	return data;
-}
-
 Mat4x4 Mat4x4::create_orthographic(float width, float height, float near, float far)
 {
 	return create_orthographic_ext(0.0f, width, height, 0.0f, near, far);

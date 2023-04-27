@@ -92,7 +92,7 @@ namespace wvn
 		void install_plugins();
 		void uninstall_plugins();
 
-		float calc_delta_time();
+		float calc_delta_time() const;
 
 		phys::PhysicsMgr* m_physics_mgr;
 		act::ActorMgr* m_actor_mgr;

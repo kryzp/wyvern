@@ -8,6 +8,7 @@ namespace wvn::gfx
 {
 	class VulkanBackend;
 	class VulkanTexture;
+	class VulkanTextureSampler;
 
 	class VulkanTextureMgr : public TextureMgr
 	{
@@ -18,9 +19,13 @@ namespace wvn::gfx
 		Texture* create(const Image& image) override;
 		Texture* create(u32 width, u32 height, TextureFormat format, TextureTiling tiling, const byte* data, u64 size) override;
 
+		TextureSampler* create_sampler(const TextureSampler::Style& style) override;
+
 	private:
 		VulkanBackend* m_backend;
+
 		Vector<VulkanTexture*> m_textures;
+		Vector<VulkanTextureSampler*> m_samplers;
 	};
 }
 
