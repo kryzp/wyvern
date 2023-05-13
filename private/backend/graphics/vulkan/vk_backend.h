@@ -6,13 +6,15 @@
 #include <wvn/container/vector.h>
 #include <wvn/container/array.h>
 #include <wvn/container/optional.h>
+#include <wvn/container/hash_map.h>
 
 #include <wvn/root.h>
-#include <wvn/util/types.h>
+#include <wvn/util/common.h>
 #include <wvn/graphics/renderer_backend.h>
 
 #include <backend/graphics/vulkan/vk_buffer.h>
 #include <backend/graphics/vulkan/vk_texture.h>
+#include <backend/graphics/vulkan/vk_shader.h>
 
 #include <backend/graphics/vulkan/vk_buffer_mgr.h>
 #include <backend/graphics/vulkan/vk_texture_mgr.h>
@@ -120,6 +122,8 @@ namespace wvn::gfx
 		void set_texture(u32 idx, const Texture* texture) override;
 		void set_sampler(u32 idx, TextureSampler* sampler) override;
 
+		void bind_shader(Shader* shader) override;
+
 		u64 frame() const;
 
 		VkDevice device;
@@ -131,7 +135,6 @@ namespace wvn::gfx
 		void enumerate_physical_devices();
 		void create_logical_device(const QueueFamilyIdx& phys_idx);
 		void create_swap_chain(const QueueFamilyIdx& phys_idx);
-		void create_graphics_pipeline();
 		void create_render_pass();
 		void create_command_pools(const QueueFamilyIdx& phys_idx);
 		void create_command_buffers();
@@ -146,6 +149,9 @@ namespace wvn::gfx
 		void rebuild_swap_chain();
 		void create_swap_chain_framebuffers();
 		void acquire_next_image();
+		void clear_pipeline_cache();
+
+		VkPipeline get_graphics_pipeline();
 
 		const Vector<VkDescriptorSet>& get_descriptor_sets();
 		void update_descriptor_sets();
@@ -154,8 +160,6 @@ namespace wvn::gfx
 		QueueFamilyIdx find_queue_families(VkPhysicalDevice physical_device);
 		bool check_device_extension_support(VkPhysicalDevice physical_device);
 		SwapChainSupportDetails query_swap_chain_support(VkPhysicalDevice physical_device);
-
-		VkShaderModule create_shader_module(const Vector<char>& source) const;
 
 		// core
 		VkInstance m_instance;
@@ -170,13 +174,14 @@ namespace wvn::gfx
 
 		// render pass
 		VkRenderPass m_render_pass;
-		VkPipeline m_graphics_pipeline;
 		VkPipelineLayout m_pipeline_layout;
+		HashMap<u32, VkPipeline> m_pipeline_cache;
 		VkDescriptorSetLayout m_descriptor_set_layout;
         VkDescriptorPool m_descriptor_pool;
         Vector<VkDescriptorSet> m_descriptor_sets;
 		Array<VkWriteDescriptorSet, 2> m_descriptor_writes;
 		Array<VkDescriptorImageInfo, 1> m_image_infos;
+		Array<VkPipelineShaderStageCreateInfo, SHADER_TYPE_MAX> m_shader_stages;
 
 		// swap chain
 		VkSwapchainKHR m_swap_chain;
@@ -189,11 +194,6 @@ namespace wvn::gfx
 
 		// depth
 		VulkanTexture m_depth;
-
-		// TEMP //
-		VkShaderModule m_temp_vert_module;
-		VkShaderModule m_temp_frag_module;
-		// TEMP //
 
 #if WVN_DEBUG
 		VkDebugUtilsMessengerEXT m_debug_messenger;

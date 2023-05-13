@@ -8,8 +8,8 @@
 namespace wvn
 {
 	/**
-	 * Generic utility functions for easing from 0->1 over
-	 * a time value 't'
+	 * Generic utility functions for easing
+	 * from 0->1 over a time value 't'
 	 */
 	template <typename T>
 	class Ease
@@ -42,8 +42,10 @@ namespace wvn
 		static T circ_in_out(T t);
 	};
 
-	using EaseF = Ease<float>;
-	using EaseD = Ease<double>;
+	using EaseF   = Ease<float>;
+	using EaseD   = Ease<double>;
+	using EaseF32 = Ease<double>;
+	using EaseF64 = Ease<double>;
 	
 	template <typename T>
 	T Ease<T>::linear(T t)
@@ -66,16 +68,17 @@ namespace wvn
 	template <typename T>
 	T Ease<T>::elastic_in_out(T t)
 	{
-		if (t < 0.5)
+		if (t < 0.5) {
 			return 0.5 * Calc<T>::sin(13.0 * Calc<T>::PI * 0.5 * 2.0 * t) * Calc<T>::pow(2.0, 10.0 * ((2.0 * t) - 1.0));
-	
+		}
+
 		return 0.5 * (Calc<T>::sin(-13.0 * Calc<T>::PI * 0.5 * (((2.0 * t) - 1.0) + 1.0)) * Calc<T>::pow(2.0, -10.0 * ((2.0 * t) - 1.0)) + 2.0);
 	}
 
 	template <typename T>
 	T Ease<T>::quadratic_in(T t)
 	{
-		return t*t;
+		return t * t;
 	}
 
 	template <typename T>
@@ -87,10 +90,11 @@ namespace wvn
 	template <typename T>
 	T Ease<T>::quadratic_in_out(T t)
 	{
-		if (t < 0.5)
+		if (t < 0.5) {
 			return 2.0 * t * t;
-	
-		return 1 - (2.0 * t * t);
+		}
+
+		return 1.0 - (2.0 * t * t);
 	}
 
 	template <typename T>
@@ -126,16 +130,17 @@ namespace wvn
 	template <typename T>
 	T Ease<T>::exp_in_out(T t)
 	{
-		if (t < 0.5)
+		if (t < 0.5) {
 			return Calc<T>::pow(2.0, 10.0 * ((2.0 * t) - 1.0)) * 0.5;
-	
+		}
+
 		return -(Calc<T>::pow(2.0, -10.0 * ((2.0 * t) - 1.0)) + 2.0) * 0.5;
 	}
 
 	template <typename T>
 	T Ease<T>::back_in(T t)
 	{
-		return 2.70158*t*t*t - 1.70158*t*t;
+		return (2.70158 * t * t * t) - (1.70158 * t * t);
 	}
 
 	template <typename T>
@@ -147,9 +152,10 @@ namespace wvn
 	template <typename T>
 	T Ease<T>::back_in_out(T t)
 	{
-		if (t < 0.5)
+		if (t < 0.5) {
 			return (Calc<T>::pow(2.0 * t, 2.0) * ((3.5949095 * 2.0 * t) - 2.5949095)) * 0.5;
-	
+		}
+
 		return (Calc<T>::pow((2.0 * t) - 2.0, 2.0) * (3.5949095 * ((2.0 * t) - 2.0) + 2.5949095) + 2.0) * 0.5;
 	}
 
@@ -168,8 +174,9 @@ namespace wvn
 	template <typename T>
 	T Ease<T>::circ_in_out(T t)
 	{
-		if (t < 0.5)
+		if (t < 0.5) {
 			return (1.0 - Calc<T>::sqrt(1.0f - Calc<T>::pow(2.0 * t, 2.0))) * 0.5;
+		}
 
 		return (Calc<T>::sqrt(1 - Calc<T>::pow((-2.0 * t) + 2.0, 2.0)) + 1) * 0.5;
 	}

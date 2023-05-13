@@ -9,17 +9,16 @@
 #include <wvn/graphics/texture.h>
 #include <wvn/graphics/image.h>
 
-#include <wvn/util/types.h>
+#include <wvn/util/common.h>
 
 namespace wvn::gfx
 {
 	class VulkanTexture : public Texture
 	{
 	public:
-		VulkanTexture();
+		VulkanTexture(VulkanBackend* backend);
 		~VulkanTexture() override;
 
-		void init(VulkanBackend* backend);
 		void clean_up();
 
 		void create(const Image& image);

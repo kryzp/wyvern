@@ -1,7 +1,7 @@
 #ifndef EVENT_H
 #define EVENT_H
 
-#include <wvn/util/types.h>
+#include <wvn/util/common.h>
 #include <wvn/container/hash_map.h>
 #include <wvn/container/string.h>
 #include <wvn/actor/actor.h>

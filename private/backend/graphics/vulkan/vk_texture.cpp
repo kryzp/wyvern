@@ -6,8 +6,8 @@
 using namespace wvn;
 using namespace wvn::gfx;
 
-VulkanTexture::VulkanTexture()
-	: m_backend(nullptr)
+VulkanTexture::VulkanTexture(VulkanBackend* backend)
+	: m_backend(backend)
 	, m_image(VK_NULL_HANDLE)
 	, m_image_memory(VK_NULL_HANDLE)
 	, m_image_layout()
@@ -22,11 +22,6 @@ VulkanTexture::VulkanTexture()
 VulkanTexture::~VulkanTexture()
 {
 	clean_up();
-}
-
-void VulkanTexture::init(VulkanBackend* backend)
-{
-	this->m_backend = backend;
 }
 
 void VulkanTexture::clean_up()

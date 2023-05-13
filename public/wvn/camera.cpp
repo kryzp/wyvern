@@ -6,7 +6,7 @@ using namespace wvn;
 Camera::Camera()
 	: transform()
 	, up(Vec3F::up())
-	, direction(Quaternion::from_axis_angle(Vec3F::forward(), 0.0f))
+	, direction(Vec3F::forward())
 	, fov(0.0f)
 	, near(0.0f)
 	, far(0.0f)
@@ -26,11 +26,9 @@ void Camera::render_to(const gfx::RenderTarget& target)
 
 Mat4x4 Camera::view_matrix() const
 {
-	dev::LogMgr::get_singleton()->print("%f %f %f %f", direction.s, direction.i, direction.j, direction.k);
-
 	return Mat4x4::create_lookat(
 		transform.position(),
-		transform.position() + Quaternion::to_euler(direction),
+		transform.position() + direction,
 		up
 	);
 }

@@ -2,10 +2,16 @@
 #include <wvn/maths/calc.h>
 #include <wvn/maths/vec3.h>
 
+/**
+ * todo:
+ * Likely broken lol
+ * L + ratio + didnt ask + vectors are better + 3d complex number moment
+ */
+
 using namespace wvn;
 
 Quaternion::Quaternion()
-	: s(1.0f), i(0.0f), j(0.0f), k(0.0f)
+	: s(0.0f), i(0.0f), j(0.0f), k(0.0f)
 {
 }
 
@@ -65,6 +71,12 @@ Vec3F Quaternion::to_euler(const Quaternion& quat)
 float Quaternion::dot(const Quaternion& a, const Quaternion& b)
 {
 	return (a.s * b.s) + (a.i * b.i) + (a.j * b.j) + (a.k * b.k);
+}
+
+Quaternion Quaternion::normalized() const
+{
+	float l = length();
+	return Quaternion(s / l, i / l, j / l, k / l);
 }
 
 Quaternion Quaternion::inverse() const

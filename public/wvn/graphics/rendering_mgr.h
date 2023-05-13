@@ -4,6 +4,7 @@
 #include <wvn/util/singleton.h>
 #include <wvn/graphics/mesh.h>
 #include <wvn/graphics/texture.h>
+#include <wvn/graphics/material.h>
 
 namespace wvn::gfx
 {
@@ -23,11 +24,9 @@ namespace wvn::gfx
 		void swap_buffers();
 
 		Mesh* m;
-		Texture* t;
-		TextureSampler* s;
-
-	private:
-		void camera_stuff();
+		Shader* vertex_shader;
+		Shader* fragment_shader;
+		Material material;
 	};
 }
 

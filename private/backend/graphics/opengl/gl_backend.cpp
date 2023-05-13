@@ -1,4 +1,4 @@
-#include <backend/graphics/opengl/opengl_backend.h>
+#include <backend/graphics/opengl/gl_backend.h>
 
 using namespace wvn;
 using namespace wvn::gfx;
@@ -20,6 +20,10 @@ void OpenGLBackend::set_texture(u32 idx, const Texture* texture)
 }
 
 void OpenGLBackend::set_sampler(u32 idx, TextureSampler* sampler)
+{
+}
+
+void OpenGLBackend::bind_shader(Shader* shader)
 {
 }
 

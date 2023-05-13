@@ -38,6 +38,7 @@ namespace wvn
 
 		static float dot(const Quaternion& a, const Quaternion& b);
 
+		Quaternion normalized() const;
 		Quaternion inverse() const;
 
 		float length_squared() const;

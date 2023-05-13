@@ -2,7 +2,7 @@
 #define HARDWARE_BUFFER_H
 
 #include <wvn/graphics/texture.h>
-#include <wvn/util/types.h>
+#include <wvn/util/common.h>
 
 namespace wvn::gfx
 {

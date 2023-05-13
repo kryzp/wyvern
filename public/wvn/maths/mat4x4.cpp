@@ -125,22 +125,47 @@ Mat4x4 Mat4x4::create_rotation(float angle, Vec3F axis)
 		 (axis.x * axis.x * cos_inv) + cos_theta,
 		-(axis.x * axis.y * cos_inv) + (axis.z * sin_theta),
 		 (axis.x * axis.z * cos_inv) + (axis.y * sin_theta),
-		0,
+		0.0f,
 
 		-(axis.y * axis.x * cos_inv) - (axis.z * sin_theta),
 		 (axis.y * axis.y * cos_inv) + cos_theta,
 		-(axis.y * axis.z * cos_inv) + (axis.x * sin_theta),
-		0,
+		0.0f,
 
 		 (axis.z * axis.x * cos_inv) - (axis.y * sin_theta),
 		-(axis.z * axis.y * cos_inv) - (axis.x * sin_theta),
 		 (axis.z * axis.z * cos_inv) + cos_theta,
-		0,
+		0.0f,
 
-		0,
-		0,
-		0,
-		1
+		0.0f,
+		0.0f,
+		0.0f,
+		1.0f
+	);
+}
+
+Mat4x4 Mat4x4::create_rotation(const Quaternion& quat)
+{
+	return Mat4x4(
+		1.0f - 2.0f * (quat.j * quat.j - quat.k * quat.k),
+		2.0f * (quat.i * quat.j - quat.k * quat.s),
+		2.0f * (quat.i * quat.k + quat.j * quat.s),
+		0.0f,
+
+		2.0f * (quat.i * quat.j + quat.k * quat.s),
+		1.0f - 2.0f * (quat.i * quat.i + quat.k * quat.k),
+		2.0f * (quat.j * quat.k - quat.i * quat.s),
+		0.0f,
+
+		2.0f * (quat.i * quat.k + quat.j * quat.s),
+		2.0f * (quat.j * quat.k + quat.i * quat.s),
+		1.0f - 2.0f * (quat.i * quat.i + quat.j * quat.j),
+		0.0f,
+
+		0.0f,
+		0.0f,
+		0.0f,
+		1.0f
 	);
 }
 

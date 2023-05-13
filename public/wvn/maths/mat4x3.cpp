@@ -76,20 +76,20 @@ Mat4x3 Mat4x3::create_scale(float scale)
 	);
 }
 
-Mat4x3 Mat4x3::create_rotation(const Quaternion& q)
+Mat4x3 Mat4x3::create_rotation(const Quaternion& quat)
 {
 	return Mat4x3(
-		1.0f - (2.0f * ((q.s * q.s)) + (q.i * q.i)),
-		2.0f * (        (q.i * q.j)  - (q.s * q.k)),
-		2.0f * (        (q.i * q.k)  + (q.s * q.j)),
+		1.0f - 2.0f * (quat.j * quat.j + quat.k * quat.k),
+		2.0f * (quat.i * quat.j - quat.k * quat.s),
+		2.0f * (quat.i * quat.k + quat.j * quat.s),
 
-		2.0f * (        (q.i * q.j)  + (q.s * q.k)),
-		1.0f - (2.0f * ((q.s * q.s)) + (q.j * q.j)),
-		2.0f * (        (q.j * q.k)  - (q.s * q.i)),
+		2.0f * (quat.i * quat.j + quat.k * quat.s),
+		1.0f - 2.0f * (quat.i * quat.i + quat.k * quat.k),
+		2.0f * (quat.j * quat.k - quat.i * quat.s),
 
-		2.0f * (        (q.i * q.k)  - (q.s * q.j)),
-		2.0f * (        (q.j * q.k)  + (q.s * q.i)),
-		1.0f - (2.0f * ((q.s * q.s)) + (q.k * q.k)),
+		2.0f * (quat.i * quat.k + quat.j * quat.s),
+		2.0f * (quat.j * quat.k + quat.i * quat.s),
+		1.0f - 2.0f * (quat.i * quat.i + quat.j * quat.j),
 
 		0.0f,
 		0.0f,
@@ -97,7 +97,7 @@ Mat4x3 Mat4x3::create_rotation(const Quaternion& q)
 	);
 }
 
-Mat4x3 Mat4x3::create_translation(const Vec3<float>& translation)
+Mat4x3 Mat4x3::create_translation(const Vec3F& translation)
 {
 	return Mat4x3(
 		1, 0, 0,
@@ -116,11 +116,11 @@ Mat4x3 Mat4x3::create_transform(
 {
 	Mat4x3 mat = Mat4x3::identity();
 
-	if (origin != wvn::Vec3F::zero()) {
+	if (origin != Vec3F::zero()) {
 		mat *= create_translation(-origin);
 	}
 
-	if (scale != wvn::Size3::zero()) {
+	if (scale != Size3::zero()) {
 		mat *= create_scale(scale);
 	}
 
@@ -128,7 +128,7 @@ Mat4x3 Mat4x3::create_transform(
 		mat *= create_rotation(quat);
 	}
 
-	if (position != wvn::Vec3F::zero()) {
+	if (position != Vec3F::zero()) {
 		mat *= create_translation(position);
 	}
 

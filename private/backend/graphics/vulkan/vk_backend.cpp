@@ -188,13 +188,14 @@ VulkanBackend::VulkanBackend()
 	, m_current_frame(0)
 	, m_is_framebuffer_resized(false)
 	, m_render_pass(VK_NULL_HANDLE)
-	, m_graphics_pipeline(VK_NULL_HANDLE)
 	, m_pipeline_layout(VK_NULL_HANDLE)
 	, m_descriptor_set_layout(VK_NULL_HANDLE)
     , m_descriptor_pool(VK_NULL_HANDLE)
     , m_descriptor_sets()
 	, m_descriptor_writes()
 	, m_image_infos()
+	, m_shader_stages()
+	, m_pipeline_cache()
 	, m_swap_chain(VK_NULL_HANDLE)
 	, m_swap_chain_images()
 	, m_swap_chain_image_views()
@@ -205,12 +206,11 @@ VulkanBackend::VulkanBackend()
 	, m_buffer_mgr(nullptr)
 	, m_texture_mgr(nullptr)
 	, m_shader_mgr(nullptr)
-	, m_temp_vert_module(VK_NULL_HANDLE)
-	, m_temp_frag_module(VK_NULL_HANDLE)
 	, frames()
 	, queues()
 	, device(VK_NULL_HANDLE)
 	, physical_data()
+	, m_depth(this)
 #if WVN_DEBUG
 	, m_debug_messenger()
 #endif
@@ -289,7 +289,19 @@ VulkanBackend::VulkanBackend()
 	create_image_views();
 	create_render_pass();
 	create_descriptor_set_layout();
-	create_graphics_pipeline();
+
+	VkPipelineLayoutCreateInfo pipeline_layout_create_info = {};
+	pipeline_layout_create_info.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+	pipeline_layout_create_info.setLayoutCount = 1;
+	pipeline_layout_create_info.pSetLayouts = &m_descriptor_set_layout;
+	pipeline_layout_create_info.pushConstantRangeCount = 0;
+	pipeline_layout_create_info.pPushConstantRanges = nullptr;
+
+	if (VkResult result = vkCreatePipelineLayout(this->device, &pipeline_layout_create_info, nullptr, &m_pipeline_layout); result != VK_SUCCESS) {
+		dev::LogMgr::get_singleton()->print("[VULKAN] Result: %d", result);
+		WVN_ERROR("[VULKAN|DEBUG] Failed to create pipeline layout.");
+	}
+
 	create_command_pools(phys_idx);
 	create_depth_texture();
 	create_swap_chain_framebuffers();
@@ -299,9 +311,9 @@ VulkanBackend::VulkanBackend()
 	create_command_buffers();
 	create_sync_objects();
 
-	m_buffer_mgr = new VulkanBufferMgr(this);
+	m_buffer_mgr  = new VulkanBufferMgr (this);
 	m_texture_mgr = new VulkanTextureMgr(this);
-	m_shader_mgr = new VulkanShaderMgr();
+	m_shader_mgr  = new VulkanShaderMgr (this);
 
 	acquire_next_image();
 
@@ -317,16 +329,13 @@ VulkanBackend::~VulkanBackend()
 
 	clean_up_swap_chain();
 
-	delete m_shader_mgr;
 	delete m_texture_mgr;
 	delete m_buffer_mgr;
+	delete m_shader_mgr;
 
 	m_depth.clean_up();
 
-	vkDestroyShaderModule(this->device, m_temp_frag_module, nullptr);
-	vkDestroyShaderModule(this->device, m_temp_vert_module, nullptr);
-
-	vkDestroyPipeline(this->device, m_graphics_pipeline, nullptr);
+	clear_pipeline_cache();
 	vkDestroyPipelineLayout(this->device, m_pipeline_layout, nullptr);
 	vkDestroyRenderPass(this->device, m_render_pass, nullptr);
 
@@ -336,6 +345,7 @@ VulkanBackend::~VulkanBackend()
 
 	vkDestroyDescriptorPool(this->device, m_descriptor_pool, nullptr);
 	vkDestroyDescriptorSetLayout(this->device, m_descriptor_set_layout, nullptr);
+
 
 	for (u32 i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
 		vkDestroyFence(this->device, frames[i].in_flight_fence, nullptr);
@@ -568,36 +578,8 @@ void VulkanBackend::create_image_views()
 	dev::LogMgr::get_singleton()->print("[VULKAN] Created image views!");
 }
 
-void VulkanBackend::create_graphics_pipeline()
+VkPipeline VulkanBackend::get_graphics_pipeline()
 {
-	Array<VkPipelineShaderStageCreateInfo, 2> shader_stages;
-
-	//////// debug /////////
-	io::FileStream vert_fs = io::FileStream("/Users/kryzp/Documents/Projects/wyvern/test/res/vert.spv", "r");
-	io::FileStream frag_fs = io::FileStream("/Users/kryzp/Documents/Projects/wyvern/test/res/frag.spv", "r");
-
-	WVN_ASSERT(vert_fs.size() > 0, "[VULKAN|DEBUG] Vertex file must not be empty.");
-	WVN_ASSERT(frag_fs.size() > 0, "[VULKAN|DEBUG] Fragment file must not be empty.");
-
-	Vector<char> vert_source(vert_fs.size()); vert_fs.read(vert_source.data(), vert_fs.size());
-	Vector<char> frag_source(frag_fs.size()); frag_fs.read(frag_source.data(), frag_fs.size());
-
-	m_temp_vert_module = create_shader_module(vert_source);
-	m_temp_frag_module = create_shader_module(frag_source);
-
-	// vertex
-	shader_stages[0].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-	shader_stages[0].stage = VK_SHADER_STAGE_VERTEX_BIT;
-	shader_stages[0].module = m_temp_vert_module;
-	shader_stages[0].pName = "main";
-
-	// fragment
-	shader_stages[1].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-	shader_stages[1].stage = VK_SHADER_STAGE_FRAGMENT_BIT;
-	shader_stages[1].module = m_temp_frag_module;
-	shader_stages[1].pName = "main";
-	//////// debug /////////
-
 	auto binding_desc = get_vertex_binding_description();
 	auto attribs_desc = get_vertex_attribute_description();
 
@@ -624,11 +606,6 @@ void VulkanBackend::create_graphics_pipeline()
 	VkRect2D scissor = {};
 	scissor.offset = { 0, 0 };
 	scissor.extent = m_swap_chain_extent;
-
-	VkPipelineDynamicStateCreateInfo dynamic_state_create_info = {};
-	dynamic_state_create_info.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
-	dynamic_state_create_info.dynamicStateCount = static_cast<u32>(ARRAY_LENGTH(DYNAMIC_STATES));
-	dynamic_state_create_info.pDynamicStates = DYNAMIC_STATES;
 
 	VkPipelineViewportStateCreateInfo viewport_state_create_info = {};
 	viewport_state_create_info.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
@@ -692,22 +669,39 @@ void VulkanBackend::create_graphics_pipeline()
 	colour_blend_state_create_info.blendConstants[2] = 0.0f;
 	colour_blend_state_create_info.blendConstants[3] = 0.0f;
 
-	VkPipelineLayoutCreateInfo pipeline_layout_create_info = {};
-	pipeline_layout_create_info.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-	pipeline_layout_create_info.setLayoutCount = 1;
-	pipeline_layout_create_info.pSetLayouts = &m_descriptor_set_layout;
-	pipeline_layout_create_info.pushConstantRangeCount = 0;
-	pipeline_layout_create_info.pPushConstantRanges = nullptr;
+	u32 created_pipeline_hash = 0;
+	hash::combine(&created_pipeline_hash, colour_blend_attachment_state);
+	hash::combine(&created_pipeline_hash, rasterization_state_create_info);
+	hash::combine(&created_pipeline_hash, input_assembly_state_create_info);
+	hash::combine(&created_pipeline_hash, multisample_state_create_info);
+	hash::combine(&created_pipeline_hash, m_render_pass);
 
-	if (VkResult result = vkCreatePipelineLayout(this->device, &pipeline_layout_create_info, nullptr, &m_pipeline_layout); result != VK_SUCCESS) {
-		dev::LogMgr::get_singleton()->print("[VULKAN] Result: %d", result);
-		WVN_ERROR("[VULKAN|DEBUG] Failed to create pipeline layout.");
+	auto xxx = get_vertex_attribute_description();
+	auto yyy = get_vertex_binding_description();
+
+	for (int i = 0; i < xxx.size(); i++) {
+		hash::combine(&created_pipeline_hash, xxx[i]);
 	}
+
+	hash::combine(&created_pipeline_hash, yyy);
+
+	for (int i = 0; i < 2; i++) { // TODO TODO: Should be "m_shader_stages.size()", but only using vertex + fragment right now so its hardcoded to 2
+		hash::combine(&created_pipeline_hash, m_shader_stages[i]);
+	}
+
+	if (m_pipeline_cache.contains(created_pipeline_hash)) {
+		return m_pipeline_cache[created_pipeline_hash];
+	}
+
+	VkPipelineDynamicStateCreateInfo dynamic_state_create_info = {};
+	dynamic_state_create_info.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+	dynamic_state_create_info.dynamicStateCount = static_cast<u32>(ARRAY_LENGTH(DYNAMIC_STATES));
+	dynamic_state_create_info.pDynamicStates = DYNAMIC_STATES;
 
 	VkGraphicsPipelineCreateInfo graphics_pipeline_create_info = {};
 	graphics_pipeline_create_info.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-	graphics_pipeline_create_info.pStages = shader_stages.data();
-	graphics_pipeline_create_info.stageCount = shader_stages.size();
+	graphics_pipeline_create_info.pStages = m_shader_stages.data();
+	graphics_pipeline_create_info.stageCount = 2; // TODO TODO: Should be "m_shader_stages.size()", but only using vertex + fragment right now so its hardcoded to 2
 	graphics_pipeline_create_info.pVertexInputState = &vertex_input_state_create_info;
 	graphics_pipeline_create_info.pInputAssemblyState = &input_assembly_state_create_info;
 	graphics_pipeline_create_info.pViewportState = &viewport_state_create_info;
@@ -722,12 +716,18 @@ void VulkanBackend::create_graphics_pipeline()
 	graphics_pipeline_create_info.basePipelineHandle = VK_NULL_HANDLE;
 	graphics_pipeline_create_info.basePipelineIndex = -1;
 
-	if (VkResult result = vkCreateGraphicsPipelines(this->device, VK_NULL_HANDLE, 1, &graphics_pipeline_create_info, nullptr, &m_graphics_pipeline); result != VK_SUCCESS) {
+	VkPipeline created_pipeline = VK_NULL_HANDLE;
+
+	if (VkResult result = vkCreateGraphicsPipelines(this->device, VK_NULL_HANDLE, 1, &graphics_pipeline_create_info, nullptr, &created_pipeline); result != VK_SUCCESS) {
 		dev::LogMgr::get_singleton()->print("[VULKAN] Result: %d", result);
-		WVN_ERROR("[VULKAN|DEBUG] Failed to create graphics pipeline.");
+		WVN_ERROR("[VULKAN|DEBUG] Failed to create new graphics pipeline.");
 	}
 
-	dev::LogMgr::get_singleton()->print("[VULKAN] Created graphics pipeline!");
+	dev::LogMgr::get_singleton()->print("[VULKAN] Created new graphics pipeline!");
+
+	m_pipeline_cache.insert(Pair(created_pipeline_hash, created_pipeline));
+
+	return created_pipeline;
 }
 
 void VulkanBackend::create_render_pass()
@@ -1072,8 +1072,6 @@ void VulkanBackend::create_depth_texture()
 {
 	VkFormat format = vkutil::find_depth_format(physical_data.device);
 
-	m_depth.init(this);
-
 	m_depth.create(
 		m_swap_chain_extent.width, m_swap_chain_extent.height,
 		vkutil::get_wvn_texture_format(format), TEX_TILE_OPTIMAL
@@ -1227,23 +1225,13 @@ SwapChainSupportDetails VulkanBackend::query_swap_chain_support(VkPhysicalDevice
 	return result;
 }
 
-VkShaderModule VulkanBackend::create_shader_module(const Vector<char>& source) const
+void VulkanBackend::clear_pipeline_cache()
 {
-	VkShaderModuleCreateInfo create_info = {};
-	create_info.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-	create_info.codeSize = source.size();
-	create_info.pCode = reinterpret_cast<const u32*>(source.data());
-
-	VkShaderModule module = {};
-
-	if (VkResult result = vkCreateShaderModule(this->device, &create_info, nullptr, &module); result != VK_SUCCESS) {
-		dev::LogMgr::get_singleton()->print("[VULKAN] Result: %d", result);
-		WVN_ERROR("[VULKAN|DEBUG] Failed to create shader module.");
+	for (auto& [id, cache] : m_pipeline_cache) {
+		vkDestroyPipeline(this->device, cache, 0);
 	}
 
-	dev::LogMgr::get_singleton()->print("[VULKAN] Created shader module!");
-
-	return module;
+	m_pipeline_cache.clear();
 }
 
 void VulkanBackend::on_window_resize(int width, int height)
@@ -1267,6 +1255,12 @@ void VulkanBackend::set_sampler(u32 idx, TextureSampler* sampler)
 	m_image_infos[idx].sampler = static_cast<VulkanTextureSampler*>(sampler)->bind(device, physical_data.properties);
 }
 
+void VulkanBackend::bind_shader(Shader* shader)
+{
+	VulkanShader* vksh = static_cast<VulkanShader*>(shader);
+	m_shader_stages[vksh->type] = vksh->get_shader_stage_create_info();
+}
+
 u64 VulkanBackend::frame() const
 {
 	return m_current_frame;
@@ -1283,11 +1277,10 @@ void VulkanBackend::render(const RenderPass& pass)
 
 	// update uniform buffer (todo: temp)
 	{
-
 		UniformBufferObject ubo = {};
 		ubo.model = pass.model_matrix;
-		ubo.view  = pass.camera->view_matrix();
-		ubo.proj  = pass.camera->proj_matrix();
+		ubo.view  = pass.view_matrix;
+		ubo.proj  = pass.proj_matrix;
 		frames[m_current_frame].uniform_buffer->read_data(&ubo, sizeof(UniformBufferObject));
 	}
 
@@ -1382,7 +1375,7 @@ void VulkanBackend::render(const RenderPass& pass)
 			auto dsets = get_descriptor_sets();
 
 			vkCmdBindDescriptorSets(current_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline_layout, 0, 1, &dsets[m_current_frame], 0, nullptr);
-			vkCmdBindPipeline(current_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_graphics_pipeline);
+			vkCmdBindPipeline(current_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, get_graphics_pipeline());
 
 			vkCmdDrawIndexed(current_buffer, MESH->indices().size(), 1, 0, 0, 0);
 		}

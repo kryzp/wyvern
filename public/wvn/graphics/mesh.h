@@ -5,7 +5,7 @@
 #include <wvn/graphics/gpu_buffer_mgr.h>
 #include <wvn/graphics/gpu_buffer.h>
 #include <wvn/container/vector.h>
-#include <wvn/util/types.h>
+#include <wvn/util/common.h>
 
 namespace wvn::gfx
 {

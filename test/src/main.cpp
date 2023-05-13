@@ -5,16 +5,47 @@
 #include <wvn/actor/event.h>
 #include <wvn/actor/event_mgr.h>
 
-class Object : public wvn::act::Actor
+class CameraController : public wvn::act::Actor
 {
 public:
-	Object()
+	CameraController()
 		: wvn::act::Actor()
 	{
 	}
 
 	void tick() override
 	{
+		auto& camera = wvn::Root::get_singleton()->main_camera;
+
+		static float t = 0.0f;
+
+		if (wvn::inp::InputMgr::get_singleton()->is_down(wvn::inp::KEY_Q)) {
+			t -= 0.0125f;
+		} else if (wvn::inp::InputMgr::get_singleton()->is_down(wvn::inp::KEY_E)) {
+			t += 0.0125f;
+		}
+
+		wvn::Vec3F direction = wvn::Vec3F::from_angle(0.0f, -t + wvn::CalcF::PI / 2.0f, 1.0f);
+		camera.direction = direction;
+
+		if (wvn::inp::InputMgr::get_singleton()->is_down(wvn::inp::KEY_A)) {
+			camera.transform.move(-(-wvn::Vec3F::cross(direction, wvn::Vec3F::up()) * 0.025f));
+		} else if (wvn::inp::InputMgr::get_singleton()->is_down(wvn::inp::KEY_D)) {
+			camera.transform.move(  -wvn::Vec3F::cross(direction, wvn::Vec3F::up()) * 0.025f);
+		}
+
+		if (wvn::inp::InputMgr::get_singleton()->is_down(wvn::inp::KEY_SPACE)) {
+			camera.transform.move_y(-0.025f); // todo: this should be positive?
+		} else if (wvn::inp::InputMgr::get_singleton()->is_down(wvn::inp::KEY_LEFT_SHIFT)) {
+			camera.transform.move_y(0.025f);
+		}
+
+		if (wvn::inp::InputMgr::get_singleton()->is_down(wvn::inp::KEY_S)) {
+			camera.transform.move(-direction * 0.025f);
+		} else if (wvn::inp::InputMgr::get_singleton()->is_down(wvn::inp::KEY_W)) {
+			camera.transform.move( direction * 0.025f);
+		}
+
 		if (wvn::inp::InputMgr::get_singleton()->is_down(wvn::inp::KEY_ESCAPE))
 		{
 			wvn::act::Event quit_evt("force.quit");
@@ -42,10 +73,10 @@ int main()
 {
 	wvn::Config cfg;
 	{
-		cfg.name = "Wyvern | main.cpp";
+		cfg.name = "Wyvern Demo";
 		cfg.width = 1280;
 		cfg.height = 720;
-		cfg.target_fps = 60;
+		cfg.target_fps = 144;
 		cfg.max_updates = 5;
 		cfg.window_mode = wvn::WINDOW_MODE_WINDOWED;
 		cfg.flags =
@@ -60,7 +91,7 @@ int main()
 			wvn::Root::get_singleton()->main_camera.fov  = 45.0f;
 			wvn::Root::get_singleton()->main_camera.near =  0.1f;
 			wvn::Root::get_singleton()->main_camera.far  = 10.0f;
-			wvn::act::ActorMgr::get_singleton()->create<Object>();
+			wvn::act::ActorMgr::get_singleton()->create<CameraController>();
 		}
 
 		wvn::Root::get_singleton()->run();

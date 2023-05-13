@@ -54,16 +54,18 @@ void ActorMgr::tick_post_animation()
 
 void ActorMgr::resolve_initializing()
 {
-	for (auto& act : m_actors_initializing)
+	for (auto& act : m_actors_initializing) {
 		act->init();
+	}
 
 	m_actors_initializing.clear();
 }
 
 void ActorMgr::resolve_removing()
 {
-	for (auto& act : m_actors_destroying)
+	for (auto& act : m_actors_destroying) {
 		act->destroy();
+	}
 
 	for (auto& act : m_actors_destroying)
 	{
@@ -82,8 +84,9 @@ void ActorMgr::destroy(const ActorHandle& act)
 
 bool ActorMgr::is_valid(const ActorHandle& act)
 {
-	if (act.id() == Actor::NULL_ID)
+	if (act.id() == Actor::NULL_ID) {
 		return false;
+	}
 
 	return m_actors.contains(act.id());
 }
@@ -120,8 +123,9 @@ void ActorMgr::foreach_stoppable(const Function<bool(ActorHandle&)>& fn)
 	{
 		ActorHandle handle = ActorHandle(act);
 
-		if (fn(handle))
+		if (fn(handle)) {
 			return;
+		}
 	}
 }
 
@@ -133,8 +137,9 @@ void ActorMgr::foreach_stoppable(u64 mask, const Function<bool(ActorHandle&)>& f
 		{
 			ActorHandle handle = ActorHandle(act);
 
-			if (fn(handle))
+			if (fn(handle)) {
 				return;
+			}
 		}
 	}
 }

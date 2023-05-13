@@ -9,7 +9,7 @@ add_library(${PROJECT_NAME}
 	public/wvn/camera.cpp
 	public/wvn/time.cpp
 
-	public/wvn/util/types.cpp
+	public/wvn/util/common.cpp
 
 	public/wvn/devenv/log_mgr.cpp
 	public/wvn/devenv/console.cpp
@@ -91,8 +91,9 @@ add_library(${PROJECT_NAME}
 	private/backend/graphics/vulkan/vk_texture_mgr.cpp
 	private/backend/graphics/vulkan/vk_texture_sampler.cpp
 	private/backend/graphics/vulkan/vk_shader_mgr.cpp
+	private/backend/graphics/vulkan/vk_shader.cpp
 
-	private/backend/graphics/opengl/opengl_backend.cpp
+	private/backend/graphics/opengl/gl_backend.cpp
 
 	private/backend/audio/openal/openal_backend.cpp
 )

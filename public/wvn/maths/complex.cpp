@@ -115,7 +115,7 @@ Complex Complex::cbrt(const Complex& z)
 	return Complex::root(z, Complex(3.0));
 }
 
-Complex Complex::root(const Complex& z, const wvn::Complex& b)
+Complex Complex::root(const Complex& z, const Complex& b)
 {
 	return Complex::pow(z, Complex(1.0) / b);
 }

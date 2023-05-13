@@ -1,7 +1,7 @@
 #ifndef OPENGL_BACKEND_H
 #define OPENGL_BACKEND_H
 
-#include <wvn/util/types.h>
+#include <wvn/util/common.h>
 #include <wvn/graphics/renderer_backend.h>
 
 namespace wvn::gfx
@@ -19,6 +19,8 @@ namespace wvn::gfx
 
 		void set_texture(u32 idx, const Texture* texture) override;
 		void set_sampler(u32 idx, TextureSampler* sampler) override;
+
+		void bind_shader(Shader* shader) override;
 
 		void on_window_resize(int width, int height) override;
 	};

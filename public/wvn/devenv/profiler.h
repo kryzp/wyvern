@@ -1,7 +1,7 @@
 #ifndef PROFILER_H
 #define PROFILER_H
 
-#include <wvn/util/types.h>
+#include <wvn/util/common.h>
 #include <wvn/root.h>
 #include <wvn/util/singleton.h>
 

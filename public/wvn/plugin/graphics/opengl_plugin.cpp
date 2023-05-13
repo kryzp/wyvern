@@ -1,5 +1,5 @@
 #include <wvn/plugin/graphics/opengl_plugin.h>
-#include <backend/graphics/opengl/opengl_backend.h>
+#include <backend/graphics/opengl/gl_backend.h>
 #include <wvn/root.h>
 
 using namespace wvn;

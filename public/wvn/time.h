@@ -1,7 +1,7 @@
 #ifndef TIME_H
 #define TIME_H
 
-#include <wvn/util/types.h>
+#include <wvn/util/common.h>
 
 namespace wvn::time
 {

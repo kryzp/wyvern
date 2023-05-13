@@ -10,7 +10,7 @@ namespace wvn::sfx
 	{
 	public:
 		Sound();
-		virtual ~Sound();
+		~Sound();
 	};
 }
 

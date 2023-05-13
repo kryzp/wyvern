@@ -1,7 +1,7 @@
 #ifndef BUFFER_MGR_H
 #define BUFFER_MGR_H
 
-#include <wvn/util/types.h>
+#include <wvn/util/common.h>
 #include <wvn/graphics/gpu_buffer.h>
 #include <wvn/util/singleton.h>
 

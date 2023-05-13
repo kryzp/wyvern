@@ -3,8 +3,12 @@
 
 namespace wvn::gfx
 {
-	class Technique
+	class Shader;
+
+	struct Technique
 	{
+		Shader* shader;
+		// parameters??
 	};
 }
 

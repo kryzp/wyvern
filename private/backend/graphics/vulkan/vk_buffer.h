@@ -3,7 +3,7 @@
 
 #include <wvn/graphics/gpu_buffer.h>
 #include <vulkan/vulkan.h>
-#include <wvn/util/types.h>
+#include <wvn/util/common.h>
 
 namespace wvn::gfx
 {

@@ -79,6 +79,34 @@ template <typename T> using Weak = std::weak_ptr<T>;
 
 namespace wvn
 {
+	namespace hash
+	{
+		// fowler noll vo hash function
+		template <typename T>
+		void combine(u32 sofar, const T& data, u32* out)
+		{
+			const u32 prime = 0x01000193;
+			const u32 offset = 0x811C9DC5;
+			const char* input = (const char*)(&data);
+
+			u32 output = sofar;
+			for (u64 i = 0; i < sizeof(T); ++i)
+			{
+				output ^= input[i];
+				output *= prime;
+			}
+
+			(*out) = output ^ offset;
+		}
+
+		// fowler noll vo hash function
+		template <typename T>
+		void combine(u32* inout, const T& data)
+		{
+			combine(*inout, data, inout);
+		}
+	}
+
 	namespace mem
 	{
 		void* set(void* ptr, byte val, u64 size);

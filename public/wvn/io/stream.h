@@ -1,7 +1,7 @@
 #ifndef STREAM_H
 #define STREAM_H
 
-#include <wvn/util/types.h>
+#include <wvn/util/common.h>
 
 namespace wvn::io
 {

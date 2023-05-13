@@ -23,7 +23,7 @@ namespace wvn
 
 		Transform3D transform;
 		Vec3F up;
-		Quaternion direction;
+		Vec3F direction;
 
 		float fov;
 		float near;

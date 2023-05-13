@@ -3,6 +3,8 @@
 
 #include <wvn/container/vector.h>
 #include <wvn/graphics/technique.h>
+#include <wvn/graphics/texture.h>
+#include <wvn/graphics/shader.h>
 
 namespace wvn::gfx
 {
@@ -12,14 +14,29 @@ namespace wvn::gfx
 	 */
 	class Material
 	{
+	public:
 		using Techniques = Vector<Technique>;
 
-	public:
 		Material();
+		Material(Texture* tex, TextureSampler* smp);
 		virtual ~Material();
+
+		void add_technique(const Technique& tech);
+		Techniques& techniques();
+		const Techniques& techniques() const;
+
+		void texture(Texture* tex);
+		Texture* texture();
+		const Texture* texture() const;
+
+		void sampler(TextureSampler* smp);
+		TextureSampler* sampler();
+		const TextureSampler* sampler() const;
 
 	private:
 		Techniques m_techniques;
+		TextureSampler* m_sampler;
+		Texture* m_texture;
 	};
 }
 

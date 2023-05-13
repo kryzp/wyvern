@@ -185,6 +185,24 @@ VkSamplerAddressMode vkutil::get_vk_address_mode(TextureWrap wrap)
 	}
 }
 
+VkShaderStageFlagBits vkutil::get_vk_shader_flag_bits(ShaderType type)
+{
+	switch (type)
+	{
+		case SHADER_TYPE_VERTEX:
+			return VK_SHADER_STAGE_VERTEX_BIT;
+		case SHADER_TYPE_FRAGMENT:
+			return VK_SHADER_STAGE_FRAGMENT_BIT;
+		case SHADER_TYPE_GEOMETRY:
+			return VK_SHADER_STAGE_GEOMETRY_BIT;
+		case SHADER_TYPE_COMPUTE:
+			return VK_SHADER_STAGE_COMPUTE_BIT;
+		default:
+			WVN_ERROR("[VULKAN:UTIL|DEBUG] Failed to find VkShaderStageFlagBits given ShaderType.");
+			return VK_SHADER_STAGE_FLAG_BITS_MAX_ENUM;
+	}
+}
+
 VkCommandBuffer vkutil::begin_single_time_commands(VkCommandPool cmd_pool, VkDevice device)
 {
 	VkCommandBufferAllocateInfo alloc_info = {};

@@ -1,7 +1,7 @@
 #ifndef HASH_MAP_H
 #define HASH_MAP_H
 
-#include <wvn/util/types.h>
+#include <wvn/util/common.h>
 #include <wvn/util/assert.h>
 #include <wvn/container/pair.h>
 

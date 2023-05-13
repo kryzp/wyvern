@@ -3,7 +3,7 @@
 #include <backend/graphics/vulkan/vk_backend.h>
 #include <backend/graphics/vulkan/vk_util.h>
 #include <wvn/devenv/log_mgr.h>
-#include <wvn/util/types.h>
+#include <wvn/util/common.h>
 
 using namespace wvn;
 using namespace wvn::gfx;

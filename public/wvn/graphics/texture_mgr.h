@@ -2,7 +2,7 @@
 #define TEXTURE_MGR_H
 
 #include <wvn/util/singleton.h>
-#include <wvn/util/types.h>
+#include <wvn/util/common.h>
 #include <wvn/graphics/texture.h>
 #include <wvn/graphics/image.h>
 

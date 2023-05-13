@@ -107,13 +107,6 @@ Colour Colour::lerp(const Colour& from, const Colour& to, float amount)
 	);
 }
 
-void Colour::premultiply()
-{
-	r = (r * a) / 255;
-	g = (g * a) / 255;
-	b = (b * a) / 255;
-}
-
 Colour Colour::premultiplied() const
 {
 	Colour c = *this;
@@ -124,9 +117,9 @@ Colour Colour::premultiplied() const
 DisplayColour Colour::display_colour() const
 {
 	return DisplayColour(
-		static_cast<float>(r * a) / (255.0f * 255.0f),
-		static_cast<float>(g * a) / (255.0f * 255.0f),
-		static_cast<float>(b * a) / (255.0f * 255.0f)
+		static_cast<float>(r) / (255.0f),
+		static_cast<float>(g) / (255.0f),
+		static_cast<float>(b) / (255.0f)
 	);
 }
 
@@ -194,6 +187,12 @@ Colour Colour::operator / (float factor) const
 Colour& Colour::operator *= (float factor)
 {
 	(*this) = (*this) * factor;
+	return *this;
+}
+
+Colour& Colour::operator /= (float factor)
+{
+	(*this) = (*this) / factor;
 	return *this;
 }
 

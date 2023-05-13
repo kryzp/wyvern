@@ -1,13 +1,13 @@
 #ifndef COLOUR_H
 #define COLOUR_H
 
-#include <wvn/util/types.h>
+#include <wvn/util/common.h>
 
 namespace wvn
 {
 	/**
 	 * Generally used just when finally rendering to the screen as often
-	 * graphics API's require a floating-point colour instead of 32-bit.
+	 * graphics API's require a 96-bit RGB floating-point colour instead of 32-bit RGBA.
 	 *
 	 * Not advised to be used for storing data such as images
 	 * as its size is 3x that of the other colour type.
@@ -46,7 +46,7 @@ namespace wvn
 			};
 
 			u8 data[4];
-			u32 packed;
+			u32 packed; // todo: does this have issues depending on endianness?? probably split it off into a separate function.
 		};
 
 		Colour();
@@ -66,7 +66,6 @@ namespace wvn
 		static Colour from_hsv(float hue, float sat, float val, u8 alpha = 255);
 		static Colour lerp(const Colour& from, const Colour& to, float amount);
 
-		void premultiply();
 		Colour premultiplied() const;
 
 		DisplayColour display_colour() const;
@@ -82,6 +81,7 @@ namespace wvn
 		Colour operator / (float factor) const;
 
 		Colour& operator *= (float factor);
+		Colour& operator /= (float factor);
 	};
 
 	// hamburjger spelling

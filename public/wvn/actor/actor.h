@@ -1,7 +1,7 @@
 #ifndef ACTOR_H
 #define ACTOR_H
 
-#include <wvn/util/types.h>
+#include <wvn/util/common.h>
 
 namespace wvn::act
 {

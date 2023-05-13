@@ -1,7 +1,7 @@
 #ifndef SOCKET_H
 #define SOCKET_H
 
-#include <wvn/util/types.h>
+#include <wvn/util/common.h>
 #include <wvn/network/network_mgr.h>
 #include <wvn/network/ip_address.h>
 

@@ -2,8 +2,9 @@
 #define VK_UTIL_H
 
 #include <vulkan/vulkan.h>
-#include <wvn/util/types.h>
+#include <wvn/util/common.h>
 #include <wvn/graphics/texture.h>
+#include <wvn/graphics/shader.h>
 #include <wvn/graphics/gpu_buffer.h>
 #include <wvn/container/vector.h>
 
@@ -26,6 +27,7 @@ namespace wvn::gfx
 		VkImageTiling get_vk_texture_tile(TextureTiling tiling);
 		VkFilter get_vk_filter(TextureFilter filter);
 		VkSamplerAddressMode get_vk_address_mode(TextureWrap wrap);
+		VkShaderStageFlagBits get_vk_shader_flag_bits(ShaderType type);
 
 		VkCommandBuffer begin_single_time_commands(VkCommandPool cmd_pool, VkDevice device);
 		void end_single_time_commands(VkCommandPool cmd_pool, VkCommandBuffer cmd_buf, VkDevice device, VkQueue graphics);

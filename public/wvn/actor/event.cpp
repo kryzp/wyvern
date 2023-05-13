@@ -165,7 +165,7 @@ void Event::append_f64(const String& name, f64 val)
 	m_args.insert(Pair(name, eval));
 }
 
-void Event::append_bool(const wvn::String& name, bool val)
+void Event::append_bool(const String& name, bool val)
 {
 	EventArg eval;
 	eval.type = EventArg::ARG_TYPE_BOOL;

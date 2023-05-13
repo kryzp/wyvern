@@ -1,7 +1,7 @@
 #ifndef TEXTURE_H
 #define TEXTURE_H
 
-#include <wvn/util/types.h>
+#include <wvn/util/common.h>
 #include <wvn/graphics/texture_sampler.h>
 
 namespace wvn::gfx
