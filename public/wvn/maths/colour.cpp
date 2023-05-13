@@ -109,9 +109,11 @@ Colour Colour::lerp(const Colour& from, const Colour& to, float amount)
 
 Colour Colour::premultiplied() const
 {
-	Colour c = *this;
-	c.premultiply();
-	return c;
+	return Colour(
+		r * a / 255,
+		g * a / 255,
+		b * a / 255
+	);
 }
 
 DisplayColour Colour::display_colour() const
