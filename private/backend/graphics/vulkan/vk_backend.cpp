@@ -16,6 +16,21 @@
 #include <wvn/io/file_stream.h>
 /// debug ///
 
+/*
+ * =====================
+ * VULKAN TODO LIST:
+ * ---------------------
+ * [ ] PIPELINE CACHE
+ * [ ] INSTANCED RENDERING
+ * [ ] DYNAMIC UNIFORMS
+ * [ ] COMPUTE SHADERS
+ * [ ] MULTIPLE SUBPASSES
+ * [ ] MULTITHREADED COMMAND BUFFER GENERATION
+ * [ ] SEPARATE IMAGES & SAMPLER DESCRIPTORS
+ * [ ] PUSH CONSTANTS
+ * =====================
+ */
+
 using namespace wvn;
 using namespace wvn::gfx;
 
@@ -211,6 +226,8 @@ VulkanBackend::VulkanBackend()
 	, device(VK_NULL_HANDLE)
 	, physical_data()
 	, m_depth(this)
+	, m_colour(this)
+	, m_msaa_samples(VK_SAMPLE_COUNT_1_BIT)
 #if WVN_DEBUG
 	, m_debug_messenger()
 #endif
@@ -303,7 +320,8 @@ VulkanBackend::VulkanBackend()
 	}
 
 	create_command_pools(phys_idx);
-	create_depth_texture();
+	create_colour_resources();
+	create_depth_resources();
 	create_swap_chain_framebuffers();
 	create_uniform_buffers();
     create_descriptor_pool();
@@ -334,6 +352,7 @@ VulkanBackend::~VulkanBackend()
 	delete m_shader_mgr;
 
 	m_depth.clean_up();
+	m_colour.clean_up();
 
 	clear_pipeline_cache();
 	vkDestroyPipelineLayout(this->device, m_pipeline_layout, nullptr);
@@ -400,6 +419,8 @@ void VulkanBackend::enumerate_physical_devices()
 	physical_data.properties = properties;
 	physical_data.features = features;
 
+	m_msaa_samples = get_max_usable_sample_count();
+
 	bool has_essentials = false;
 	u32 usability0 = assign_physical_device_usability(physical_data.device, properties, features, &has_essentials);
 
@@ -418,6 +439,8 @@ void VulkanBackend::enumerate_physical_devices()
 			physical_data.device = devices[i];
 			physical_data.properties = properties;
 			physical_data.features = features;
+
+			m_msaa_samples = get_max_usable_sample_count();
 		}
 	}
 
@@ -630,7 +653,7 @@ VkPipeline VulkanBackend::get_graphics_pipeline()
 	VkPipelineMultisampleStateCreateInfo multisample_state_create_info = {};
 	multisample_state_create_info.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
 	multisample_state_create_info.sampleShadingEnable = VK_FALSE;
-	multisample_state_create_info.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+	multisample_state_create_info.rasterizationSamples = m_msaa_samples;
 	multisample_state_create_info.minSampleShading = 1.0f;
 	multisample_state_create_info.pSampleMask = nullptr;
 	multisample_state_create_info.alphaToCoverageEnable = VK_FALSE;
@@ -732,25 +755,39 @@ VkPipeline VulkanBackend::get_graphics_pipeline()
 
 void VulkanBackend::create_render_pass()
 {
-	Array<VkAttachmentDescription, 2> attachment_descriptions;
+	Array<VkAttachmentDescription, 3> attachment_descriptions;
 
-	// swap chain colour attachment
+	// colour attachment
 	attachment_descriptions[0].format = m_swap_chain_image_format;
-	attachment_descriptions[0].samples = VK_SAMPLE_COUNT_1_BIT;
+	attachment_descriptions[0].samples = m_msaa_samples;
 	attachment_descriptions[0].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 	attachment_descriptions[0].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 	attachment_descriptions[0].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE; // todo: we dont use the stencil buffer YET
 	attachment_descriptions[0].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 	attachment_descriptions[0].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-	attachment_descriptions[0].finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+	attachment_descriptions[0].finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
 	VkAttachmentReference swap_chain_colour_attachment_ref = {};
 	swap_chain_colour_attachment_ref.attachment = 0;
 	swap_chain_colour_attachment_ref.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
+	// colour attachment resolve
+	attachment_descriptions[2].format = m_swap_chain_image_format;
+	attachment_descriptions[2].samples = VK_SAMPLE_COUNT_1_BIT;
+	attachment_descriptions[2].loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+	attachment_descriptions[2].storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+	attachment_descriptions[2].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+	attachment_descriptions[2].stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+	attachment_descriptions[2].initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+	attachment_descriptions[2].finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
+	VkAttachmentReference colour_attachment_resolve_ref = {};
+	colour_attachment_resolve_ref.attachment = 2;
+	colour_attachment_resolve_ref.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
 	// depth attachment
 	attachment_descriptions[1].format = vkutil::find_depth_format(physical_data.device);
-	attachment_descriptions[1].samples = VK_SAMPLE_COUNT_1_BIT;
+	attachment_descriptions[1].samples = m_msaa_samples;
 	attachment_descriptions[1].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 	attachment_descriptions[1].storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 	attachment_descriptions[1].stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
@@ -767,6 +804,7 @@ void VulkanBackend::create_render_pass()
 	VkSubpassDescription swap_chain_sub_pass = {};
 	swap_chain_sub_pass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
 	swap_chain_sub_pass.pColorAttachments = &swap_chain_colour_attachment_ref;
+	swap_chain_sub_pass.pResolveAttachments = &colour_attachment_resolve_ref;
 	swap_chain_sub_pass.colorAttachmentCount = 1;
 	swap_chain_sub_pass.pDepthStencilAttachment = &depth_attachment_ref;
 
@@ -801,10 +839,11 @@ void VulkanBackend::create_swap_chain_framebuffers()
 
 	for (u64 i = 0; i < m_swap_chain_image_views.size(); i++)
 	{
-		Array<VkImageView, 2> attachments;
+		Array<VkImageView, 3> attachments;
 
-		attachments[0] = m_swap_chain_image_views[i];
+		attachments[0] = m_colour.image_view();
 		attachments[1] = m_depth.image_view();
+		attachments[2] = m_swap_chain_image_views[i];
 
 		VkFramebufferCreateInfo framebuffer_info = {};
 		framebuffer_info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
@@ -841,14 +880,14 @@ void VulkanBackend::rebuild_swap_chain()
 {
 	// wait until draw size isn't zero
 	while (Root::get_singleton()->system_backend()->get_draw_size() == Vec2I::zero()) { }
-
 	vkDeviceWaitIdle(this->device);
 
 	clean_up_swap_chain();
 
 	create_swap_chain(find_queue_families(physical_data.device));
 	create_image_views();
-	create_depth_texture();
+	create_colour_resources();
+	create_depth_resources();
 	create_swap_chain_framebuffers();
 }
 
@@ -859,8 +898,7 @@ void VulkanBackend::create_command_pools(const QueueFamilyIdx& phys_idx)
 	create_info.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 	create_info.queueFamilyIndex = phys_idx.graphics_family.value();
 
-	for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
-	{
+	for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
 		if (VkResult result = vkCreateCommandPool(this->device, &create_info, nullptr, &frames[i].command_pool); result != VK_SUCCESS) {
 			dev::LogMgr::get_singleton()->print("[VULKAN] Result: %d", result);
 			WVN_ERROR("[VULKAN|DEBUG] Failed to create command pools.");
@@ -1068,18 +1106,32 @@ void VulkanBackend::create_uniform_buffers()
 	dev::LogMgr::get_singleton()->print("[VULKAN] Created uniform buffers!");
 }
 
-void VulkanBackend::create_depth_texture()
+void VulkanBackend::create_depth_resources()
 {
 	VkFormat format = vkutil::find_depth_format(physical_data.device);
 
 	m_depth.create(
 		m_swap_chain_extent.width, m_swap_chain_extent.height,
-		vkutil::get_wvn_texture_format(format), TEX_TILE_OPTIMAL
+		vkutil::get_wvn_texture_format(format), TEX_TILE_OPTIMAL,
+		1, m_msaa_samples, false
 	);
 
 	m_depth.transition_layout(VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
 
-	dev::LogMgr::get_singleton()->print("[VULKAN] Created depth texture!");
+	dev::LogMgr::get_singleton()->print("[VULKAN] Created depth resources!");
+}
+
+void VulkanBackend::create_colour_resources()
+{
+	VkFormat format = m_swap_chain_image_format;
+
+	m_colour.create(
+		m_swap_chain_extent.width, m_swap_chain_extent.height,
+		vkutil::get_wvn_texture_format(format), TEX_TILE_OPTIMAL,
+		1, m_msaa_samples, true
+	);
+
+	dev::LogMgr::get_singleton()->print("[VULKAN] Created colour resources!");
 }
 
 u32 VulkanBackend::assign_physical_device_usability(
@@ -1234,6 +1286,29 @@ void VulkanBackend::clear_pipeline_cache()
 	m_pipeline_cache.clear();
 }
 
+VkSampleCountFlagBits VulkanBackend::get_max_usable_sample_count()
+{
+	VkSampleCountFlags counts =
+		physical_data.properties.limits.framebufferColorSampleCounts &
+		physical_data.properties.limits.framebufferDepthSampleCounts;
+
+	if (counts & VK_SAMPLE_COUNT_64_BIT) {
+		return VK_SAMPLE_COUNT_64_BIT;
+	} else if (counts & VK_SAMPLE_COUNT_32_BIT) {
+		return VK_SAMPLE_COUNT_32_BIT;
+	} else if (counts & VK_SAMPLE_COUNT_16_BIT) {
+		return VK_SAMPLE_COUNT_16_BIT;
+	} else if (counts & VK_SAMPLE_COUNT_8_BIT) {
+		return VK_SAMPLE_COUNT_8_BIT;
+	} else if (counts & VK_SAMPLE_COUNT_4_BIT) {
+		return VK_SAMPLE_COUNT_4_BIT;
+	} else if (counts & VK_SAMPLE_COUNT_2_BIT) {
+		return VK_SAMPLE_COUNT_2_BIT;
+	} else {
+		return VK_SAMPLE_COUNT_1_BIT;
+	}
+}
+
 void VulkanBackend::on_window_resize(int width, int height)
 {
 	m_is_framebuffer_resized = true;
@@ -1252,7 +1327,7 @@ void VulkanBackend::set_texture(u32 idx, const Texture* texture)
 
 void VulkanBackend::set_sampler(u32 idx, TextureSampler* sampler)
 {
-	m_image_infos[idx].sampler = static_cast<VulkanTextureSampler*>(sampler)->bind(device, physical_data.properties);
+	m_image_infos[idx].sampler = static_cast<VulkanTextureSampler*>(sampler)->bind(device, physical_data.properties, 4);
 }
 
 void VulkanBackend::bind_shader(Shader* shader)

@@ -21,21 +21,24 @@ namespace wvn::gfx
 
 		void clean_up();
 
-		void create(const Image& image);
-		void create(u32 width, u32 height, TextureFormat format, TextureTiling tiling);
+		void create(const Image& image, u32 mip_levels, VkSampleCountFlagBits num_samples, bool transient);
+		void create(u32 width, u32 height, TextureFormat format, TextureTiling tiling, u32 mip_levels, VkSampleCountFlagBits num_samples, bool transient);
 
 		void transition_layout(VkImageLayout new_layout);
+		void generate_mipmaps();
 
 		VkImage image() const;
 		VkImageView image_view() const;
 
 		u32 width() const override;
 		u32 height() const override;
+		u32 mip_levels() const;
+		VkSampleCountFlagBits num_samples() const;
 
 		TextureMetaData meta_data() const override;
 
 	private:
-		void create_internal_resources();
+		void create_internal_resources(bool transient);
 		VkImageView generate_view() const;
 
 		VulkanBackend* m_backend;
@@ -44,6 +47,8 @@ namespace wvn::gfx
 		VkDeviceMemory m_image_memory;
 		VkImageLayout m_image_layout;
 		VkImageView m_view;
+		u32 m_mip_levels;
+		VkSampleCountFlagBits m_num_samples;
 
 		TextureFormat m_format;
 		TextureTiling m_tiling;

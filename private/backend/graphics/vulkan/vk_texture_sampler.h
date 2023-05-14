@@ -14,7 +14,7 @@ namespace wvn::gfx
 		~VulkanTextureSampler();
 
 		void clean_up();
-		VkSampler bind(VkDevice device, VkPhysicalDeviceProperties properties);
+		VkSampler bind(VkDevice device, VkPhysicalDeviceProperties properties, int mip_levels);
 		VkSampler sampler() const;
 
 	private:

@@ -28,7 +28,7 @@ void VulkanTextureSampler::clean_up()
 	vkDestroySampler(static_cast<VulkanBackend*>(Root::get_singleton()->renderer_backend())->device, m_sampler, nullptr);
 }
 
-VkSampler VulkanTextureSampler::bind(VkDevice device, VkPhysicalDeviceProperties properties)
+VkSampler VulkanTextureSampler::bind(VkDevice device, VkPhysicalDeviceProperties properties, int mip_levels)
 {
 	if (!dirty) {
 		return m_sampler;
@@ -54,7 +54,7 @@ VkSampler VulkanTextureSampler::bind(VkDevice device, VkPhysicalDeviceProperties
 	create_info.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
 	create_info.mipLodBias = 0.0f;
 	create_info.minLod = 0.0f;
-	create_info.maxLod = 0.0f;
+	create_info.maxLod = (float)mip_levels;
 
 	if (VkResult result = vkCreateSampler(device, &create_info, nullptr, &m_sampler); result != VK_SUCCESS) {
 		dev::LogMgr::get_singleton()->print("[VULKAN:SAMPLER] Result: %d", result);

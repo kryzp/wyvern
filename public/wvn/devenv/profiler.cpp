@@ -12,7 +12,3 @@ ProfileMgr::ProfileMgr()
 ProfileMgr::~ProfileMgr()
 {
 }
-
-void ProfileMgr::store_sample(const char* name, u64 elapsed)
-{
-}

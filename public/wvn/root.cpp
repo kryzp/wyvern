@@ -37,15 +37,15 @@ Root::Root(const Config& cfg)
 	install_plugins();
 
 	m_physics_mgr 	= new phys::PhysicsMgr();
-	m_actor_mgr 	= new act::ActorMgr();
-	m_scene_mgr 	= new act::SceneMgr();
-	m_event_mgr 	= new act::EventMgr();
-	m_rendering_mgr = new gfx::RenderingMgr();
-	m_audio_mgr 	= new sfx::AudioMgr();
-	m_input_mgr 	= new inp::InputMgr();
-	m_network_mgr 	= new net::NetworkMgr();
+	m_actor_mgr 	= new act ::ActorMgr();
+	m_scene_mgr 	= new act ::SceneMgr();
+	m_event_mgr 	= new act ::EventMgr();
+	m_rendering_mgr = new gfx ::RenderingMgr();
+	m_audio_mgr 	= new sfx ::AudioMgr();
+	m_input_mgr 	= new inp ::InputMgr();
+	m_network_mgr 	= new net ::NetworkMgr();
 	m_animation_mgr = new anim::AnimationMgr();
-	m_resource_mgr  = new res::ResourceMgr();
+	m_resource_mgr  = new res ::ResourceMgr();
 
 	random.regen_seed(cfg.random_seed == 0 ? std::time(nullptr) : cfg.random_seed);
 
@@ -115,6 +115,8 @@ Root::~Root()
 	uninstall_plugins();
 }
 
+#include <wvn/devenv/profiler.h>
+
 void Root::run()
 {
 	while (m_running)
@@ -124,6 +126,8 @@ void Root::run()
 
 		// update
 		{
+			WVN_PROFILE("root.run.update");
+
 			m_actor_mgr->tick_pre_animation();
 
 			m_animation_mgr->tick();
@@ -140,14 +144,20 @@ void Root::run()
 
 		// audio
 		{
+			WVN_PROFILE("root.run.audio");
+
 			m_audio_mgr->tick();
 		}
 
 		// render
 		{
+			WVN_PROFILE("root.run.render");
+
 			m_rendering_mgr->render_scene();
 			m_rendering_mgr->swap_buffers();
 		}
+
+		printf("\n");
 	}
 }
 

@@ -46,7 +46,6 @@ namespace wvn
 			};
 
 			u8 data[4];
-			u32 packed; // todo: does this have issues depending on endianness?? probably split it off into a separate function.
 		};
 
 		Colour();
@@ -65,6 +64,8 @@ namespace wvn
 
 		static Colour from_hsv(float hue, float sat, float val, u8 alpha = 255);
 		static Colour lerp(const Colour& from, const Colour& to, float amount);
+
+		u32 packed() const;
 
 		Colour premultiplied() const;
 

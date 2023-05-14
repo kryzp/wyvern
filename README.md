@@ -12,3 +12,5 @@ I use a fully left-handed coordinate system because I'm left-handed. A notable e
 
 Warning: Super unstable, and constantly changing - your projects *will* break!  
 This is your final warning!
+
+Credit to https://vulkan-tutorial.com for helping me learn vulkan!

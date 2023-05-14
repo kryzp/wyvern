@@ -4,6 +4,11 @@
 #include <wvn/container/string.h>
 #include <wvn/container/vector.h>
 
+/**
+ * So far this is being unused.
+ * At some point I'll add it.
+ */
+
 namespace wvn
 {
 	class ClassDB

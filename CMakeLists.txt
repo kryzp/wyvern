@@ -2,6 +2,13 @@ cmake_minimum_required(VERSION 3.7)
 project(wyvern)
 
 set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_OSX_ARCHITECTURES "arm64")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0")
+set(CMAKE_CXX_FLAGS_DEBUG_INIT "-Wall")
+set(CMAKE_OSX_DEPLOYMENT_TARGET 13.3.1)
+
+add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
+add_compile_definitions(WVN_DEBUG)
 
 add_library(${PROJECT_NAME}
 
@@ -114,9 +121,6 @@ set(SDL2_ENABLED true CACHE BOOL "Use SDL2 as the system implementation")
 set(VK_ENABLED true CACHE BOOL "Use Vulkan as the renderer implementation")
 set(OPENGL_ENABLED false CACHE BOOL "Use OpenGL as the renderer implementation")
 set(OPENAL_ENABLED true CACHE BOOL "Use OpenAL as the audio implementation")
-
-add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
-add_compile_definitions(WVN_DEBUG)
 
 if (SDL2_ENABLED)
 	add_compile_definitions(WVN_USE_SDL2)

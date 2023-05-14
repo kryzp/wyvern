@@ -1,6 +1,7 @@
 #include <wvn/graphics/image.h>
 #include <wvn/io/file_stream.h>
 #include <wvn/devenv/log_mgr.h>
+#include <wvn/maths/calc.h>
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <third_party/stb_image.h>
@@ -37,7 +38,7 @@ Image::Image(int width, int height)
 	, m_nr_channels(0)
 	, m_stbi_management(false)
 {
-	m_pixels = new Colour[width * height];
+	this->m_pixels = new Colour[width * height];
 }
 
 Image::~Image()
@@ -47,13 +48,13 @@ Image::~Image()
 
 void Image::load(const char* path)
 {
-	m_stbi_management = true;
+	this->m_stbi_management = true;
 
 	int w, h, nrc;
-	m_pixels = (Colour*)stbi_load(path, &w, &h, &nrc, 4);
-	m_width = w;
-	m_height = h;
-	m_nr_channels = nrc;
+	this->m_pixels = (Colour*)stbi_load(path, &w, &h, &nrc, 4);
+	this->m_width = w;
+	this->m_height = h;
+	this->m_nr_channels = nrc;
 }
 
 void Image::free()
@@ -162,42 +163,11 @@ Colour Image::pixel_at(u32 x, u32 y) const
 	return m_pixels[(y * m_width) + x];
 }
 
-Colour* Image::pixels()
-{
-	return m_pixels;
-}
-
-const Colour* Image::pixels() const
-{
-	return m_pixels;
-}
-
-byte* Image::raw_pixel_data()
-{
-	return (byte*)m_pixels;
-}
-
-const byte* Image::raw_pixel_data() const
-{
-	return (const byte*)m_pixels;
-}
-
-u32 Image::width() const
-{
-	return m_width;
-}
-
-u32 Image::height() const
-{
-	return m_height;
-}
-
-u64 Image::size() const
-{
-	return m_width * m_height * 4;
-}
-
-int Image::nr_channels() const
-{
-	return m_nr_channels;
-}
+Colour* Image::pixels() { return m_pixels; }
+const Colour* Image::pixels() const { return m_pixels; }
+byte* Image::raw_pixel_data() { return (byte*)m_pixels; }
+const byte* Image::raw_pixel_data() const { return (const byte*)m_pixels; }
+u32 Image::width() const { return m_width; }
+u32 Image::height() const { return m_height; }
+u64 Image::size() const { return m_width * m_height * 4; }
+int Image::nr_channels() const{ return m_nr_channels; }

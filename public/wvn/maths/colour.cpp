@@ -43,10 +43,20 @@ Colour::Colour(u32 packed)
 {
 }
 
+u32 Colour::packed() const
+{
+	return (
+		r << 24 |
+		g << 16 |
+		b << 8  |
+		a << 0
+	);
+}
+
 Colour Colour::from_hsv(float hue, float sat, float val, u8 alpha)
 {
 	float C = sat * val;
-	float X = C * (1 - CalcF::abs(CalcF::mod(hue / 60.0f, 2) - 1));
+	float X = C * (1.0f - CalcF::abs(CalcF::mod(hue / 60.0f, 2.0f) - 1.0f));
 	float m = val - C;
 
 	float r, g, b;

@@ -18,7 +18,10 @@ namespace wvn::dev
 		ProfileMgr();
 		~ProfileMgr();
 
-		void store_sample(const char* name, u64 elapsed);
+		void store_sample(const char* name, u64 elapsed)
+		{
+			printf("PROFILER: %s | %d\n", name, elapsed);
+		}
 	};
 
 	/**
@@ -46,6 +49,7 @@ namespace wvn::dev
 	};
 }
 
+// todo: also add a hash for the name to allow for nested profilers?
 #define WVN_PROFILE(name) ::wvn::dev::AutoProfiler __wvn_profiler_scope(name);
 
 #endif // PROFILER_H

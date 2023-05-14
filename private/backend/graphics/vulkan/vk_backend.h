@@ -143,13 +143,15 @@ namespace wvn::gfx
 		void create_uniform_buffers();
         void create_descriptor_pool();
         void create_descriptor_sets();
-		void create_depth_texture();
+		void create_depth_resources();
+		void create_colour_resources();
 		void create_image_views();
 		void clean_up_swap_chain();
 		void rebuild_swap_chain();
 		void create_swap_chain_framebuffers();
 		void acquire_next_image();
 		void clear_pipeline_cache();
+		VkSampleCountFlagBits get_max_usable_sample_count();
 
 		VkPipeline get_graphics_pipeline();
 
@@ -194,6 +196,10 @@ namespace wvn::gfx
 
 		// depth
 		VulkanTexture m_depth;
+
+		// multisampling
+		VulkanTexture m_colour;
+		VkSampleCountFlagBits m_msaa_samples;
 
 #if WVN_DEBUG
 		VkDebugUtilsMessengerEXT m_debug_messenger;
