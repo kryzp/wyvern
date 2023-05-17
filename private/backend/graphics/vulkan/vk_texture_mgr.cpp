@@ -35,7 +35,7 @@ Texture* VulkanTextureMgr::create(const Image& image)
 	// todo: temp: just to get something working
 	GPUBuffer* stage = GPUBufferMgr::get_singleton()->create_staging_buffer(image.size());
 	{
-		stage->read_data(image.raw_pixel_data(), image.size());
+		stage->read_data(image.raw_pixel_data(), image.size(), 0);
 		texture->transition_layout(VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 		stage->write_to_tex(texture, image.size());
 	}
@@ -56,7 +56,7 @@ Texture* VulkanTextureMgr::create(u32 width, u32 height, TextureFormat format, T
 	// todo: temp: just to get something working
 	GPUBuffer* stage = GPUBufferMgr::get_singleton()->create_staging_buffer(size);
 	{
-		stage->read_data(data, size);
+		stage->read_data(data, size, 0);
 		texture->transition_layout(VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 		stage->write_to_tex(texture, size);
 	}

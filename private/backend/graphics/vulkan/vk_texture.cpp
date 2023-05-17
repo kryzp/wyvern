@@ -344,3 +344,4 @@ u32 VulkanTexture::width() const { return m_width; }
 u32 VulkanTexture::height() const { return m_height; }
 u32 VulkanTexture::mip_levels() const { return m_mip_levels; }
 VkSampleCountFlagBits VulkanTexture::num_samples() const { return m_num_samples; }
+bool VulkanTexture::transient() const { return m_transient; }

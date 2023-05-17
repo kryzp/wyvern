@@ -1364,7 +1364,7 @@ void VulkanBackend::render(const RenderPass& pass)
 		);
 		ubo.view = pass.view_matrix;
 		ubo.proj = pass.proj_matrix;
-		frames[m_current_frame].uniform_buffer->read_data(&ubo, sizeof(UniformBufferObject));
+		frames[m_current_frame].uniform_buffer->read_data(&ubo, sizeof(UniformBufferObject), 0);
 	}
 
 	vkResetCommandPool(this->device, frames[m_current_frame].command_pool, 0);
@@ -1417,8 +1417,8 @@ void VulkanBackend::render(const RenderPass& pass)
 		{
 			viewport.x = 0.0f;
 			viewport.y = 0.0f;
-			viewport.width = static_cast<float>(m_swap_chain_extent.width);
-			viewport.height = static_cast<float>(m_swap_chain_extent.height);
+			viewport.width = (float)m_swap_chain_extent.width;
+			viewport.height = (float)m_swap_chain_extent.height;
 			viewport.minDepth = 0.0f;
 			viewport.maxDepth = 1.0f;
 		}
@@ -1442,25 +1442,24 @@ void VulkanBackend::render(const RenderPass& pass)
 
 		vkCmdBeginRenderPass(current_buffer, &render_pass_begin_info, VK_SUBPASS_CONTENTS_INLINE);
 		{
-			const auto& MESH = pass.mesh;
-			const auto& VBUF = static_cast<VulkanBuffer*>(pass.mesh->vertex_buffer());
-			const auto& IBUF = static_cast<VulkanBuffer*>(pass.mesh->index_buffer());
+			const auto& vertex_buffer = static_cast<VulkanBuffer*>(pass.mesh->vertex_buffer())->buffer();
+			const auto& index_buffer = static_cast<VulkanBuffer*>(pass.mesh->index_buffer())->buffer();
 
 			vkCmdSetViewport(current_buffer, 0, 1, &viewport);
 			vkCmdSetScissor(current_buffer, 0, 1, &scissor);
 
-			VkBuffer vertex_buffers[] = { VBUF->buffer() };
+			VkBuffer vertex_buffers[] = { vertex_buffer };
 			VkDeviceSize offsets[] = { 0 };
 
 			vkCmdBindVertexBuffers(current_buffer, 0, 1, vertex_buffers, offsets);
-			vkCmdBindIndexBuffer(current_buffer, IBUF->buffer(), 0, VK_INDEX_TYPE_UINT16);
+			vkCmdBindIndexBuffer(current_buffer, index_buffer, 0, VK_INDEX_TYPE_UINT16);
 
 			auto dsets = get_descriptor_sets();
 
 			vkCmdBindDescriptorSets(current_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline_layout, 0, 1, &dsets[m_current_frame], 0, nullptr);
 			vkCmdBindPipeline(current_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, get_graphics_pipeline());
 
-			vkCmdDrawIndexed(current_buffer, MESH->indices().size(), 1, 0, 0, 0);
+			vkCmdDrawIndexed(current_buffer, pass.mesh->index_count(), 1, 0, 0, 0);
 		}
 		vkCmdEndRenderPass(current_buffer);
 

@@ -37,6 +37,8 @@ namespace wvn::sys
 
 		bool is_cursor_visible() override;
 		void toggle_cursor_visible(bool toggle) override;
+		void lock_cursor(bool toggle) override;
+		void set_cursor_position(int x, int y) override;
 
 		WindowMode get_window_mode() override;
 		void set_window_mode(WindowMode toggle) override;

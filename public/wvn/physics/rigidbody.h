@@ -4,7 +4,7 @@
 #include <wvn/maths/vec2.h>
 #include <wvn/maths/vec3.h>
 #include <wvn/maths/mat3x3.h>
-#include <wvn/maths/quaternion.h>
+#include <wvn/maths/quat.h>
 
 #include <wvn/container/bitset.h>
 #include <wvn/container/vector.h>
@@ -54,8 +54,8 @@ namespace wvn::phys
 		void set_position(const Point3& position);
 		void move_position(const Vec3F& amount);
 
-		void set_rotation(const Quaternion& rotation);
-		void add_rotation(const Quaternion& rotation);
+		void set_rotation(const Quat& rotation);
+		void add_rotation(const Quat& rotation);
 
 		bool is_sleeping();
 		void sleep();
@@ -73,7 +73,7 @@ namespace wvn::phys
 		Bitset<16> m_flags;
 		CollisionDetection m_collision_detection_mode;
 
-		Quaternion m_rotation;
+		Quat m_rotation;
 		float m_angular_drag;
 		Vec3F m_angular_velocity;
 		float m_max_angular_velocity;

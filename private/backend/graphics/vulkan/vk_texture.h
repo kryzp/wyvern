@@ -34,6 +34,7 @@ namespace wvn::gfx
 		u32 height() const override;
 		u32 mip_levels() const;
 		VkSampleCountFlagBits num_samples() const;
+		bool transient() const;
 
 		TextureMetaData meta_data() const override;
 

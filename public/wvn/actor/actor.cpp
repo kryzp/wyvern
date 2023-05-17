@@ -14,6 +14,7 @@ Actor::Actor()
 
 void Actor::tick()
 {
+	p_model->transform() = p_transform;
 }
 
 Transform3D& Actor::get_transform()

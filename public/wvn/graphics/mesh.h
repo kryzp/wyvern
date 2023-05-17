@@ -25,6 +25,7 @@ namespace wvn::gfx
 		const Vector<Vertex>& vertices() const;
 		Vector<u16>& indices();
 		const Vector<u16>& indices() const;
+		u64 index_count() const;
 
 	private:
 		GPUBuffer* m_vertex_buffer;

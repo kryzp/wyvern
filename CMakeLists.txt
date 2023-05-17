@@ -77,7 +77,7 @@ add_library(${PROJECT_NAME}
 	public/wvn/maths/mat4x4.cpp
 	public/wvn/maths/polygon.cpp
 	public/wvn/maths/quad.cpp
-	public/wvn/maths/quaternion.cpp
+        public/wvn/maths/quat.cpp
 	public/wvn/maths/timer.cpp
 	public/wvn/maths/triangle.cpp
 	public/wvn/maths/transform_3d.cpp

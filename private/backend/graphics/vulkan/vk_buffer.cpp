@@ -68,29 +68,29 @@ void VulkanBuffer::clean_up()
     m_memory = VK_NULL_HANDLE;
 }
 
-void VulkanBuffer::read_data(const void* src, u64 length)
+void VulkanBuffer::read_data(const void* src, u64 length, u64 offset)
 {
 	void* dst = nullptr;
-	vkMapMemory(m_backend->device, m_memory, 0, length, 0, &dst);
+	vkMapMemory(m_backend->device, m_memory, offset, length, 0, &dst);
 	mem::copy(dst, src, length);
 	vkUnmapMemory(m_backend->device, m_memory);
 }
 
-void VulkanBuffer::write_data(void* dst, u64 length)
+void VulkanBuffer::write_data(void* dst, u64 length, u64 offset)
 {
 	void* src = nullptr;
-	vkMapMemory(m_backend->device, m_memory, 0, length, 0, &src);
+	vkMapMemory(m_backend->device, m_memory, offset, length, 0, &src);
 	mem::copy(dst, src, length);
 	vkUnmapMemory(m_backend->device, m_memory);
 }
 
-void VulkanBuffer::write_to(const GPUBuffer* other, u64 length)
+void VulkanBuffer::write_to(const GPUBuffer* other, u64 length, u64 src_offset, u64 dst_offset)
 {
 	VkCommandBuffer cmd_buf = vkutil::begin_single_time_commands(m_backend->frames[m_backend->frame()].command_pool, m_backend->device);
 	{
 		VkBufferCopy region = {};
-		region.srcOffset = 0;
-		region.dstOffset = 0;
+		region.srcOffset = src_offset;
+		region.dstOffset = dst_offset;
 		region.size = length;
 
 		vkCmdCopyBuffer(

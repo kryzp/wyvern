@@ -144,7 +144,7 @@ Mat4x4 Mat4x4::create_rotation(Vec3F axis, float angle)
 	);
 }
 
-Mat4x4 Mat4x4::create_rotation(const Quaternion& quat)
+Mat4x4 Mat4x4::create_rotation(const Quat& quat)
 {
 	return Mat4x4(
 		1.0f - 2.0f * (quat.y * quat.y - quat.z * quat.z),

@@ -9,6 +9,8 @@
 #include <wvn/graphics/model.h>
 #include <wvn/graphics/vertex.h>
 #include <wvn/graphics/texture_mgr.h>
+#include <wvn/graphics/rendering_mgr.h>
+#include <wvn/system/system_backend.h>
 #include <wvn/time.h>
 
 /*
@@ -16,10 +18,6 @@
  * then its because I'm pretty much learning as I go, so it's
  * essentially in a constant state of being prototyped.
  */
-
-// idea:
-// Actor leases a model from the render manager. Render manager then loops over all models and renders
-// them while the actor simply has to change the data about the model.
 
 using Vertices = wvn::Vector<wvn::gfx::Vertex>;
 using Indices = wvn::Vector<u16>;
@@ -29,6 +27,33 @@ class Debug : public wvn::act::Actor
 private:
 	wvn::act::ActorHandle m_cube_handle;
 
+	void movement_wasd()
+	{
+		auto& camera = wvn::Root::get_singleton()->main_camera;
+		auto* inp = wvn::inp::InputMgr::get_singleton();
+
+		wvn::Vec3F v1 = wvn::Vec3F::cross(camera.direction, wvn::Vec3F::up()).normalized();
+		wvn::Vec3F v2 = wvn::Vec3F::cross(camera.direction, v1).normalized();
+
+		if (inp->is_down(wvn::inp::KEY_A)) {
+			camera.transform.move(-(-v1) * 0.025f);
+		} else if (inp->is_down(wvn::inp::KEY_D)) {
+			camera.transform.move(  -v1  * 0.025f);
+		}
+
+		if (inp->is_down(wvn::inp::KEY_SPACE)) {
+			camera.transform.move(v2 * 0.025f);
+		} else if (inp->is_down(wvn::inp::KEY_LEFT_SHIFT)) {
+			camera.transform.move(v2 * -0.025f);
+		}
+
+		if (inp->is_down(wvn::inp::KEY_S)) {
+			camera.transform.move(-camera.direction * 0.025f);
+		} else if (inp->is_down(wvn::inp::KEY_W)) {
+			camera.transform.move( camera.direction * 0.025f);
+		}
+	}
+
 public:
 	Debug(const wvn::act::ActorHandle& cube)
 		: wvn::act::Actor()
@@ -36,39 +61,42 @@ public:
 	{
 	}
 
+	void init() override
+	{
+		wvn::Root::get_singleton()->system_backend()->lock_cursor(true);
+	}
+
+	float t = 0;
+	float s = 0;
+
+	float tgtt = 0;
+	float tgts = 0;
+
 	void tick() override
 	{
 		auto& camera = wvn::Root::get_singleton()->main_camera;
 		auto* inp = wvn::inp::InputMgr::get_singleton();
 
-		static float t = 0.0f;
-
-		if (wvn::inp::InputMgr::get_singleton()->is_down(wvn::inp::KEY_Q)) {
-			t -= 0.0125f;
-		} else if (wvn::inp::InputMgr::get_singleton()->is_down(wvn::inp::KEY_E)) {
-			t += 0.0125f;
+		if (inp->is_down(wvn::inp::KEY_ESCAPE)) {
+			wvn::Root::get_singleton()->exit();
 		}
 
-		wvn::Vec3F direction = wvn::Vec3F::from_angle(0.0f, -t + wvn::CalcF::PI / 2.0f, 1.0f);
+		float sensitivity = 0.005f;
+		float dx = (float)(inp->mouse_position().x - 1280.0f / 2.0f);
+		float dy = (float)(inp->mouse_position().y -  720.0f / 2.0f);
+
+		if (dx * dx + dy * dy > 0.5f) {
+			tgtt += dx * sensitivity;
+			tgts += dy * sensitivity;
+		}
+
+		t = wvn::CalcF::lerp(t, tgtt, 0.2f);
+		s = wvn::CalcF::lerp(s, tgts, 0.2f);
+
+		wvn::Vec3F direction = wvn::Vec3F::from_angle(s, -t + wvn::CalcF::PI / 2.0f, 1.0f);
 		camera.direction = direction;
 
-		if (inp->is_down(wvn::inp::KEY_A)) {
-			camera.transform.move(-(-wvn::Vec3F::cross(direction, wvn::Vec3F::up()) * 0.025f));
-		} else if (inp->is_down(wvn::inp::KEY_D)) {
-			camera.transform.move(  -wvn::Vec3F::cross(direction, wvn::Vec3F::up()) * 0.025f);
-		}
-
-		if (inp->is_down(wvn::inp::KEY_SPACE)) {
-			camera.transform.move_y(-0.025f);
-		} else if (inp->is_down(wvn::inp::KEY_LEFT_SHIFT)) {
-			camera.transform.move_y(0.025f);
-		}
-
-		if (inp->is_down(wvn::inp::KEY_S)) {
-			camera.transform.move(-direction * 0.025f);
-		} else if (inp->is_down(wvn::inp::KEY_W)) {
-			camera.transform.move( direction * 0.025f);
-		}
+		movement_wasd();
 
 		// send event to destroy cube
 		if (inp->is_pressed(wvn::inp::KEY_G))
@@ -77,6 +105,9 @@ public:
 			destroy_evt.append_str("message.quit", "Goodbye, World!");
 			destroy_evt.send(m_cube_handle);
 		}
+
+		// lock mouse to center of window
+		wvn::Root::get_singleton()->system_backend()->set_cursor_position(1280 / 2, 720 / 2);
 	}
 };
 
@@ -86,14 +117,16 @@ public:
 	Cube(const Vertices& vv, const Indices& ii)
 		: wvn::act::Actor()
 	{
-		p_model = new wvn::gfx::Model(); // todo: temp, shouldn't just be allocating it here.
-		p_model->mesh(new wvn::gfx::Mesh(vv, ii));
-		p_model->material().texture(wvn::gfx::TextureMgr::get_singleton()->create("../test/res/kitty.png"));
-		p_model->material().sampler(wvn::gfx::TextureMgr::get_singleton()->create_sampler(wvn::gfx::TEX_FILTER_LINEAR));
+		p_model = wvn::gfx::RenderingMgr::get_singleton()->create_model();
+		p_model->mesh(new wvn::gfx::Mesh(vv, ii)); // should be meshmgr :/
 	}
 
 	void init() override
 	{
+		// set model
+		p_model->material().texture(wvn::gfx::TextureMgr::get_singleton()->create("../test/res/kitty.png"));
+		p_model->material().sampler(wvn::gfx::TextureMgr::get_singleton()->create_sampler(wvn::gfx::TEX_FILTER_LINEAR));
+
 		// set transform
 		p_transform.position(0.0f, 0.0f, 5.0f);
 		p_transform.rotation(wvn::Vec3F::up(), 0.0f);
@@ -103,12 +136,7 @@ public:
 
 	void tick() override
 	{
-		p_transform.rotate(wvn::Vec3F::up(), 0.01f);
-	}
-
-	void destroy() override
-	{
-		delete p_model;
+		//p_transform.rotate(wvn::Vec3F::up(), 0.01f);
 	}
 
 	bool on_event(wvn::act::Event& event) override
@@ -179,6 +207,9 @@ int main()
 
 	new wvn::Root(cfg);
 	{
+		// lock mouse to center of window
+		wvn::Root::get_singleton()->system_backend()->set_cursor_position(1280 / 2, 720 / 2);
+
 		auto* root = wvn::Root::get_singleton();
 		auto* act = wvn::act::ActorMgr::get_singleton();
 		auto& cam = root->main_camera;

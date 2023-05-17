@@ -44,12 +44,12 @@ void RigidBody::move_position(const Vec3F& amount)
 	m_position += amount;
 }
 
-void RigidBody::set_rotation(const Quaternion& rotation)
+void RigidBody::set_rotation(const Quat& rotation)
 {
 	m_rotation = rotation;
 }
 
-void RigidBody::add_rotation(const Quaternion& rotation)
+void RigidBody::add_rotation(const Quat& rotation)
 {
 }
 

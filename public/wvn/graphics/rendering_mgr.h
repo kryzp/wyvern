@@ -2,9 +2,11 @@
 #define RENDERING_MGR_H
 
 #include <wvn/singleton.h>
+#include <wvn/container/vector.h>
 #include <wvn/graphics/mesh.h>
 #include <wvn/graphics/texture.h>
 #include <wvn/graphics/material.h>
+#include <wvn/graphics/model.h>
 
 namespace wvn::gfx
 {
@@ -23,8 +25,13 @@ namespace wvn::gfx
 		void render_scene();
 		void swap_buffers();
 
-		Shader* vertex_shader;
-		Shader* fragment_shader;
+		Model* create_model();
+
+	private:
+		Vector<Model*> m_models;
+
+		Shader* m_vertex_shader;
+		Shader* m_fragment_shader;
 	};
 }
 

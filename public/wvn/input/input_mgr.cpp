@@ -145,6 +145,26 @@ bool InputMgr::is_released(u32 id, const inp::JoystickButton& jsb) const
 	return !m_current_state.joysticks[id].down[jsb] && m_current_state.joysticks[id].down[jsb];
 }
 
+Vec2F InputMgr::mouse_position() const
+{
+	return m_current_state.mouse.position;
+}
+
+Vec2F InputMgr::mouse_screen_position() const
+{
+	return m_current_state.mouse.screen_position;
+}
+
+Vec2F InputMgr::mouse_draw_position() const
+{
+	return m_current_state.mouse.draw_position;
+}
+
+Float2 InputMgr::mouse_wheel() const
+{
+	return m_current_state.mouse.wheel;
+}
+
 bool InputMgr::shift() const
 {
 	return is_down(KEY_LEFT_SHIFT) || is_down(KEY_RIGHT_SHIFT);

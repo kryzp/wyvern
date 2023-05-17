@@ -217,6 +217,21 @@ void SDL2Backend::toggle_cursor_visible(bool toggle)
 	SDL_ShowCursor(toggle ? SDL_ENABLE : SDL_DISABLE);
 }
 
+void SDL2Backend::lock_cursor(bool toggle)
+{
+	SDL_SetRelativeMouseMode(toggle ? SDL_TRUE : SDL_FALSE);
+}
+
+void SDL2Backend::set_cursor_position(int x, int y)
+{
+	SDL_WarpMouseInWindow(m_window, x, y);
+
+	int spx, spy;
+	SDL_GetGlobalMouseState(&spx, &spy);
+	inp::InputMgr::get_singleton()->on_mouse_screen_move(spx, spy);
+	inp::InputMgr::get_singleton()->on_mouse_move(x, y);
+}
+
 WindowMode SDL2Backend::get_window_mode()
 {
 	auto flags = SDL_GetWindowFlags(m_window);

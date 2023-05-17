@@ -3,7 +3,7 @@
 
 #include <wvn/maths/calc.h>
 #include <wvn/maths/random.h>
-#include <wvn/maths/quaternion.h>
+#include <wvn/maths/quat.h>
 #include <wvn/maths/vec2.h>
 #include <wvn/maths/mat3x4.h>
 
@@ -60,7 +60,7 @@ namespace wvn
 		static Vec3 refract(const Vec3& uv, const Vec3& n, double n21);
 
 		Vec3<T> rotate(float angle, const Vec3<T>& axis);
-		Vec3<T> rotate(const Quaternion& quat);
+		Vec3<T> rotate(const Quat& quat);
 
 		T length() const;
 		T length_squared() const;
@@ -225,9 +225,9 @@ namespace wvn
 	}
 
 	template <typename T>
-	Vec3<T> Vec3<T>::rotate(const Quaternion& quat)
+	Vec3<T> Vec3<T>::rotate(const Quat& quat)
 	{
-		return (quat * Quaternion(x, y, z) * quat.inverse()).vector();
+		return (quat * Quat(x, y, z) * quat.inverse()).vector();
 	}
 
 	template <typename T>

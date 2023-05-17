@@ -10,7 +10,7 @@ Transform3D::Transform3D()
 	: m_dirty(false)
 	, m_matrix(1.0f)
 	, m_position(0.0f, 0.0f, 0.0f)
-	, m_rotation(Quaternion::identity())
+	, m_rotation(Quat::identity())
 	, m_scale(1.0f, 1.0f, 1.0f)
 	, m_origin(0.0f, 0.0f, 0.0f)
 	, on_transformed(nullptr)
@@ -287,7 +287,7 @@ void Transform3D::rotate(const Vec3F& axis, float angle)
     m_dirty = true;
 }
 
-void Transform3D::rotate(const Quaternion& quat)
+void Transform3D::rotate(const Quat& quat)
 {
 	if (on_transformed) {
 		on_transformed();
@@ -308,12 +308,12 @@ void Transform3D::rotation(const Vec3F& axis, float angle)
 		on_transformed();
 	}
 
-	m_rotation = Quaternion::from_axis_angle(axis, angle);
+	m_rotation = Quat::from_axis_angle(axis, angle);
 
 	m_dirty = true;
 }
 
-void Transform3D::rotation(const Quaternion& quat)
+void Transform3D::rotation(const Quat& quat)
 {
 	if (on_transformed) {
 		on_transformed();
@@ -324,7 +324,7 @@ void Transform3D::rotation(const Quaternion& quat)
     m_dirty = true;
 }
 
-Quaternion Transform3D::rotation() const
+Quat Transform3D::rotation() const
 {
 	return m_rotation;
 }

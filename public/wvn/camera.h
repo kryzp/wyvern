@@ -4,7 +4,7 @@
 #include <wvn/maths/mat4x4.h>
 #include <wvn/maths/mat3x4.h>
 #include <wvn/maths/vec3.h>
-#include <wvn/maths/quaternion.h>
+#include <wvn/maths/quat.h>
 #include <wvn/maths/transform_3d.h>
 #include <wvn/graphics/render_target.h>
 

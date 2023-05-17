@@ -1,5 +1,5 @@
 #include <wvn/maths/mat3x4.h>
-#include <wvn/maths/quaternion.h>
+#include <wvn/maths/quat.h>
 #include <wvn/maths/vec3.h>
 
 using namespace wvn;
@@ -41,7 +41,7 @@ Vec3F Mat3x4::offset(const Mat3x4& mat)
 	return Vec3F(mat.m14, mat.m24, mat.m34);
 }
 
-Mat3x4 Mat3x4::create_skew(const Vec3<float>& amount)
+Mat3x4 Mat3x4::create_skew(const Vec3F& amount)
 {
 	return Mat3x4(
 		1, 0, amount.z, 0,
@@ -50,12 +50,21 @@ Mat3x4 Mat3x4::create_skew(const Vec3<float>& amount)
 	);
 }
 
-Mat3x4 Mat3x4::create_scale(const Vec3<float>& scale)
+Mat3x4 Mat3x4::create_scale(const Vec3F& scale)
 {
 	return Mat3x4(
 		scale.x, 0, 0, 0,
 		0, scale.y, 0, 0,
 		0, 0, scale.z, 0
+	);
+}
+
+Mat3x4 Mat3x4::create_scale(float x, float y, float z)
+{
+	return Mat3x4(
+		x, 0, 0, 0,
+		0, y, 0, 0,
+		0, 0, z, 0
 	);
 }
 
@@ -68,7 +77,7 @@ Mat3x4 Mat3x4::create_scale(float scale)
 	);
 }
 
-Mat3x4 Mat3x4::create_rotation(const Quaternion& quat)
+Mat3x4 Mat3x4::create_rotation(const Quat& quat)
 {
 	return Mat3x4(
 		1.0f - 2.0f * (quat.y * quat.y + quat.z * quat.z),
@@ -121,9 +130,18 @@ Mat3x4 Mat3x4::create_translation(const Vec3F& translation)
 	);
 }
 
+Mat3x4 Mat3x4::create_translation(float x, float y, float z)
+{
+	return Mat3x4(
+		1, 0, 0, x,
+		0, 1, 0, y,
+		0, 0, 1, z
+	);
+}
+
 Mat3x4 Mat3x4::create_transform(
 	const Vec3F& position,
-	const Quaternion& quat,
+	const Quat& quat,
 	const Size3& scale,
 	const Vec3F& origin
 )
@@ -138,7 +156,7 @@ Mat3x4 Mat3x4::create_transform(
 		mat *= create_scale(scale);
 	}
 
-	if (quat != Quaternion::zero()) {
+	if (quat != Quat::zero()) {
 		mat *= create_rotation(quat);
 	}
 

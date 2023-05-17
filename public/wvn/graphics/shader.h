@@ -5,6 +5,9 @@
 
 namespace wvn::gfx
 {
+	/**
+	 * Different types of shader.
+	 */
 	enum ShaderType
 	{
 		SHADER_TYPE_VERTEX,
@@ -14,10 +17,16 @@ namespace wvn::gfx
 		SHADER_TYPE_MAX
 	};
 
+	/**
+	 * Represents the possible parameters that can be passed into a shader.
+	 */
 	struct ShaderParams
 	{
 	};
 
+	/**
+	 * Describes a GPU shader.
+	 */
 	class Shader
 	{
 	public:

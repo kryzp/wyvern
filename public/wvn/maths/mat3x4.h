@@ -3,8 +3,11 @@
 
 namespace wvn
 {
-	template <typename T> struct Vec3;
-	struct Quaternion;
+	template <typename T>
+	struct Vec3;
+	using Vec3F = Vec3<float>;
+
+	struct Quat;
 
 	/**
 	 * Affine 3D transformation matrix.
@@ -14,9 +17,9 @@ namespace wvn
 	 * For reference:
 	 *
 	 * +-----------+
-	 * | 1 0 0 | x |
-	 * | 0 1 0 | y |
-	 * | 0 0 1 | z |
+	 * | a b c | x |
+	 * | d e f | y |
+	 * | g h i | z |
 	 * +-----------+
 	 */
 
@@ -26,6 +29,10 @@ namespace wvn
 		{
 			struct
 			{
+//				float m11, m21, m31;
+//				float m12, m22, m32;
+//				float m13, m23, m33;
+//				float m14, m24, m34;
 				float m11, m12, m13, m14;
 				float m21, m22, m23, m24;
 				float m31, m32, m33, m34;
@@ -46,17 +53,19 @@ namespace wvn
 
 		static const Mat3x4& identity();
 
-		static Vec3<float> offset(const Mat3x4& mat);
+		static Vec3F offset(const Mat3x4& mat);
 
-		static Mat3x4 create_skew(const Vec3<float>& amount);
-		static Mat3x4 create_scale(const Vec3<float>& scale);
+		static Mat3x4 create_skew(const Vec3F& amount);
+		static Mat3x4 create_scale(const Vec3F& scale);
+		static Mat3x4 create_scale(float x, float y, float z);
 		static Mat3x4 create_scale(float scale);
-		static Mat3x4 create_rotation(const Quaternion& quat);
-		static Mat3x4 create_rotation(const Vec3<float>& axis, float angle);
-		static Mat3x4 create_translation(const Vec3<float>& translation);
-		static Mat3x4 create_transform(const Vec3<float>& position, const Quaternion& rotation, const Vec3<float>& scale, const Vec3<float>& origin);
+		static Mat3x4 create_rotation(const Quat& quat);
+		static Mat3x4 create_rotation(const Vec3F& axis, float angle);
+		static Mat3x4 create_translation(const Vec3F& translation);
+		static Mat3x4 create_translation(float x, float y, float z);
+		static Mat3x4 create_transform(const Vec3F& position, const Quat& rotation, const Vec3F& scale, const Vec3F& origin);
 
-		Vec3<float> position() const;
+		Vec3F position() const;
 
 		float determinant() const;
 		Mat3x4 inverse() const;

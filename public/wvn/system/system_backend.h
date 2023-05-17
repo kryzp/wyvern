@@ -61,6 +61,8 @@ namespace wvn::sys
 
 		virtual bool is_cursor_visible() = 0;
 		virtual void toggle_cursor_visible(bool toggle) = 0;
+		virtual void lock_cursor(bool toggle) = 0;
+		virtual void set_cursor_position(int x, int y) = 0;
 
 		virtual WindowMode get_window_mode() = 0;
 		virtual void set_window_mode(WindowMode toggle) = 0;

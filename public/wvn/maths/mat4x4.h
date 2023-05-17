@@ -2,7 +2,7 @@
 #define MAT4X4_H
 
 #include <wvn/maths/vec3.h>
-#include <wvn/maths/quaternion.h>
+#include <wvn/maths/quat.h>
 
 namespace wvn
 {
@@ -46,7 +46,7 @@ namespace wvn
 
 		static Mat4x4 create_translation(float x, float y, float z);
 		static Mat4x4 create_rotation(Vec3F axis, float angle);
-		static Mat4x4 create_rotation(const Quaternion& quat);
+		static Mat4x4 create_rotation(const Quat& quat);
 		static Mat4x4 create_scale(float x, float y, float z);
 
 		static Mat4x4 create_lookat(const Vec3F& eye, const Vec3F& centre, const Vec3F& up);

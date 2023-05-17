@@ -3,7 +3,9 @@
 
 namespace wvn
 {
-	template <typename T> struct Vec2;
+	template <typename T>
+	struct Vec2;
+	using Vec2F = Vec2<float>;
 
 	/**
 	 * Affine 2D transformation matrix.
@@ -13,8 +15,8 @@ namespace wvn
 	 * For reference:
 	 *
 	 * +---------+
-	 * | 1 0 | x |
-	 * | 0 1 | y |
+	 * | a b | x |
+	 * | c d | y |
 	 * +---------+
 	 */
 	struct Mat2x3
@@ -41,16 +43,16 @@ namespace wvn
 
 		static const Mat2x3& identity();
 
-		static Vec2<float> offset(const Mat2x3& mat);
+		static Vec2F offset(const Mat2x3& mat);
 
-		static Mat2x3 create_skew(const Vec2<float>& amount);
-		static Mat2x3 create_scale(const Vec2<float>& scale);
+		static Mat2x3 create_skew(const Vec2F& amount);
+		static Mat2x3 create_scale(const Vec2F& scale);
 		static Mat2x3 create_scale(float scale);
 		static Mat2x3 create_rotation(float angle);
-		static Mat2x3 create_translation(const Vec2<float>& translation);
-		static Mat2x3 create_transform(const Vec2<float>& position, float rotation, const Vec2<float>& scale, const Vec2<float>& origin);
+		static Mat2x3 create_translation(const Vec2F& translation);
+		static Mat2x3 create_transform(const Vec2F& position, float rotation, const Vec2F& scale, const Vec2F& origin);
 
-		Vec2<float> position() const;
+		Vec2F position() const;
 
 		float determinant() const;
 		Mat2x3 inverse() const;

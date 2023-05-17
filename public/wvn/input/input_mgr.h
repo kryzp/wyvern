@@ -71,6 +71,11 @@ namespace wvn::inp
 		bool is_pressed(u32 id, const inp::JoystickButton& jsb) const;
 		bool is_released(u32 id, const inp::JoystickButton& jsb) const;
 
+		Vec2F mouse_position() const;
+		Vec2F mouse_screen_position() const;
+		Vec2F mouse_draw_position() const;
+		Float2 mouse_wheel() const;
+
 		bool shift() const;
 		bool ctrl() const;
 		bool alt() const;

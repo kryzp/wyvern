@@ -1,32 +1,32 @@
-#include <wvn/maths/quaternion.h>
+#include <wvn/maths/quat.h>
 #include <wvn/maths/calc.h>
 #include <wvn/maths/vec3.h>
 
 using namespace wvn;
 
-Quaternion::Quaternion()
+Quat::Quat()
 	: w(0.0f), x(0.0f), y(0.0f), z(0.0f)
 {
 }
 
-Quaternion::Quaternion(float x, float y, float z)
+Quat::Quat(float x, float y, float z)
 	: w(0.0f), x(x), y(y), z(z)
 {
 }
 
-Quaternion::Quaternion(float w, float x, float y, float z)
+Quat::Quat(float w, float x, float y, float z)
 	: w(w), x(x), y(y), z(z)
 {
 }
 
-Quaternion::Quaternion(const Quaternion& other)
+Quat::Quat(const Quat& other)
 		: w(other.w), x(other.x), y(other.y), z(other.z)
 {
 }
 
-Quaternion Quaternion::from_axis_angle(const Vec3F& axis, float angle)
+Quat Quat::from_axis_angle(const Vec3F& axis, float angle)
 {
-	Quaternion q = Quaternion::zero();
+	Quat q = Quat::zero();
 	q.w = CalcF::cos(angle / 2.0f);
 	q.x = CalcF::sin(angle / 2.0f) * axis.x;
 	q.y = CalcF::sin(angle / 2.0f) * axis.y;
@@ -36,7 +36,7 @@ Quaternion Quaternion::from_axis_angle(const Vec3F& axis, float angle)
 }
 
 // i think this might be using the wrong coordinate axis...
-Quaternion Quaternion::from_euler(float pitch, float yaw, float roll)
+Quat Quat::from_euler(float pitch, float yaw, float roll)
 {
 	float ps = CalcF::sin(pitch / 2.0f);
 	float pc = CalcF::cos(pitch / 2.0f);
@@ -50,10 +50,10 @@ Quaternion Quaternion::from_euler(float pitch, float yaw, float roll)
 	float j = (rc * pc * ys) - (rs * ps * yc);
 	float k = (rc * pc * yc) + (ys * ps * ys);
 
-	return Quaternion(s, i, j, k);
+	return Quat(s, i, j, k);
 }
 
-Vec3F Quaternion::to_euler(const Quaternion& quat)
+Vec3F Quat::to_euler(const Quat& quat)
 {
 	float t0 =             (2.0f + ((quat.w * quat.x) + (quat.y * quat.z)));
 	float t1 = 1.0f -      (2.0f * ((quat.x * quat.x) + (quat.y * quat.y)));
@@ -68,43 +68,60 @@ Vec3F Quaternion::to_euler(const Quaternion& quat)
 	return Vec3F(p, y, r);
 }
 
-float Quaternion::dot(const Quaternion& a, const Quaternion& b)
+float Quat::dot(const Quat& a, const Quat& b)
 {
 	return (a.w * b.w) + (a.x * b.x) + (a.y * b.y) + (a.z * b.z);
 }
 
-Vec3F Quaternion::vector() const
+Vec3F Quat::vector() const
 {
 	return Vec3F(x, y, z);
 }
 
-Quaternion Quaternion::normalized() const
+Quat Quat::normalized() const
 {
-	float l = length();
-	return Quaternion(w / l, x / l, y / l, z / l);
+	return (*this) / length();
 }
 
-Quaternion Quaternion::inverse() const
+Quat Quat::inverse() const
 {
-	return Quaternion(w, -x, -y, -z);
+	Quat ret = Quat::identity();
+	float prod = length_squared();
+
+	if (prod > CalcF::epsilon())
+	{
+		ret.w =  this->w / prod;
+		ret.x = -this->x / prod;
+		ret.y = -this->y / prod;
+		ret.z = -this->z / prod;
+	}
+	else
+	{
+		ret.w =  this->w;
+		ret.x = -this->x;
+		ret.y = -this->y;
+		ret.z = -this->z;
+	}
+
+	return ret;
 }
 
-float Quaternion::length_squared() const
+float Quat::length_squared() const
 {
-	return Quaternion::dot(*this, *this);
+	return Quat::dot(*this, *this);
 }
 
-float Quaternion::length() const
+float Quat::length() const
 {
 	return CalcF::sqrt(length_squared());
 }
 
-Quaternion Quaternion::rotate_on_axis(const Vec3F& axis, float angle) const
+Quat Quat::rotate_on_axis(const Vec3F& axis, float angle) const
 {
-	return (*this) * Quaternion::from_axis_angle(axis, angle);
+	return (*this) * Quat::from_axis_angle(axis, angle);
 }
 
-bool Quaternion::operator == (const Quaternion& other) const
+bool Quat::operator == (const Quat& other) const
 {
 	return (
 		this->w == other.w &&
@@ -114,14 +131,14 @@ bool Quaternion::operator == (const Quaternion& other) const
 	);
 }
 
-bool Quaternion::operator != (const Quaternion& other) const
+bool Quat::operator != (const Quat& other) const
 {
 	return !(*this == other);
 }
 
-Quaternion Quaternion::operator + (const Quaternion& other) const
+Quat Quat::operator + (const Quat& other) const
 {
-	return Quaternion(
+	return Quat(
 		this->w + other.w,
 		this->x + other.x,
 		this->y + other.y,
@@ -129,9 +146,9 @@ Quaternion Quaternion::operator + (const Quaternion& other) const
 	);
 }
 
-Quaternion Quaternion::operator - (const Quaternion& other) const
+Quat Quat::operator - (const Quat& other) const
 {
-	return Quaternion(
+	return Quat(
 		this->w - other.w,
 		this->x - other.x,
 		this->y - other.y,
@@ -139,9 +156,9 @@ Quaternion Quaternion::operator - (const Quaternion& other) const
 	);
 }
 
-Quaternion Quaternion::operator * (const Quaternion& other) const
+Quat Quat::operator * (const Quat& other) const
 {
-	return Quaternion(
+	return Quat(
 		(this->w * other.w) - (this->x * other.x) - (this->y * other.y) - (this->z * other.z),
 		(this->w * other.x) + (this->x * other.w) + (this->y * other.z) - (this->z * other.y),
 		(this->w * other.y) - (this->x * other.z) + (this->y * other.w) + (this->z * other.x),
@@ -149,39 +166,39 @@ Quaternion Quaternion::operator * (const Quaternion& other) const
 	);
 }
 
-Quaternion Quaternion::operator * (float scalar) const
+Quat Quat::operator * (float scalar) const
 {
-	return Quaternion(w * scalar, x * scalar, y * scalar, z * scalar);
+	return Quat(w * scalar, x * scalar, y * scalar, z * scalar);
 }
 
-Quaternion Quaternion::operator / (float scalar) const
+Quat Quat::operator / (float scalar) const
 {
-	return Quaternion(w / scalar, x / scalar, y / scalar, z / scalar);
+	return Quat(w / scalar, x / scalar, y / scalar, z / scalar);
 }
 
-Quaternion Quaternion::operator - () const
+Quat Quat::operator - () const
 {
-	return Quaternion(-w, -x, -y, -z);
+	return Quat(-w, -x, -y, -z);
 }
 
-Quaternion& Quaternion::operator += (const Quaternion& other)
+Quat& Quat::operator += (const Quat& other)
 {
 	(*this) = (*this) + other;
 	return *this;
 }
 
-Quaternion& Quaternion::operator -= (const Quaternion& other)
+Quat& Quat::operator -= (const Quat& other)
 {
 	(*this) = (*this) - other;
 	return *this;
 }
 
-Quaternion& Quaternion::operator *= (const Quaternion& other)
+Quat& Quat::operator *= (const Quat& other)
 {
 	(*this) = (*this) * other;
 	return *this;
 }
 
-const Quaternion& Quaternion::zero()	 { static const Quaternion ZERO      = Quaternion(0.0f, 0.0f, 0.0f, 0.0f); return ZERO;	    }
-const Quaternion& Quaternion::one()      { static const Quaternion ONE       = Quaternion(0.0f, 1.0f, 1.0f, 1.0f); return ONE;      }
-const Quaternion& Quaternion::identity() { static const Quaternion IDENTITY  = Quaternion(1.0f, 0.0f, 0.0f, 0.0f); return IDENTITY; }
+const Quat& Quat::zero()	 { static const Quat ZERO      = Quat(0.0f, 0.0f, 0.0f, 0.0f); return ZERO;	    }
+const Quat& Quat::one()      { static const Quat ONE       = Quat(0.0f, 1.0f, 1.0f, 1.0f); return ONE;      }
+const Quat& Quat::identity() { static const Quat IDENTITY  = Quat(1.0f, 0.0f, 0.0f, 0.0f); return IDENTITY; }
