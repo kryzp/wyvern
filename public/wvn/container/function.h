@@ -69,7 +69,6 @@ namespace wvn
 		: m_call_func(nullptr)
 		, m_create_func(nullptr)
 		, m_destroy_func(nullptr)
-
 		, m_data(nullptr)
 		, m_data_size(0)
 	{
@@ -80,7 +79,6 @@ namespace wvn
 		: m_call_func(nullptr)
 		, m_create_func(nullptr)
 		, m_destroy_func(nullptr)
-
 		, m_data(nullptr)
 		, m_data_size(0)
 	{
@@ -116,11 +114,12 @@ namespace wvn
 	template <typename Result, typename... Args>
 	Function<Result(Args...)>::~Function()
 	{
-		if (m_data && m_destroy_func) {
-			m_destroy_func(m_data);
+		if (m_data) {
+            if (m_destroy_func) {
+                m_destroy_func(m_data);
+            }
+            delete m_data;
 		}
-
-		delete m_data;
 	}
 
 	template <typename Result, typename... Args>
