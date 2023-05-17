@@ -17,7 +17,7 @@ NetworkCallback TCPSocket::send(byte* data, u64 size)
 	return NET_FINISHED;
 }
 
-NetworkCallback TCPSocket::recv(byte* data, u64 size, u64* bytes_recieved)
+NetworkCallback TCPSocket::recv(byte* data, u64 size, u64* bytes_received)
 {
 	return NET_FINISHED;
 }

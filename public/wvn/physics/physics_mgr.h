@@ -1,7 +1,7 @@
 #ifndef PHYSICS_MGR_H
 #define PHYSICS_MGR_H
 
-#include <wvn/util/singleton.h>
+#include <wvn/singleton.h>
 
 namespace wvn::phys
 {

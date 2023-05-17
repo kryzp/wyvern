@@ -1,6 +1,8 @@
 #ifndef SHADER_H
 #define SHADER_H
 
+#include <wvn/common.h>
+
 namespace wvn::gfx
 {
 	enum ShaderType
@@ -22,7 +24,7 @@ namespace wvn::gfx
 		Shader();
 		virtual ~Shader();
 
-		virtual void load() = 0;
+		virtual void load_from_source(const char* source, u64 source_size) = 0;
 
 		ShaderParams params;
 		ShaderType type;

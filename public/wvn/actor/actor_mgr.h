@@ -1,7 +1,7 @@
 #ifndef ACTOR_MGR_H
 #define ACTOR_MGR_H
 
-#include <wvn/util/singleton.h>
+#include <wvn/singleton.h>
 
 #include <wvn/container/vector.h>
 #include <wvn/container/hash_map.h>
@@ -9,9 +9,12 @@
 #include <wvn/container/function.h>
 
 #include <wvn/actor/actor.h>
+#include <wvn/actor/actor_handle.h>
 
 namespace wvn::act
 {
+	// todo: actor iterator?
+
 	/**
 	 * Manages actors in the game world.
 	 */
@@ -23,7 +26,6 @@ namespace wvn::act
 
 	public:
 		constexpr static int ACTOR_BUCKETS = 64;
-		constexpr static int MAX_FREE_IDS = 64;
 
 		ActorMgr();
 		~ActorMgr();
@@ -50,18 +52,18 @@ namespace wvn::act
 		void resolve_initializing();
 		void resolve_removing();
 
-		HashMap<ActorID, Actor*> m_actors;
+		HashMap<u32, Actor*> m_actors;
 		Vector<ActorHandle> m_actors_initializing;
 		Vector<ActorHandle> m_actors_destroying;
 
-		Deque<ActorID> m_free_ids;
-		ActorID m_unique_id;
+		Deque<u32> m_free_ids;
+		u32 m_unique_id;
 	};
 
 	template <typename T, typename... Args>
 	ActorHandle ActorMgr::create(Args&&... args)
 	{
-		ActorID act_id = Actor::NULL_ID;
+		u32 act_id = Actor::NULL_ID;
 
 		if (!m_free_ids.empty())
 		{

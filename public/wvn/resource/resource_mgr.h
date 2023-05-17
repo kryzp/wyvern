@@ -1,7 +1,7 @@
 #ifndef RESOURCE_MGR_H
 #define RESOURCE_MGR_H
 
-#include <wvn/util/singleton.h>
+#include <wvn/singleton.h>
 
 namespace wvn::res
 {

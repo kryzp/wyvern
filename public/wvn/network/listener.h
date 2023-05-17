@@ -1,7 +1,7 @@
 #ifndef LISTENER_H
 #define LISTENER_H
 
-#include <wvn/util/common.h>
+#include <wvn/common.h>
 #include <wvn/network/network_mgr.h>
 #include <wvn/network/socket.h>
 

@@ -2,11 +2,15 @@
 
 using namespace wvn;
 
+// todo: m_rotation is never renormalized.
+//       floating point errors may build
+//       up and cause some issues.
+
 Transform3D::Transform3D()
 	: m_dirty(false)
 	, m_matrix(1.0f)
 	, m_position(0.0f, 0.0f, 0.0f)
-	, m_rotation()
+	, m_rotation(Quaternion::identity())
 	, m_scale(1.0f, 1.0f, 1.0f)
 	, m_origin(0.0f, 0.0f, 0.0f)
 	, on_transformed(nullptr)
@@ -29,6 +33,7 @@ void Transform3D::move(const wvn::Vec3F& dv)
 	}
 
 	m_position += dv;
+
 	m_dirty = true;
 }
 
@@ -60,6 +65,7 @@ void Transform3D::move_x(float dx)
 	}
 
 	m_position.x += dx;
+
 	m_dirty = true;
 }
 
@@ -74,6 +80,7 @@ void Transform3D::move_y(float dy)
 	}
 
 	m_position.y += dy;
+
 	m_dirty = true;
 }
 
@@ -88,6 +95,7 @@ void Transform3D::move_z(float dz)
 	}
 
 	m_position.z += dz;
+
 	m_dirty = true;
 }
 
@@ -102,6 +110,7 @@ void Transform3D::position(const Vec3F& v)
 	}
 
 	m_position = v;
+
 	m_dirty = true;
 }
 
@@ -138,6 +147,7 @@ void Transform3D::origin(const Vec3F& v)
 	}
 
 	m_origin = v;
+
 	m_dirty = true;
 }
 
@@ -174,6 +184,7 @@ void Transform3D::scale(const wvn::Size3& v)
 	}
 
 	m_scale = v;
+
 	m_dirty = true;
 }
 
@@ -222,6 +233,7 @@ void Transform3D::scale_by(const Size3& dv)
 	}
 
 	m_scale += dv;
+
 	m_dirty = true;
 }
 
@@ -271,33 +283,45 @@ void Transform3D::rotate(const Vec3F& axis, float angle)
 	}
 
 	m_rotation = m_rotation.rotate_on_axis(axis, angle);
+
+    m_dirty = true;
 }
 
-void Transform3D::rotate(const Quaternion& v)
+void Transform3D::rotate(const Quaternion& quat)
 {
 	if (on_transformed) {
 		on_transformed();
 	}
 
-	m_rotation *= v;
+	m_rotation *= quat;
+
+    m_dirty = true;
 }
 
 void Transform3D::rotation(const Vec3F& axis, float angle)
 {
+    if (angle == 0.0f) {
+        return;
+    }
+
 	if (on_transformed) {
 		on_transformed();
 	}
 
 	m_rotation = Quaternion::from_axis_angle(axis, angle);
+
+	m_dirty = true;
 }
 
-void Transform3D::rotation(const Quaternion& v)
+void Transform3D::rotation(const Quaternion& quat)
 {
 	if (on_transformed) {
 		on_transformed();
 	}
 
-	m_rotation = v;
+	m_rotation = quat;
+
+    m_dirty = true;
 }
 
 Quaternion Transform3D::rotation() const
@@ -305,7 +329,7 @@ Quaternion Transform3D::rotation() const
 	return m_rotation;
 }
 
-Mat4x3 Transform3D::matrix()
+Mat3x4 Transform3D::matrix()
 {
 	if (m_dirty) {
 		recompute_matrix();
@@ -317,7 +341,7 @@ Mat4x3 Transform3D::matrix()
 
 void Transform3D::recompute_matrix()
 {
-	m_matrix = Mat4x3::create_transform(
+	m_matrix = Mat3x4::create_transform(
 		m_position,
 		m_rotation,
 		m_scale,

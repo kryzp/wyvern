@@ -1,10 +1,11 @@
 #ifndef EVENT_H
 #define EVENT_H
 
-#include <wvn/util/common.h>
+#include <wvn/common.h>
 #include <wvn/container/hash_map.h>
 #include <wvn/container/string.h>
 #include <wvn/actor/actor.h>
+#include <wvn/actor/actor_handle.h>
 
 namespace wvn::act
 {
@@ -82,12 +83,7 @@ namespace wvn::act
 		void send(const Actor* actor);
 		bool dispatch();
 
-		ActorHandle receiver() const;
-		bool handled() const;
-
-		const String& type() const;
-		void type(const String& type);
-		bool is_type(const char* type) const;
+		bool is_type(const char* other) const;
 		u64 type_hash() const;
 
 		void append(const String& name, const EventArg& val);
@@ -110,11 +106,10 @@ namespace wvn::act
 
 		void append_str(const String& name, const char* val);
 
-	private:
-		String m_type;
-		Args m_args;
-		ActorHandle m_receiver;
-		bool m_handled;
+		String type;
+		Args args;
+		ActorHandle receiver;
+		bool handled;
 	};
 }
 

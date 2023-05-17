@@ -18,6 +18,7 @@ VulkanTexture::VulkanTexture(VulkanBackend* backend)
 	, m_height(0)
 	, m_mip_levels(0)
 	, m_num_samples(VK_SAMPLE_COUNT_1_BIT)
+	, m_transient(false)
 {
 }
 
@@ -62,11 +63,12 @@ void VulkanTexture::create(u32 width, u32 height, TextureFormat format, TextureT
 
 	this->m_mip_levels = mip_levels;
 	this->m_num_samples = num_samples;
+	this->m_transient = transient;
 
-	create_internal_resources(transient);
+	create_internal_resources();
 }
 
-void VulkanTexture::create_internal_resources(bool transient)
+void VulkanTexture::create_internal_resources()
 {
 	VkFormat vkfmt = vkutil::get_vk_texture_format(m_format);
 	VkImageTiling vktile = vkutil::get_vk_texture_tile(m_tiling);
@@ -82,7 +84,7 @@ void VulkanTexture::create_internal_resources(bool transient)
 	create_info.format = vkfmt;
 	create_info.tiling = vktile;
 	create_info.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-	create_info.usage = transient ? VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT : VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+	create_info.usage = m_transient ? VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT : VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
 	create_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 	create_info.samples = m_num_samples;
 	create_info.flags = 0;

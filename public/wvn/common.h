@@ -5,7 +5,7 @@
 #include <memory>
 
 // not used in here but makes sense for types.h as this is just custom rtti pretty much
-//#include <wvn/util/class_db.h>
+//#include <wvn/class_db.h>
 
 #define SWAP(_x, _y) (::__wvnutils_swap((_x), (_y)))
 #define SID(_str) (::__wvnutils_hash((_str)))
@@ -83,7 +83,7 @@ namespace wvn
 	{
 		// fowler noll vo hash function
 		template <typename T>
-		void combine(u32 sofar, const T& data, u32* out)
+		u32 combine(u32 sofar, const T& data)
 		{
 			const u32 prime = 0x01000193;
 			const u32 offset = 0x811C9DC5;
@@ -96,14 +96,14 @@ namespace wvn
 				output *= prime;
 			}
 
-			(*out) = output ^ offset;
+			return output ^ offset;
 		}
 
 		// fowler noll vo hash function
 		template <typename T>
 		void combine(u32* inout, const T& data)
 		{
-			combine(*inout, data, inout);
+            (*inout) = combine(*inout, data);
 		}
 	}
 
@@ -131,6 +131,7 @@ namespace wvn
 		char to_lower(char c);
 		void from_int(char* buf, u64 size, s32 value);
 		void from_float(char* buf, u64 size, f32 value);
+        void from_float64(char* buf, u64 size, f64 value);
 		int to_int(const char* str);
 		float to_float(const char* str);
 	}

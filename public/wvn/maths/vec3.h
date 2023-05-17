@@ -5,7 +5,7 @@
 #include <wvn/maths/random.h>
 #include <wvn/maths/quaternion.h>
 #include <wvn/maths/vec2.h>
-#include <wvn/maths/mat4x3.h>
+#include <wvn/maths/mat3x4.h>
 
 namespace wvn
 {
@@ -51,7 +51,7 @@ namespace wvn
 		static Vec3 from_angle(float theta, float phi, float radius);
 		static T dot(const Vec3& a, const Vec3& b);
 		static Vec3 cross(const Vec3& a, const Vec3& b);
-		static Vec3 transform(const Vec3& vec, const Mat4x3& mat);
+		static Vec3 transform(const Vec3& vec, const Mat3x4& mat);
 		static Vec3 lerp(const Vec3& from, const Vec3& to, float amount);
 		static Vec3 spring(const Vec3& from, const Vec3& to, float bounciness, float tension, Vec3& intermediate);
 		static Vec3 approach(const Vec3& from, const Vec3& to, float amount);
@@ -60,6 +60,7 @@ namespace wvn
 		static Vec3 refract(const Vec3& uv, const Vec3& n, double n21);
 
 		Vec3<T> rotate(float angle, const Vec3<T>& axis);
+		Vec3<T> rotate(const Quaternion& quat);
 
 		T length() const;
 		T length_squared() const;
@@ -152,12 +153,12 @@ namespace wvn
 	}
 
 	template <typename T>
-	Vec3<T> Vec3<T>::transform(const Vec3<T>& vec, const Mat4x3& mat)
+	Vec3<T> Vec3<T>::transform(const Vec3<T>& vec, const Mat3x4& mat)
 	{
 		return Vec3(
-			(vec.x * mat.m11) + (vec.y * mat.m21) + (vec.z * mat.m31) + mat.m41,
-			(vec.x * mat.m12) + (vec.y * mat.m22) + (vec.z * mat.m32) + mat.m42,
-			(vec.x * mat.m13) + (vec.y * mat.m23) + (vec.z * mat.m33) + mat.m43
+			(vec.x * mat.m11) + (vec.y * mat.m21) + (vec.z * mat.m31) + mat.m14,
+			(vec.x * mat.m12) + (vec.y * mat.m22) + (vec.z * mat.m32) + mat.m24,
+			(vec.x * mat.m13) + (vec.y * mat.m23) + (vec.z * mat.m33) + mat.m34
 		);
 	}
 	
@@ -209,7 +210,7 @@ namespace wvn
 	template <typename T>
 	Vec3<T> Vec3<T>::rotate(float angle, const Vec3<T>& axis)
 	{
-		return Vec3<T>::transform(*this, Mat4x3::create_rotation(Quaternion::from_axis_angle(axis, angle)));
+		return Vec3<T>::transform(*this, Mat3x4::create_rotation(axis, angle));
 		/*
 		T cost = Calc<T>::cos(angle);
 		T sint = Calc<T>::sin(angle);
@@ -221,6 +222,12 @@ namespace wvn
 			(this->x * ((axis.z * axis.x * icost) - (axis.y * sint))) + (this->y * ((axis.z * axis.y * icost) + (axis.x * sint))) + (this->z * ((axis.z * axis.z * icost) +  cost          ))
 		);
 		*/
+	}
+
+	template <typename T>
+	Vec3<T> Vec3<T>::rotate(const Quaternion& quat)
+	{
+		return (quat * Quaternion(x, y, z) * quat.inverse()).vector();
 	}
 
 	template <typename T>

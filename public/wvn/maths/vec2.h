@@ -2,7 +2,7 @@
 #define VEC2_H
 
 #include <wvn/maths/calc.h>
-#include <wvn/maths/mat3x2.h>
+#include <wvn/maths/mat2x3.h>
 #include <wvn/maths/random.h>
 
 namespace wvn
@@ -41,7 +41,7 @@ namespace wvn
 		static const Vec2& up();
 		static const Vec2& down();
 
-		static Vec2 transform(const Vec2& vec, const Mat3x2& mat);
+		static Vec2 transform(const Vec2& vec, const Mat2x3& mat);
 		static T dot(const Vec2& a, const Vec2& b);
 		static Vec2 from_angle(float angle, float length);
 		static Vec2 lerp(const Vec2& from, const Vec2& to, float amount);
@@ -109,11 +109,11 @@ namespace wvn
 	}
 
 	template <typename T>
-	Vec2<T> Vec2<T>::transform(const Vec2& vec, const Mat3x2& mat)
+	Vec2<T> Vec2<T>::transform(const Vec2& vec, const Mat2x3& mat)
 	{
 		return Vec2(
-			(vec.x * mat.m11) + (vec.y * mat.m21) + mat.m31,
-			(vec.x * mat.m12) + (vec.y * mat.m22) + mat.m32
+			(vec.x * mat.m11) + (vec.y * mat.m21) + mat.m13,
+			(vec.x * mat.m12) + (vec.y * mat.m22) + mat.m23
 		);
 	}
 	

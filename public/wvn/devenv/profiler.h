@@ -1,9 +1,9 @@
 #ifndef PROFILER_H
 #define PROFILER_H
 
-#include <wvn/util/common.h>
+#include <wvn/common.h>
 #include <wvn/root.h>
-#include <wvn/util/singleton.h>
+#include <wvn/singleton.h>
 
 namespace wvn::dev
 {
@@ -49,7 +49,6 @@ namespace wvn::dev
 	};
 }
 
-// todo: also add a hash for the name to allow for nested profilers?
-#define WVN_PROFILE(name) ::wvn::dev::AutoProfiler __wvn_profiler_scope(name);
+#define WVN_PROFILE(name) ::wvn::dev::AutoProfiler __wvn_profiler_scope_##name(#name);
 
 #endif // PROFILER_H

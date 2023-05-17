@@ -2,29 +2,28 @@
 #define VK_SHADER_H
 
 #include <wvn/graphics/shader.h>
+#include <wvn/container/vector.h>
 #include <vulkan/vulkan.h>
 
 namespace wvn::gfx
 {
-	class VulkanShaderMgr;
 	class VulkanBackend;
 
 	class VulkanShader : public Shader
 	{
-		friend class VulkanShaderMgr;
-
 	public:
 		VulkanShader(VulkanBackend* backend);
 		~VulkanShader() override;
 
-		void load() override;
+		void load_from_source(const char* source, u64 source_size) override;
 
-		VkPipelineShaderStageCreateInfo get_shader_stage_create_info();
+		VkShaderModule get_module() const;
+		VkPipelineShaderStageCreateInfo get_shader_stage_create_info() const;
 
 	private:
 		VulkanBackend* m_backend;
 
-		VkPipelineShaderStageCreateInfo m_stage_create_info;
+		VkShaderModule m_shader_module;
 	};
 }
 

@@ -3,7 +3,7 @@
 
 #include <wvn/container/vector.h>
 #include <wvn/container/function.h>
-#include <wvn/util/singleton.h>
+#include <wvn/singleton.h>
 #include <wvn/maths/random.h>
 #include <wvn/camera.h>
 
@@ -16,7 +16,7 @@ namespace wvn
 		WINDOW_MODE_FULLSCREEN
 	};
 
-	namespace act  { class ActorMgr; class SceneMgr; class EventMgr; }
+	namespace act  { class ActorMgr; class EventMgr; }
 	namespace phys { class PhysicsMgr; }
 	namespace gfx { class RenderingMgr; class RendererBackend; }
 	namespace sys { class SystemBackend; }
@@ -96,7 +96,6 @@ namespace wvn
 
 		phys::PhysicsMgr* m_physics_mgr;
 		act::ActorMgr* m_actor_mgr;
-		act::SceneMgr* m_scene_mgr;
 		act::EventMgr* m_event_mgr;
 		gfx::RenderingMgr* m_rendering_mgr;
 		sfx::AudioMgr* m_audio_mgr;

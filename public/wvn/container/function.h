@@ -2,7 +2,7 @@
 #define FUNCTION_H
 
 #include <memory>
-#include <wvn/util/common.h>
+#include <wvn/common.h>
 
 namespace wvn
 {

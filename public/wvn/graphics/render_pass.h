@@ -22,7 +22,7 @@ namespace wvn::gfx
 		Optional<RectF> viewport;
 		Optional<RectI> scissor;
 
-		Mat4x4 model_matrix;
+		Mat3x4 model_matrix;
 		Mat4x4 view_matrix;
 		Mat4x4 proj_matrix;
 

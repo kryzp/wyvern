@@ -22,8 +22,6 @@ void Camera::render_to(const gfx::RenderTarget& target)
 	// todo
 }
 
-#include <wvn/devenv/log_mgr.h>
-
 Mat4x4 Camera::view_matrix() const
 {
 	return Mat4x4::create_lookat(
@@ -35,7 +33,7 @@ Mat4x4 Camera::view_matrix() const
 
 Mat4x4 Camera::proj_matrix() const
 {
-	const float ASPECT = static_cast<float>(Root::get_singleton()->config().width) / static_cast<float>(Root::get_singleton()->config().height);
+	const float ASPECT = (float)Root::get_singleton()->config().width / (float)Root::get_singleton()->config().height;
 
 	return Mat4x4::create_perspective(
 		fov,

@@ -1,7 +1,7 @@
 #ifndef TIMER_H
 #define TIMER_H
 
-#include <wvn/util/common.h>
+#include <wvn/common.h>
 
 namespace wvn
 {

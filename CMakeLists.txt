@@ -15,18 +15,17 @@ add_library(${PROJECT_NAME}
 	public/wvn/root.cpp
 	public/wvn/camera.cpp
 	public/wvn/time.cpp
-
-	public/wvn/util/common.cpp
+	public/wvn/common.cpp
 
 	public/wvn/devenv/log_mgr.cpp
 	public/wvn/devenv/console.cpp
 	public/wvn/devenv/profiler.cpp
 
 	public/wvn/actor/actor.cpp
+	public/wvn/actor/actor_handle.cpp
 	public/wvn/actor/actor_mgr.cpp
 	public/wvn/actor/event.cpp
 	public/wvn/actor/event_mgr.cpp
-	public/wvn/actor/scene_mgr.cpp
 
 	public/wvn/audio/audio_mgr.cpp
 	public/wvn/audio/sound.cpp
@@ -50,6 +49,7 @@ add_library(${PROJECT_NAME}
 	public/wvn/graphics/gpu_buffer.cpp
 	public/wvn/graphics/gpu_buffer_mgr.cpp
 	public/wvn/graphics/viewport.cpp
+	public/wvn/graphics/model.cpp
 
 	public/wvn/network/network_mgr.cpp
 	public/wvn/network/ip_address.cpp
@@ -71,9 +71,9 @@ add_library(${PROJECT_NAME}
 	public/wvn/maths/colour.cpp
 	public/wvn/maths/complex.cpp
 	public/wvn/maths/line.cpp
-	public/wvn/maths/mat3x2.cpp
+	public/wvn/maths/mat2x3.cpp
 	public/wvn/maths/mat3x3.cpp
-	public/wvn/maths/mat4x3.cpp
+	public/wvn/maths/mat3x4.cpp
 	public/wvn/maths/mat4x4.cpp
 	public/wvn/maths/polygon.cpp
 	public/wvn/maths/quad.cpp

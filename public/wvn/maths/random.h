@@ -1,7 +1,7 @@
 #ifndef RANDOM_H
 #define RANDOM_H
 
-#include <wvn/util/common.h>
+#include <wvn/common.h>
 
 #include <random>
 #include <ctime>

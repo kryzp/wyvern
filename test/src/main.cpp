@@ -1,21 +1,45 @@
 #include <wvn/root.h>
+#include <wvn/container/vector.h>
 #include <wvn/input/input_mgr.h>
+#include <wvn/devenv/log_mgr.h>
 #include <wvn/actor/actor.h>
 #include <wvn/actor/actor_mgr.h>
 #include <wvn/actor/event.h>
 #include <wvn/actor/event_mgr.h>
+#include <wvn/graphics/model.h>
+#include <wvn/graphics/vertex.h>
+#include <wvn/graphics/texture_mgr.h>
+#include <wvn/time.h>
 
-class CameraController : public wvn::act::Actor
+/*
+ * If you're wondering why theres seemingly so many todo's
+ * then its because I'm pretty much learning as I go, so it's
+ * essentially in a constant state of being prototyped.
+ */
+
+// idea:
+// Actor leases a model from the render manager. Render manager then loops over all models and renders
+// them while the actor simply has to change the data about the model.
+
+using Vertices = wvn::Vector<wvn::gfx::Vertex>;
+using Indices = wvn::Vector<u16>;
+
+class Debug : public wvn::act::Actor
 {
+private:
+	wvn::act::ActorHandle m_cube_handle;
+
 public:
-	CameraController()
+	Debug(const wvn::act::ActorHandle& cube)
 		: wvn::act::Actor()
+		, m_cube_handle(cube)
 	{
 	}
 
 	void tick() override
 	{
 		auto& camera = wvn::Root::get_singleton()->main_camera;
+		auto* inp = wvn::inp::InputMgr::get_singleton();
 
 		static float t = 0.0f;
 
@@ -28,30 +52,63 @@ public:
 		wvn::Vec3F direction = wvn::Vec3F::from_angle(0.0f, -t + wvn::CalcF::PI / 2.0f, 1.0f);
 		camera.direction = direction;
 
-		if (wvn::inp::InputMgr::get_singleton()->is_down(wvn::inp::KEY_A)) {
+		if (inp->is_down(wvn::inp::KEY_A)) {
 			camera.transform.move(-(-wvn::Vec3F::cross(direction, wvn::Vec3F::up()) * 0.025f));
-		} else if (wvn::inp::InputMgr::get_singleton()->is_down(wvn::inp::KEY_D)) {
+		} else if (inp->is_down(wvn::inp::KEY_D)) {
 			camera.transform.move(  -wvn::Vec3F::cross(direction, wvn::Vec3F::up()) * 0.025f);
 		}
 
-		if (wvn::inp::InputMgr::get_singleton()->is_down(wvn::inp::KEY_SPACE)) {
-			camera.transform.move_y(-0.025f); // todo: this should be positive?
-		} else if (wvn::inp::InputMgr::get_singleton()->is_down(wvn::inp::KEY_LEFT_SHIFT)) {
+		if (inp->is_down(wvn::inp::KEY_SPACE)) {
+			camera.transform.move_y(-0.025f);
+		} else if (inp->is_down(wvn::inp::KEY_LEFT_SHIFT)) {
 			camera.transform.move_y(0.025f);
 		}
 
-		if (wvn::inp::InputMgr::get_singleton()->is_down(wvn::inp::KEY_S)) {
+		if (inp->is_down(wvn::inp::KEY_S)) {
 			camera.transform.move(-direction * 0.025f);
-		} else if (wvn::inp::InputMgr::get_singleton()->is_down(wvn::inp::KEY_W)) {
+		} else if (inp->is_down(wvn::inp::KEY_W)) {
 			camera.transform.move( direction * 0.025f);
 		}
 
-		if (wvn::inp::InputMgr::get_singleton()->is_down(wvn::inp::KEY_ESCAPE))
+		// send event to destroy cube
+		if (inp->is_pressed(wvn::inp::KEY_G))
 		{
-			wvn::act::Event quit_evt("force.quit");
-			quit_evt.append_str("data.usage", "test");
-			quit_evt.send(this);
+			wvn::act::Event destroy_evt("destroy");
+			destroy_evt.append_str("message.quit", "Goodbye, World!");
+			destroy_evt.send(m_cube_handle);
 		}
+	}
+};
+
+class Cube : public wvn::act::Actor
+{
+public:
+	Cube(const Vertices& vv, const Indices& ii)
+		: wvn::act::Actor()
+	{
+		p_model = new wvn::gfx::Model(); // todo: temp, shouldn't just be allocating it here.
+		p_model->mesh(new wvn::gfx::Mesh(vv, ii));
+		p_model->material().texture(wvn::gfx::TextureMgr::get_singleton()->create("../test/res/kitty.png"));
+		p_model->material().sampler(wvn::gfx::TextureMgr::get_singleton()->create_sampler(wvn::gfx::TEX_FILTER_LINEAR));
+	}
+
+	void init() override
+	{
+		// set transform
+		p_transform.position(0.0f, 0.0f, 5.0f);
+		p_transform.rotation(wvn::Vec3F::up(), 0.0f);
+		p_transform.scale(1.0f, 1.0f, 1.0f);
+		p_transform.origin(0.0f, 0.0f, 0.0f);
+	}
+
+	void tick() override
+	{
+		p_transform.rotate(wvn::Vec3F::up(), 0.01f);
+	}
+
+	void destroy() override
+	{
+		delete p_model;
 	}
 
 	bool on_event(wvn::act::Event& event) override
@@ -60,8 +117,12 @@ public:
 			return true;
 		}
 
-		if (event.is_type("force.quit")) {
-			wvn::Root::get_singleton()->exit();
+		if (event.is_type("destroy"))
+		{
+			wvn::act::ActorHandle handle(this);
+			wvn::act::ActorMgr::get_singleton()->destroy(handle);
+			wvn::dev::LogMgr::get_singleton()->print(event.args["message.quit"].data.string);
+
 			return true;
 		}
 
@@ -71,9 +132,40 @@ public:
 
 int main()
 {
+	Vertices box_vertices = {
+		{ { -0.5f, -0.5f, -0.5f }, { 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f } },
+		{ {  0.5f, -0.5f, -0.5f }, { 1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f } },
+		{ {  0.5f,  0.5f, -0.5f }, { 1.0f, 1.0f }, { 1.0f, 1.0f, 1.0f } },
+		{ { -0.5f,  0.5f, -0.5f }, { 0.0f, 1.0f }, { 1.0f, 1.0f, 1.0f } },
+		{ { -0.5f, -0.5f,  0.5f }, { 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f } },
+		{ {  0.5f, -0.5f,  0.5f }, { 1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f } },
+		{ {  0.5f,  0.5f,  0.5f }, { 1.0f, 1.0f }, { 1.0f, 1.0f, 1.0f } },
+		{ { -0.5f,  0.5f,  0.5f }, { 0.0f, 1.0f }, { 1.0f, 1.0f, 1.0f } },
+	};
+
+	Indices box_indices = {
+		0, 1, 2,
+		2, 3, 0,
+
+		5, 4, 7,
+		7, 6, 5,
+
+		1, 5, 6,
+		6, 2, 1,
+
+		4, 0, 3,
+		3, 7, 4,
+
+		4, 5, 1,
+		1, 0, 4,
+
+		3, 2, 6,
+		6, 7, 3
+	};
+
 	wvn::Config cfg;
 	{
-		cfg.name = "Wyvern Demo";
+		cfg.name = "The ethereal cube welcomes you.";
 		cfg.width = 1280;
 		cfg.height = 720;
 		cfg.target_fps = 144;
@@ -87,14 +179,18 @@ int main()
 
 	new wvn::Root(cfg);
 	{
-		{
-			wvn::Root::get_singleton()->main_camera.fov  = 45.0f;
-			wvn::Root::get_singleton()->main_camera.near =  0.1f;
-			wvn::Root::get_singleton()->main_camera.far  = 10.0f;
-			wvn::act::ActorMgr::get_singleton()->create<CameraController>();
-		}
+		auto* root = wvn::Root::get_singleton();
+		auto* act = wvn::act::ActorMgr::get_singleton();
+		auto& cam = root->main_camera;
 
-		wvn::Root::get_singleton()->run();
+		cam.fov  = 45.0f;
+		cam.near =  0.1f;
+		cam.far  = 10.0f;
+
+		auto cb = act->create<Cube>(box_vertices, box_indices);
+		auto db = act->create<Debug>(cb);
+
+		root->run();
 	}
 	delete wvn::Root::get_singleton();
 

@@ -1,7 +1,7 @@
 #ifndef INPUT_MGR_H
 #define INPUT_MGR_H
 
-#include <wvn/util/singleton.h>
+#include <wvn/singleton.h>
 #include <wvn/input/keyboard.h>
 #include <wvn/input/mouse.h>
 #include <wvn/input/joystick.h>

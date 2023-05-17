@@ -1,10 +1,10 @@
 #include <wvn/maths/mat4x4.h>
-#include <wvn/maths/mat3x2.h>
-#include <wvn/maths/mat4x3.h>
+#include <wvn/maths/mat2x3.h>
+#include <wvn/maths/mat3x4.h>
 #include <wvn/maths/vec3.h>
 #include <wvn/maths/calc.h>
 
-#include <wvn/util/assert.h>
+#include <wvn/assert.h>
 
 using namespace wvn;
 
@@ -83,37 +83,37 @@ Mat4x4 Mat4x4::create_perspective(float fov, float aspect, float near, float far
 	return result;
 }
 
-Mat4x4 Mat4x4::from_mat3x2(const Mat3x2& mat)
+Mat4x4 Mat4x4::from_mat3x2(const Mat2x3& mat)
 {
 	return Mat4x4(
-		mat.m11, mat.m12, 0.0f, 0.0f,
-		mat.m21, mat.m22, 0.0f, 0.0f,
+		mat.m11, mat.m12, 0.0f, mat.m13,
+		mat.m21, mat.m22, 0.0f, mat.m23,
 		0.0f,    0.0f,    1.0f, 0.0f,
-		mat.m31, mat.m32, 0.0f, 1.0f
+		0.0f,    0.0f,    0.0f, 1.0f
 	);
 }
 
-Mat4x4 Mat4x4::from_mat4x3(const Mat4x3& mat)
+Mat4x4 Mat4x4::from_mat4x3(const Mat3x4& mat)
 {
 	return Mat4x4(
-		mat.m11, mat.m12, mat.m13, 0.0f,
-		mat.m21, mat.m22, mat.m23, 0.0f,
-		mat.m31, mat.m32, mat.m33, 0.0f,
-		mat.m41, mat.m42, mat.m43, 1.0f
+		mat.m11, mat.m12, mat.m13, mat.m14,
+		mat.m21, mat.m22, mat.m23, mat.m24,
+		mat.m31, mat.m32, mat.m33, mat.m34,
+		0.0f, 0.0f, 0.0f, 1.0f
 	);
 }
 
 Mat4x4 Mat4x4::create_translation(float x, float y, float z)
 {
 	return Mat4x4(
-		1, 0, 0, 0,
-		0, 1, 0, 0,
-		0, 0, 1, 0,
-		x, y, z, 1
+		1, 0, 0, x,
+		0, 1, 0, y,
+		0, 0, 1, z,
+		0, 0, 0, 1
 	);
 }
 
-Mat4x4 Mat4x4::create_rotation(float angle, Vec3F axis)
+Mat4x4 Mat4x4::create_rotation(Vec3F axis, float angle)
 {
 	axis = axis.normalized();
 
@@ -147,19 +147,19 @@ Mat4x4 Mat4x4::create_rotation(float angle, Vec3F axis)
 Mat4x4 Mat4x4::create_rotation(const Quaternion& quat)
 {
 	return Mat4x4(
-		1.0f - 2.0f * (quat.j * quat.j - quat.k * quat.k),
-		2.0f * (quat.i * quat.j - quat.k * quat.s),
-		2.0f * (quat.i * quat.k + quat.j * quat.s),
+		1.0f - 2.0f * (quat.y * quat.y - quat.z * quat.z),
+		2.0f * (quat.x * quat.y - quat.z * quat.w),
+		2.0f * (quat.x * quat.z + quat.y * quat.w),
 		0.0f,
 
-		2.0f * (quat.i * quat.j + quat.k * quat.s),
-		1.0f - 2.0f * (quat.i * quat.i + quat.k * quat.k),
-		2.0f * (quat.j * quat.k - quat.i * quat.s),
+		2.0f * (quat.x * quat.y + quat.z * quat.w),
+		1.0f - 2.0f * (quat.x * quat.x + quat.z * quat.z),
+		2.0f * (quat.y * quat.z - quat.x * quat.w),
 		0.0f,
 
-		2.0f * (quat.i * quat.k + quat.j * quat.s),
-		2.0f * (quat.j * quat.k + quat.i * quat.s),
-		1.0f - 2.0f * (quat.i * quat.i + quat.j * quat.j),
+		2.0f * (quat.x * quat.z + quat.y * quat.w),
+		2.0f * (quat.y * quat.z + quat.x * quat.w),
+		1.0f - 2.0f * (quat.x * quat.x + quat.y * quat.y),
 		0.0f,
 
 		0.0f,

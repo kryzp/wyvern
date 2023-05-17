@@ -1,4 +1,4 @@
-#include <wvn/util/common.h>
+#include <wvn/common.h>
 
 #include <string.h>
 #include <stdlib.h>
@@ -81,12 +81,12 @@ bool cstr::is_space(char c)
 
 char cstr::to_upper(char c)
 {
-	return ::toupper(c);
+	return (char)::toupper(c);
 }
 
 char cstr::to_lower(char c)
 {
-	return ::tolower(c);
+	return (char)::tolower(c);
 }
 
 void cstr::from_int(char* buf, u64 size, s32 value)
@@ -95,6 +95,11 @@ void cstr::from_int(char* buf, u64 size, s32 value)
 }
 
 void cstr::from_float(char* buf, u64 size, f32 value)
+{
+	::snprintf(buf, size, "%f", value);
+}
+
+void cstr::from_float64(char* buf, u64 size, f64 value)
 {
 	::snprintf(buf, size, "%f", value);
 }

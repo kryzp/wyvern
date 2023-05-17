@@ -2,7 +2,7 @@
 #include <backend/graphics/vulkan/vk_backend.h>
 #include <wvn/system/system_backend.h>
 #include <wvn/devenv/log_mgr.h>
-#include <wvn/util/assert.h>
+#include <wvn/assert.h>
 
 using namespace wvn;
 using namespace wvn::gfx;

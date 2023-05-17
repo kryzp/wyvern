@@ -3,7 +3,7 @@
 
 #include <initializer_list>
 
-#include <wvn/util/common.h>
+#include <wvn/common.h>
 
 namespace wvn
 {

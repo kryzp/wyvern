@@ -1,5 +1,5 @@
 #include <wvn/io/endian.h>
-#include <wvn/util/common.h>
+#include <wvn/common.h>
 
 using namespace wvn;
 using namespace wvn::io;

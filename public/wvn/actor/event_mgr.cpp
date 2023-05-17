@@ -19,7 +19,7 @@ EventMgr::~EventMgr()
 
 void EventMgr::enqueue_event(Event* event)
 {
-	m_events.push_back(new Event(event->m_type, event->m_args, event->m_receiver));
+	m_events.push_back(new Event(event->type, event->args, event->receiver));
 }
 
 void EventMgr::dispatch_events()

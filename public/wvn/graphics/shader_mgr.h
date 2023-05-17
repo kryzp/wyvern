@@ -1,8 +1,8 @@
 #ifndef SHADER_MGR_H
 #define SHADER_MGR_H
 
-#include <wvn/util/singleton.h>
-#include <wvn/util/common.h>
+#include <wvn/singleton.h>
+#include <wvn/common.h>
 #include <wvn/container/string.h>
 #include <wvn/graphics/shader.h>
 

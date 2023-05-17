@@ -6,7 +6,6 @@
 #include <wvn/audio/audio_backend.h>
 
 #include <wvn/actor/actor_mgr.h>
-#include <wvn/actor/scene_mgr.h>
 #include <wvn/actor/event_mgr.h>
 #include <wvn/audio/audio_mgr.h>
 #include <wvn/physics/physics_mgr.h>
@@ -38,7 +37,6 @@ Root::Root(const Config& cfg)
 
 	m_physics_mgr 	= new phys::PhysicsMgr();
 	m_actor_mgr 	= new act ::ActorMgr();
-	m_scene_mgr 	= new act ::SceneMgr();
 	m_event_mgr 	= new act ::EventMgr();
 	m_rendering_mgr = new gfx ::RenderingMgr();
 	m_audio_mgr 	= new sfx ::AudioMgr();
@@ -103,7 +101,6 @@ Root::~Root()
 	delete sfx ::AudioMgr    ::get_singleton();
 	delete gfx ::RenderingMgr::get_singleton();
 	delete act ::EventMgr    ::get_singleton();
-	delete act ::SceneMgr    ::get_singleton();
 	delete act ::ActorMgr    ::get_singleton();
 	delete phys::PhysicsMgr  ::get_singleton();
 
@@ -126,8 +123,6 @@ void Root::run()
 
 		// update
 		{
-			WVN_PROFILE("root.run.update");
-
 			m_actor_mgr->tick_pre_animation();
 
 			m_animation_mgr->tick();
@@ -144,20 +139,16 @@ void Root::run()
 
 		// audio
 		{
-			WVN_PROFILE("root.run.audio");
-
 			m_audio_mgr->tick();
 		}
 
 		// render
 		{
-			WVN_PROFILE("root.run.render");
+			WVN_PROFILE(root_render);
 
 			m_rendering_mgr->render_scene();
 			m_rendering_mgr->swap_buffers();
 		}
-
-		printf("\n");
 	}
 }
 

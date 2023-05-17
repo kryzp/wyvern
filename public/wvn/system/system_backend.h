@@ -1,17 +1,19 @@
 #ifndef SYSTEM_BACKEND_H
 #define SYSTEM_BACKEND_H
 
-#include <wvn/util/common.h>
+#include <wvn/common.h>
 #include <wvn/maths/vec2.h>
 #include <wvn/container/string.h>
 #include <wvn/root.h>
 
 #if WVN_USE_VULKAN
+
 class VkInstance_T;
 using VkInstance = VkInstance_T*;
 
 class VkSurfaceKHR_T;
 using VkSurfaceKHR = VkSurfaceKHR_T*;
+
 #endif
 
 namespace wvn::sys

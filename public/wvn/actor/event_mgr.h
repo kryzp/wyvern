@@ -1,7 +1,7 @@
 #ifndef EVENT_MGR_H
 #define EVENT_MGR_H
 
-#include <wvn/util/singleton.h>
+#include <wvn/singleton.h>
 #include <wvn/actor/event.h>
 #include <wvn/container/deque.h>
 

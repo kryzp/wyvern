@@ -1,8 +1,8 @@
 #ifndef CIRCULAR_QUEUE_H
 #define CIRCULAR_QUEUE_H
 
-#include <wvn/util/common.h>
-#include <wvn/util/assert.h>
+#include <wvn/common.h>
+#include <wvn/assert.h>
 
 namespace wvn
 {
@@ -172,7 +172,7 @@ namespace wvn
 	template <typename T, u64 Size>
 	T CircularQueue<T, Size>::pop()
 	{
-		WVN_ASSERT(m_size > 0, "[QUEUE|DEBUG] Must not be empty when calling pop().");
+		WVN_ASSERT(m_size > 0, "[CIRQUEUE|DEBUG] Must not be empty when calling pop().");
 		m_size--;
 		if (m_size < 0) {
 			m_size = Size - 1;
@@ -184,7 +184,7 @@ namespace wvn
 	template <typename T, u64 Size>
 	T& CircularQueue<T, Size>::push(const T& item)
 	{
-		WVN_ASSERT(m_size < Size, "[QUEUE|DEBUG] Size must not be greater than max capacity.");
+		WVN_ASSERT(m_size < Size, "[CIRQUEUE|DEBUG] Size must not be greater than max capacity.");
 		m_size = (m_size + 1) % Size;
 		new (m_ptr + m_size) T(std::move(item));
 		return m_ptr[m_size];
@@ -194,7 +194,7 @@ namespace wvn
 	template <typename... Args>
 	T& CircularQueue<T, Size>::emplace(Args&&... args)
 	{
-		WVN_ASSERT(m_size < Size, "[QUEUE|DEBUG] Size must not be greater than max capacity.");
+		WVN_ASSERT(m_size < Size, "[CIRQUEUE|DEBUG] Size must not be greater than max capacity.");
 		m_size = (m_size + 1) % Size;
 		new (m_ptr + m_size) T(std::forward<Args>(args)...);
 		return m_ptr[m_size];

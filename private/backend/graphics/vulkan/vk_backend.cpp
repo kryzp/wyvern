@@ -306,19 +306,7 @@ VulkanBackend::VulkanBackend()
 	create_image_views();
 	create_render_pass();
 	create_descriptor_set_layout();
-
-	VkPipelineLayoutCreateInfo pipeline_layout_create_info = {};
-	pipeline_layout_create_info.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-	pipeline_layout_create_info.setLayoutCount = 1;
-	pipeline_layout_create_info.pSetLayouts = &m_descriptor_set_layout;
-	pipeline_layout_create_info.pushConstantRangeCount = 0;
-	pipeline_layout_create_info.pPushConstantRanges = nullptr;
-
-	if (VkResult result = vkCreatePipelineLayout(this->device, &pipeline_layout_create_info, nullptr, &m_pipeline_layout); result != VK_SUCCESS) {
-		dev::LogMgr::get_singleton()->print("[VULKAN] Result: %d", result);
-		WVN_ERROR("[VULKAN|DEBUG] Failed to create pipeline layout.");
-	}
-
+	create_pipeline_layout();
 	create_command_pools(phys_idx);
 	create_colour_resources();
 	create_depth_resources();
@@ -652,9 +640,9 @@ VkPipeline VulkanBackend::get_graphics_pipeline()
 
 	VkPipelineMultisampleStateCreateInfo multisample_state_create_info = {};
 	multisample_state_create_info.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
-	multisample_state_create_info.sampleShadingEnable = VK_FALSE;
+	multisample_state_create_info.sampleShadingEnable = VK_TRUE; // todo this should be toggleable! especially for things like pixel art-styles (originally VK_FALSE)
+	multisample_state_create_info.minSampleShading = 0.2f; // todo this should be variable (originally 1.0f)
 	multisample_state_create_info.rasterizationSamples = m_msaa_samples;
-	multisample_state_create_info.minSampleShading = 1.0f;
 	multisample_state_create_info.pSampleMask = nullptr;
 	multisample_state_create_info.alphaToCoverageEnable = VK_FALSE;
 	multisample_state_create_info.alphaToOneEnable = VK_FALSE;
@@ -988,6 +976,21 @@ void VulkanBackend::create_descriptor_set_layout()
 	dev::LogMgr::get_singleton()->print("[VULKAN] Created descriptor set layout!");
 }
 
+void VulkanBackend::create_pipeline_layout()
+{
+	VkPipelineLayoutCreateInfo pipeline_layout_create_info = {};
+	pipeline_layout_create_info.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+	pipeline_layout_create_info.setLayoutCount = 1;
+	pipeline_layout_create_info.pSetLayouts = &m_descriptor_set_layout;
+	pipeline_layout_create_info.pushConstantRangeCount = 0;
+	pipeline_layout_create_info.pPushConstantRanges = nullptr;
+
+	if (VkResult result = vkCreatePipelineLayout(this->device, &pipeline_layout_create_info, nullptr, &m_pipeline_layout); result != VK_SUCCESS) {
+		dev::LogMgr::get_singleton()->print("[VULKAN] Result: %d", result);
+		WVN_ERROR("[VULKAN|DEBUG] Failed to create pipeline layout.");
+	}
+}
+
 void VulkanBackend::create_descriptor_pool()
 {
 	Array<VkDescriptorPoolSize, 2> pool_sizes;
@@ -1111,9 +1114,9 @@ void VulkanBackend::create_depth_resources()
 	VkFormat format = vkutil::find_depth_format(physical_data.device);
 
 	m_depth.create(
-		m_swap_chain_extent.width, m_swap_chain_extent.height,
-		vkutil::get_wvn_texture_format(format), TEX_TILE_OPTIMAL,
-		1, m_msaa_samples, false
+            m_swap_chain_extent.width, m_swap_chain_extent.height,
+            vkutil::get_wvn_texture_format(format), TEX_TILE_OPTIMAL,
+            1, m_msaa_samples, false
 	);
 
 	m_depth.transition_layout(VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
@@ -1126,9 +1129,9 @@ void VulkanBackend::create_colour_resources()
 	VkFormat format = m_swap_chain_image_format;
 
 	m_colour.create(
-		m_swap_chain_extent.width, m_swap_chain_extent.height,
-		vkutil::get_wvn_texture_format(format), TEX_TILE_OPTIMAL,
-		1, m_msaa_samples, true
+            m_swap_chain_extent.width, m_swap_chain_extent.height,
+            vkutil::get_wvn_texture_format(format), TEX_TILE_OPTIMAL,
+            1, m_msaa_samples, true
 	);
 
 	dev::LogMgr::get_singleton()->print("[VULKAN] Created colour resources!");
@@ -1350,12 +1353,17 @@ void VulkanBackend::render(const RenderPass& pass)
 {
 	const float ASPECT = static_cast<float>(m_swap_chain_extent.width) / static_cast<float>(m_swap_chain_extent.height);
 
-	// update uniform buffer (todo: temp)
+	// update uniform buffer
 	{
 		UniformBufferObject ubo = {};
-		ubo.model = pass.model_matrix;
-		ubo.view  = pass.view_matrix;
-		ubo.proj  = pass.proj_matrix;
+		ubo.model = Mat4x4(
+			pass.model_matrix.m11, pass.model_matrix.m12, pass.model_matrix.m13, 0.0f,
+			pass.model_matrix.m21, pass.model_matrix.m22, pass.model_matrix.m23, 0.0f,
+			pass.model_matrix.m31, pass.model_matrix.m32, pass.model_matrix.m33, 0.0f,
+			pass.model_matrix.m14, pass.model_matrix.m24, pass.model_matrix.m34, 1.0f
+		);
+		ubo.view = pass.view_matrix;
+		ubo.proj = pass.proj_matrix;
 		frames[m_current_frame].uniform_buffer->read_data(&ubo, sizeof(UniformBufferObject));
 	}
 

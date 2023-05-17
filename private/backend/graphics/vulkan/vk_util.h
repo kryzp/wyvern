@@ -2,7 +2,7 @@
 #define VK_UTIL_H
 
 #include <vulkan/vulkan.h>
-#include <wvn/util/common.h>
+#include <wvn/common.h>
 #include <wvn/graphics/texture.h>
 #include <wvn/graphics/shader.h>
 #include <wvn/graphics/gpu_buffer.h>

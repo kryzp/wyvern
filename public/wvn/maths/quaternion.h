@@ -3,7 +3,8 @@
 
 namespace wvn
 {
-	template <typename T> struct Vec3;
+	template <typename T>
+	struct Vec3;
 
 	/**
 	 * Used for representing rotations by black magic.
@@ -15,21 +16,23 @@ namespace wvn
 		{
 			struct
 			{
-				float s;
-				float i;
-				float j;
-				float k;
+				float w;
+				float x;
+				float y;
+				float z;
 			};
 
 			float data[4];
 		};
 
 		Quaternion();
-		Quaternion(float v);
-		Quaternion(float s, float i, float j, float k);
+		Quaternion(float x, float y, float z);
+		Quaternion(float w, float x, float y, float z);
+        Quaternion(const Quaternion& other);
 
 		static const Quaternion& zero();
-		static const Quaternion& one();
+        static const Quaternion& one();
+		static const Quaternion& identity();
 
 		static Quaternion from_axis_angle(const Vec3<float>& axis, float angle);
 
@@ -37,6 +40,8 @@ namespace wvn
 		static Vec3<float> to_euler(const Quaternion& quat);
 
 		static float dot(const Quaternion& a, const Quaternion& b);
+
+		Vec3<float> vector() const;
 
 		Quaternion normalized() const;
 		Quaternion inverse() const;
@@ -52,6 +57,8 @@ namespace wvn
 		Quaternion operator + (const Quaternion& other) const;
 		Quaternion operator - (const Quaternion& other) const;
 		Quaternion operator * (const Quaternion& other) const;
+        Quaternion operator * (float scalar) const;
+        Quaternion operator / (float scalar) const;
 
 		Quaternion operator - () const;
 

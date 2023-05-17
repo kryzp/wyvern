@@ -1,7 +1,7 @@
 #ifndef SOCKET_H
 #define SOCKET_H
 
-#include <wvn/util/common.h>
+#include <wvn/common.h>
 #include <wvn/network/network_mgr.h>
 #include <wvn/network/ip_address.h>
 
@@ -27,7 +27,7 @@ namespace wvn::net
 		~TCPSocket() override;
 
 		NetworkCallback send(byte* data, u64 size);
-		NetworkCallback recv(byte* data, u64 size, u64* bytes_recieved = nullptr);
+		NetworkCallback recv(byte* data, u64 size, u64* bytes_received = nullptr);
 	};
 
 	/**
@@ -41,7 +41,7 @@ namespace wvn::net
 
 		NetworkCallback bind(u64 port);
 		NetworkCallback send(byte* data, u64 size, u64 port, const IpAddress& addr);
-		NetworkCallback recv(byte* data, u64 size, u64 port, const IpAddress& addr, u64* bytes_recieved = nullptr);
+		NetworkCallback recv(byte* data, u64 size, u64 port, const IpAddress& addr, u64* bytes_received = nullptr);
 	};
 }
 

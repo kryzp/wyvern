@@ -9,7 +9,7 @@
 #include <wvn/container/hash_map.h>
 
 #include <wvn/root.h>
-#include <wvn/util/common.h>
+#include <wvn/common.h>
 #include <wvn/graphics/renderer_backend.h>
 
 #include <backend/graphics/vulkan/vk_buffer.h>
@@ -140,6 +140,7 @@ namespace wvn::gfx
 		void create_command_buffers();
 		void create_sync_objects();
 		void create_descriptor_set_layout();
+		void create_pipeline_layout();
 		void create_uniform_buffers();
         void create_descriptor_pool();
         void create_descriptor_sets();

@@ -1,7 +1,7 @@
 #ifndef CONSOLE_H
 #define CONSOLE_H
 
-#include <wvn/util/singleton.h>
+#include <wvn/singleton.h>
 
 namespace wvn::dev
 {

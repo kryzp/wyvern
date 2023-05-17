@@ -9,7 +9,7 @@
 #include <wvn/graphics/texture.h>
 #include <wvn/graphics/image.h>
 
-#include <wvn/util/common.h>
+#include <wvn/common.h>
 
 namespace wvn::gfx
 {
@@ -38,7 +38,7 @@ namespace wvn::gfx
 		TextureMetaData meta_data() const override;
 
 	private:
-		void create_internal_resources(bool transient);
+		void create_internal_resources();
 		VkImageView generate_view() const;
 
 		VulkanBackend* m_backend;
@@ -49,6 +49,7 @@ namespace wvn::gfx
 		VkImageView m_view;
 		u32 m_mip_levels;
 		VkSampleCountFlagBits m_num_samples;
+		bool m_transient;
 
 		TextureFormat m_format;
 		TextureTiling m_tiling;

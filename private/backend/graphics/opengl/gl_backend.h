@@ -1,7 +1,7 @@
 #ifndef OPENGL_BACKEND_H
 #define OPENGL_BACKEND_H
 
-#include <wvn/util/common.h>
+#include <wvn/common.h>
 #include <wvn/graphics/renderer_backend.h>
 
 namespace wvn::gfx

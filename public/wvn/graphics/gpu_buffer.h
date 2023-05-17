@@ -2,7 +2,7 @@
 #define HARDWARE_BUFFER_H
 
 #include <wvn/graphics/texture.h>
-#include <wvn/util/common.h>
+#include <wvn/common.h>
 
 namespace wvn::gfx
 {
@@ -17,7 +17,7 @@ namespace wvn::gfx
 		GBUF_USAGE_MAX
 	};
 
-	using GPUBufferUsage = u8;
+	using GPUBufferUsage = u8; // makes it easier to use with other graphics api's as implicit conversion
 
 	class GPUBuffer
 	{

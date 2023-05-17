@@ -1,7 +1,7 @@
 #ifndef COLOUR_H
 #define COLOUR_H
 
-#include <wvn/util/common.h>
+#include <wvn/common.h>
 
 namespace wvn
 {

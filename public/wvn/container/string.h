@@ -1,7 +1,7 @@
 #ifndef STRING_H
 #define STRING_H
 
-#include <wvn/util/common.h>
+#include <wvn/common.h>
 #include <wvn/container/vector.h>
 
 namespace wvn

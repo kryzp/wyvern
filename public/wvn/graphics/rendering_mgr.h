@@ -1,7 +1,7 @@
 #ifndef RENDERING_MGR_H
 #define RENDERING_MGR_H
 
-#include <wvn/util/singleton.h>
+#include <wvn/singleton.h>
 #include <wvn/graphics/mesh.h>
 #include <wvn/graphics/texture.h>
 #include <wvn/graphics/material.h>
@@ -23,10 +23,8 @@ namespace wvn::gfx
 		void render_scene();
 		void swap_buffers();
 
-		Mesh* m;
 		Shader* vertex_shader;
 		Shader* fragment_shader;
-		Material material;
 	};
 }
 

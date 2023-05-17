@@ -3,7 +3,7 @@
 
 #include <wvn/maths/vec3.h>
 #include <wvn/maths/quaternion.h>
-#include <wvn/maths/mat4x3.h>
+#include <wvn/maths/mat3x4.h>
 #include <wvn/container/function.h>
 
 namespace wvn
@@ -36,12 +36,12 @@ namespace wvn
 		Size3 scale() const;
 
 		void rotate(const Vec3F& axis, float angle);
-		void rotate(const Quaternion& v);
+		void rotate(const Quaternion& quat);
 		void rotation(const Vec3F& axis, float angle);
-		void rotation(const Quaternion& v);
+		void rotation(const Quaternion& quat);
 		Quaternion rotation() const;
 
-		Mat4x3 matrix();
+		Mat3x4 matrix();
 
 		Function<void(void)> on_transformed;
 
@@ -49,7 +49,7 @@ namespace wvn
 		void recompute_matrix();
 
 		bool m_dirty;
-		Mat4x3 m_matrix;
+		Mat3x4 m_matrix;
 
 		Vec3F m_position;
 		Quaternion m_rotation;

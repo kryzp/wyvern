@@ -6,8 +6,8 @@
 
 namespace wvn
 {
-	struct Mat3x2;
-	struct Mat4x3;
+	struct Mat2x3;
+	struct Mat3x4;
 
 	/**
 	 * Generic 4x4 matrix.
@@ -41,11 +41,11 @@ namespace wvn
 
 		static const Mat4x4& identity();
 
-		static Mat4x4 from_mat3x2(const Mat3x2& mat);
-		static Mat4x4 from_mat4x3(const Mat4x3& mat);
+		static Mat4x4 from_mat3x2(const Mat2x3& mat);
+		static Mat4x4 from_mat4x3(const Mat3x4& mat);
 
 		static Mat4x4 create_translation(float x, float y, float z);
-		static Mat4x4 create_rotation(float angle, Vec3F axis);
+		static Mat4x4 create_rotation(Vec3F axis, float angle);
 		static Mat4x4 create_rotation(const Quaternion& quat);
 		static Mat4x4 create_scale(float x, float y, float z);
 

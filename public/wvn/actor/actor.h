@@ -1,15 +1,17 @@
 #ifndef ACTOR_H
 #define ACTOR_H
 
-#include <wvn/util/common.h>
+#include <wvn/common.h>
+#include <wvn/maths/transform_3d.h>
+
+namespace wvn::gfx { class Model; }
+namespace wvn::phys { class Rigidbody; }
 
 namespace wvn::act
 {
 	class ActorHandle;
 	class ActorMgr;
 	class Event;
-
-	using ActorID = u32;
 
 	/**
 	 * Base class for all actors in the game world.
@@ -20,20 +22,22 @@ namespace wvn::act
 		friend class ActorMgr;
 
 	public:
-		constexpr static ActorID NULL_ID = 0;
+		constexpr static u32 NULL_ID = 0;
 
 		Actor();
 		virtual ~Actor() = default;
 
+		// should these functions should have clearer names like on_init and on_destroy?
 		virtual void init() { }
 		virtual void destroy() { }
 
 		virtual void enter() { }
 		virtual void exit() { }
 
-		virtual void tick() { }
+		virtual void tick();
 
-		virtual bool on_event(Event& e);
+		Transform3D& get_transform();
+		gfx::Model* get_model();
 
 		void add_flag(u64 flag);
 		void remove_flag(u64 flag);
@@ -42,45 +46,23 @@ namespace wvn::act
 		bool has_flag(u64 flag) const;
 		bool only_has_flag(u64 flag) const;
 		void clear_flags();
+		u64 flags() const;
+
+		u32 id() const;
+
+		virtual bool on_event(Event& e);
 
 	protected:
-		// Transform p_transform;
-		// ...
+		Transform3D p_transform;
+		phys::Rigidbody* p_rigidbody;
+		gfx::Model* p_model;
+
+		Vec3F p_velocity;
+		Vec3F p_angular_velocity;
 
 	private:
 		u64 m_flags;
-		ActorID m_id;
-	};
-
-	class ActorHandle
-	{
-	public:
-		ActorHandle();
-		ActorHandle(const Actor* actor);
-		ActorHandle(ActorID id);
-		ActorHandle(const ActorHandle& other);
-		ActorHandle(ActorHandle&& other) noexcept;
-		ActorHandle& operator = (const ActorHandle& other);
-		ActorHandle& operator = (ActorHandle&& other) noexcept;
-		~ActorHandle() = default;
-
-		bool is_valid() const;
-		operator bool () const;
-
-		ActorID id() const;
-		operator ActorID () const;
-
-		Actor* get();
-		const Actor* get() const;
-
-		Actor* operator -> ();
-		const Actor* operator -> () const;
-
-		bool operator == (const ActorHandle& other) const;
-		bool operator != (const ActorHandle& other) const;
-
-	private:
-		ActorID m_id;
+		u32 m_id;
 	};
 }
 

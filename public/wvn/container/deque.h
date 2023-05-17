@@ -1,10 +1,12 @@
 #ifndef DEQUE_H
 #define DEQUE_H
 
-#include <wvn/util/common.h>
-#include <wvn/util/assert.h>
+#include <wvn/common.h>
+#include <wvn/assert.h>
 
 #include <new>
+
+// todo: add WVN_ASSERT's
 
 namespace wvn
 {

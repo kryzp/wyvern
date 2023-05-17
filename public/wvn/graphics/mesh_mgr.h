@@ -1,7 +1,7 @@
 #ifndef MESH_MGR_H
 #define MESH_MGR_H
 
-#include <wvn/util/singleton.h>
+#include <wvn/singleton.h>
 #include <wvn/graphics/gpu_buffer.h>
 #include <wvn/graphics/vertex.h>
 #include <wvn/container/vector.h>

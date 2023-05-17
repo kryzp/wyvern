@@ -3,8 +3,8 @@
 
 #include <initializer_list>
 
-#include <wvn/util/common.h>
-#include <wvn/util/assert.h>
+#include <wvn/common.h>
+#include <wvn/assert.h>
 
 namespace wvn
 {
