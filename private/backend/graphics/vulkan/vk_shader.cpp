@@ -25,8 +25,7 @@ void VulkanShader::load_from_source(const char* source, u64 source_size)
 	module_create_info.pCode = (const u32*)source;
 
 	if (VkResult result = vkCreateShaderModule(m_backend->device, &module_create_info, nullptr, &m_shader_module); result != VK_SUCCESS) {
-		dev::LogMgr::get_singleton()->print("[VULKAN] Result: %d", result);
-		WVN_ERROR("[VULKAN|DEBUG] Failed to create shader module.");
+		WVN_ERROR("[VULKAN|DEBUG] Failed to create shader module: %d", result);
 	}
 }
 
@@ -41,7 +40,7 @@ VkPipelineShaderStageCreateInfo VulkanShader::get_shader_stage_create_info() con
 	return shader_stage;
 }
 
-VkShaderModule VulkanShader::get_module() const
+VkShaderModule VulkanShader::module() const
 {
 	return m_shader_module;
 }

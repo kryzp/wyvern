@@ -27,13 +27,13 @@ namespace wvn
 		void origin(float x, float y, float z);
 		Vec3F origin() const;
 
-		void scale(const Size3& v);
+		void scale(const Vec3F& v);
 		void scale(float scalar);
 		void scale(float x, float y, float z);
-		void scale_by(const Size3& dv);
+		void scale_by(const Vec3F& dv);
 		void scale_by(float ds);
 		void scale_by(float dx, float dy, float dz);
-		Size3 scale() const;
+		Vec3F scale() const;
 
 		void rotate(const Vec3F& axis, float angle);
 		void rotate(const Quat& quat);
@@ -53,7 +53,7 @@ namespace wvn
 
 		Vec3F m_position;
 		Quat m_rotation;
-		Size3 m_scale;
+		Vec3F m_scale;
 		Vec3F m_origin;
 	};
 }

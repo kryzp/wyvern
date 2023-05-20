@@ -4,6 +4,7 @@ using namespace wvn;
 using namespace wvn::gfx;
 
 Texture::Texture()
+	: p_depth(1)
 {
 }
 

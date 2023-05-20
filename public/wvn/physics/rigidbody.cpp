@@ -34,7 +34,7 @@ void RigidBody::add_torque_relative(const Vec3F& torque)
 {
 }
 
-void RigidBody::set_position(const Point3& position)
+void RigidBody::set_position(const Vec3F& position)
 {
 	m_position = position;
 }
@@ -68,19 +68,19 @@ void RigidBody::wake_up()
 	m_flags.disable(FLAG_IS_SLEEPING);
 }
 
-Point3 RigidBody::closest_point_on_bounds(const Point3& point) const
+Vec3F RigidBody::closest_point_on_bounds(const Vec3F& point) const
 {
-	return Point3::zero();
+	return Vec3F::zero();
 }
 
-void RigidBody::set_centre_of_mass(const wvn::Point3& position)
+void RigidBody::set_centre_of_mass(const wvn::Vec3F& position)
 {
 	m_centre_of_mass = position;
 }
 
 void RigidBody::reset_centre_of_mass()
 {
-	m_centre_of_mass = Point3::zero();
+	m_centre_of_mass = Vec3F::zero();
 }
 
 void RigidBody::apply_forces()

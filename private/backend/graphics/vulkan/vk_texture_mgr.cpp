@@ -30,42 +30,68 @@ VulkanTextureMgr::~VulkanTextureMgr()
 Texture* VulkanTextureMgr::create(const Image& image)
 {
 	VulkanTexture* texture = new VulkanTexture(m_backend);
-	texture->create(image, 4, VK_SAMPLE_COUNT_1_BIT, false);
+	texture->create(image, TEX_TYPE_2D, 4, VK_SAMPLE_COUNT_1_BIT, false);
+	texture->transition_layout(VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
-	// todo: temp: just to get something working
 	GPUBuffer* stage = GPUBufferMgr::get_singleton()->create_staging_buffer(image.size());
-	{
-		stage->read_data(image.raw_pixel_data(), image.size(), 0);
-		texture->transition_layout(VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-		stage->write_to_tex(texture, image.size());
-	}
+	stage->read_data(image.data(), image.size(), 0);
+	stage->write_to_tex(texture, image.size());
 	delete stage;
 
-	texture->generate_mipmaps(); // transition to shader read only happens here!
+	texture->generate_mipmaps();
 
 	m_textures.push_back(texture);
-
 	return texture;
 }
 
 Texture* VulkanTextureMgr::create(u32 width, u32 height, TextureFormat format, TextureTiling tiling, const byte* data, u64 size)
 {
 	VulkanTexture* texture = new VulkanTexture(m_backend);
-	texture->create(width, height, format, tiling, 8, VK_SAMPLE_COUNT_1_BIT, false);
+	texture->create(width, height, format, tiling, TEX_TYPE_2D, 4, VK_SAMPLE_COUNT_1_BIT, false);
+	texture->transition_layout(VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
-	// todo: temp: just to get something working
 	GPUBuffer* stage = GPUBufferMgr::get_singleton()->create_staging_buffer(size);
-	{
-		stage->read_data(data, size, 0);
-		texture->transition_layout(VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-		stage->write_to_tex(texture, size);
-	}
+	stage->read_data(data, size, 0);
+	stage->write_to_tex(texture, size);
 	delete stage;
 
-	texture->generate_mipmaps(); // transition to shader read only happens here!
+	texture->generate_mipmaps();
 
 	m_textures.push_back(texture);
+	return texture;
+}
 
+Texture* VulkanTextureMgr::create_cube_map(TextureFormat format, const Image& right, const Image& left, const Image& top, const Image& bottom, const Image& front, const Image& back)
+{
+	VulkanTexture* texture = new VulkanTexture(m_backend);
+	texture->create(right.width(), right.height(), format, TEX_TILE_OPTIMAL, TEX_TYPE_CUBE, 4, VK_SAMPLE_COUNT_1_BIT, false);
+	texture->transition_layout(VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+
+	VulkanBuffer* stage = (VulkanBuffer*)GPUBufferMgr::get_singleton()->create_staging_buffer(right.size());
+
+	stage->read_data(right.data(), right.size(), 0);
+	stage->write_to_tex(texture, right.size(), 0, 0);
+
+	stage->read_data(left.data(), left.size(), 0);
+	stage->write_to_tex(texture, left.size(), 0, 1);
+
+	stage->read_data(top.data(), top.size(), 0);
+	stage->write_to_tex(texture, top.size(), 0, 2);
+
+	stage->read_data(bottom.data(), bottom.size(), 0);
+	stage->write_to_tex(texture, bottom.size(), 0, 3);
+
+	stage->read_data(front.data(), front.size(), 0);
+	stage->write_to_tex(texture, front.size(), 0, 4);
+
+	stage->read_data(back.data(), back.size(), 0);
+	stage->write_to_tex(texture, back.size(), 0, 5);
+
+	delete stage;
+
+	texture->generate_mipmaps();
+
+	m_textures.push_back(texture);
 	return texture;
 }
 

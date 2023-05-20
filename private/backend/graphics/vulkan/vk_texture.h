@@ -21,11 +21,14 @@ namespace wvn::gfx
 
 		void clean_up();
 
-		void create(const Image& image, u32 mip_levels, VkSampleCountFlagBits num_samples, bool transient);
-		void create(u32 width, u32 height, TextureFormat format, TextureTiling tiling, u32 mip_levels, VkSampleCountFlagBits num_samples, bool transient);
+		void create(const Image& image, TextureType type, u32 mip_levels, VkSampleCountFlagBits num_samples, bool transient);
+		void create(u32 width, u32 height, TextureFormat format, TextureTiling tiling, TextureType type, u32 mip_levels, VkSampleCountFlagBits num_samples, bool transient);
 
 		void transition_layout(VkImageLayout new_layout);
 		void generate_mipmaps();
+
+		u32 get_layer_count() const;
+		u32 get_face_count() const;
 
 		VkImage image() const;
 		VkImageView image_view() const;
@@ -54,6 +57,7 @@ namespace wvn::gfx
 
 		TextureFormat m_format;
 		TextureTiling m_tiling;
+		TextureType m_type;
 
 		u32 m_width;
 		u32 m_height;

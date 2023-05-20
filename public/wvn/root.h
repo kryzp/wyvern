@@ -18,7 +18,7 @@ namespace wvn
 
 	namespace act  { class ActorMgr; class EventMgr; }
 	namespace phys { class PhysicsMgr; }
-	namespace gfx { class RenderingMgr; class RendererBackend; }
+	namespace gfx { class RenderingMgr; class RendererBackend; class MeshMgr; }
 	namespace sys { class SystemBackend; }
 	namespace sfx { class AudioMgr; class AudioBackend; }
 	namespace net { class NetworkMgr; }
@@ -98,6 +98,7 @@ namespace wvn
 		act::ActorMgr* m_actor_mgr;
 		act::EventMgr* m_event_mgr;
 		gfx::RenderingMgr* m_rendering_mgr;
+		gfx::MeshMgr* m_mesh_mgr;
 		sfx::AudioMgr* m_audio_mgr;
 		net::NetworkMgr* m_network_mgr;
 		anim::AnimationMgr* m_animation_mgr;

@@ -1,6 +1,20 @@
-* Make a documentation!!!!!
-* Create testing programs, so I stop introducing bugs with every new change :/
-* tons of // todo to do (:/)
+ * add proper documentation and comment the code more
+ * create standardised testing programs, so I stop introducing bugs with every new change :/
+ * tons of // todo to do (:/)
+ * convert #ifndef's to have WVN_ before all the defines. e.g.: #ifndef ASSERT_H -> #ifndef WVN_ASSERT_H
+
+ - finish actor system
+ - finish rendering backend
+ - finish physics
+ - finish input (console input)
+ - finish date/time stuff
+ - finish networking
+ - finish animation system
+ - finish developer tools
+ - finish audio
+ - finish gui library
+ - finish multithreading features
+ - finish resource manager system for generic loading in of raw resource data before they're passed over to their respective managers
 
 - [~] Actor System
   - [~] Actor Manager
@@ -13,17 +27,6 @@
   - [ ] Rigid-bodies
   - [ ] Soft-bodies
   - [ ] Simple SAT Solver
-- [x] Custom Containers
-  - [x] Vector
-  - [x] Bitset
-  - [x] Array
-  - [x] String
-  - [x] CircularQueue
-  - [x] Deque
-  - [x] Optional
-  - [x] Pair
-  - [x] Linked List
-  - [x] Hash Map
 - [~] Developer Tools
   - [ ] Programmable Command Line / Console / Terminal
   - [~] Logging System
@@ -33,9 +36,6 @@
   - [ ] RaYtRaCIng?!?!?!
   - [~] Rendering Manager
   - [ ] Managers for textures, shaders, meshes, etc...
-- [x] I/O Features
-  - [x] Memory Stream
-  - [x] File Stream
 - [ ] Audio
   - [ ] Proximity-Based 3D Sound (stereo?)
 - [ ] GUI Library
@@ -43,22 +43,11 @@
 - [~] Input Manager
   - [~] PC
   - [ ] Console
-- [x] Maths Library
-  - [x] Vector / Matrix Maths
-  - [x] Shapes
-  - [x] Random
-  - [x] Timer
-  - [x] Calculator and Ease utilities
 - [ ] Networking Tools
   - [ ] Abstract Socket + Listener
   - [ ] TCP / UDP Support
-- [x] Plugin System, allowing you to swap in and out the backend libraries of the project (e.g: swap vulkan out for a directx or metal rendering backend)
 - [ ] Date/Time features
 - [ ] Resource Manager (multi-threaded generic async loading)
   - [ ] Resource Handles
 - [ ] Multi-Threading Tools
   - [ ] Thread class
-- [x] General Utilities
-  - [x] Types
-  - [x] Debugging / Assertions
-  - [x] Singleton

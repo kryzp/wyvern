@@ -82,14 +82,6 @@ namespace wvn
 	using Vec2I		= Vec2<int>;
 	using Vec2U		= Vec2<unsigned>;
 
-	using Float2	= Vec2<float>;
-	using Double	= Vec2<float>;
-	using Size2		= Vec2<float>;
-	using Int2		= Vec2<int>;
-	using Point2	= Vec2<float>;
-	using UInt2		= Vec2<unsigned>;
-	using Unsigned2 = Vec2<unsigned>;
-
 	template <typename T>
 	Vec2<T>::Vec2()
 		: x(0.0), y(0.0)

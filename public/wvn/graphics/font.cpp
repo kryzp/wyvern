@@ -112,7 +112,7 @@ void Font::load(float size, const String& path)
 
 			stbtt_PackEnd(&pack_context);
 
-			m_atlas.texture = TextureMgr::get_singleton()->create(WVN_FONT_ATLAS_W, WVN_FONT_ATLAS_H, TEX_FMT_R8_UNORM, TEX_TILE_NONE, bitmap, WVN_FONT_ATLAS_W * WVN_FONT_ATLAS_H);
+			m_atlas.texture = TextureMgr::get_singleton()->create(WVN_FONT_ATLAS_W, WVN_FONT_ATLAS_H, TEX_FMT_R8_UNORM, TEX_TILE_NONE, bitmap, WVN_FONT_ATLAS_W * WVN_FONT_ATLAS_H * 1);
 
 			m_characters = new Character[WVN_FONT_CHARCOUNT];
 

@@ -10,7 +10,11 @@
 
 #include <wvn/root.h>
 #include <wvn/common.h>
+
 #include <wvn/graphics/renderer_backend.h>
+
+#include <backend/graphics/vulkan/vk_render_pass_builder.h>
+#include <backend/graphics/vulkan/vk_descriptor_pool_mgr.h>
 
 #include <backend/graphics/vulkan/vk_buffer.h>
 #include <backend/graphics/vulkan/vk_texture.h>
@@ -60,7 +64,7 @@ namespace wvn::gfx
 			);
 		}
 
-		const Vector<u32> package() const
+		const Array<u32, 4> package() const
 		{
 			return {
 				graphics_family.value(),
@@ -97,24 +101,32 @@ namespace wvn::gfx
 	{
 		struct FrameData
 		{
-			Ref<VulkanBuffer> uniform_buffer;
 			VkFence in_flight_fence;
 			VkSemaphore render_finished_semaphore;
 			VkSemaphore image_available_semaphore;
 			VkCommandPool command_pool;
 			VkCommandBuffer command_buffer;
+			VulkanBuffer* uniform_buffer;
 		};
 
 	public:
 		static constexpr u32 MAX_FRAMES_IN_FLIGHT = 2;
+		static constexpr u32 MAX_UBOS = 2;
 
 		VulkanBackend();
 		~VulkanBackend() override;
 
 		RendererBackendProperties properties() override;
 
+		void begin_render() override;
 		void render(const RenderPass& pass) override;
+		void end_render() override;
+
 		void swap_buffers() override;
+		void set_clear_colour(const Colour& colour) override;
+
+		void set_depth_params(bool depth_test, bool depth_write) override;
+
 		void wait_for_sync();
 
 		void on_window_resize(int width, int height) override;
@@ -124,6 +136,7 @@ namespace wvn::gfx
 
 		void bind_shader(Shader* shader) override;
 
+		FrameData& current_frame();
 		u64 frame() const;
 
 		VkDevice device;
@@ -142,22 +155,21 @@ namespace wvn::gfx
 		void create_descriptor_set_layout();
 		void create_pipeline_layout();
 		void create_uniform_buffers();
-        void create_descriptor_pool();
-        void create_descriptor_sets();
 		void create_depth_resources();
 		void create_colour_resources();
-		void create_image_views();
+		void create_swap_chain_image_views();
 		void clean_up_swap_chain();
 		void rebuild_swap_chain();
 		void create_swap_chain_framebuffers();
 		void acquire_next_image();
+		void create_pipeline_process_cache();
+		VkSampleCountFlagBits get_max_usable_sample_count() const;
+
 		void clear_pipeline_cache();
-		VkSampleCountFlagBits get_max_usable_sample_count();
+		void clear_descriptor_set_cache();
 
 		VkPipeline get_graphics_pipeline();
-
-		const Vector<VkDescriptorSet>& get_descriptor_sets();
-		void update_descriptor_sets();
+		VkDescriptorSet get_descriptor_set();
 
 		u32 assign_physical_device_usability(VkPhysicalDevice physical_device, VkPhysicalDeviceProperties properties, VkPhysicalDeviceFeatures features, bool* essentials_completed);
 		QueueFamilyIdx find_queue_families(VkPhysicalDevice physical_device);
@@ -177,14 +189,19 @@ namespace wvn::gfx
 
 		// render pass
 		VkRenderPass m_render_pass;
+		VulkanRenderPassBuilder m_render_pass_builder;
 		VkPipelineLayout m_pipeline_layout;
 		HashMap<u32, VkPipeline> m_pipeline_cache;
+		HashMap<u32, VkDescriptorSet> m_descriptor_set_cache;
+		VkPipelineCache m_pipeline_process_cache;
 		VkDescriptorSetLayout m_descriptor_set_layout;
-        VkDescriptorPool m_descriptor_pool;
-        Vector<VkDescriptorSet> m_descriptor_sets;
-		Array<VkWriteDescriptorSet, 2> m_descriptor_writes;
-		Array<VkDescriptorImageInfo, 1> m_image_infos;
+		VulkanDescriptorPoolMgr m_descriptor_pool_mgr;
+		Array<VkWriteDescriptorSet, 1 + WVN_MAX_BOUND_TEXTURES> m_descriptor_writes;
+		Array<VkDescriptorImageInfo, WVN_MAX_BOUND_TEXTURES> m_image_infos;
 		Array<VkPipelineShaderStageCreateInfo, SHADER_TYPE_MAX> m_shader_stages;
+
+		// pain
+		int jjj = 0;
 
 		// swap chain
 		VkSwapchainKHR m_swap_chain;
@@ -197,6 +214,7 @@ namespace wvn::gfx
 
 		// depth
 		VulkanTexture m_depth;
+		VkPipelineDepthStencilStateCreateInfo m_depth_stencil_create_info;
 
 		// multisampling
 		VulkanTexture m_colour;

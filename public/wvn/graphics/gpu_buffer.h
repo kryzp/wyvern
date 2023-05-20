@@ -28,7 +28,7 @@ namespace wvn::gfx
 		virtual void read_data(const void* src, u64 length, u64 offset) = 0;
 		virtual void write_data(void* dst, u64 length, u64 offset) = 0;
 		virtual void write_to(const GPUBuffer* dst, u64 length, u64 src_offset, u64 dst_offset) = 0;
-		virtual void write_to_tex(const Texture* texture, u64 size) = 0;
+		virtual void write_to_tex(const Texture* texture, u64 size, u64 offset = 0, u32 base_array_layer = 0) = 0;
 
 		virtual GPUBufferUsage usage() const = 0;
 	};

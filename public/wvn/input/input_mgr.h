@@ -29,14 +29,14 @@ namespace wvn::inp
 			Vec2F screen_position;
 			Vec2F draw_position;
 			Vec2F position;
-			Float2 wheel;
+			Vec2F wheel;
 		};
 
 		struct JoystickState
 		{
 			bool down[inp::JSB_MAX];
-			Float2 left_stick;
-			Float2 right_stick;
+			Vec2F left_stick;
+			Vec2F right_stick;
 			float left_trigger;
 			float right_trigger;
 			inp::JoystickHat hat;
@@ -74,7 +74,7 @@ namespace wvn::inp
 		Vec2F mouse_position() const;
 		Vec2F mouse_screen_position() const;
 		Vec2F mouse_draw_position() const;
-		Float2 mouse_wheel() const;
+		Vec2F mouse_wheel() const;
 
 		bool shift() const;
 		bool ctrl() const;
@@ -82,8 +82,8 @@ namespace wvn::inp
 
 		const char* text() const;
 
-		Float2 left_stick(u32 id) const;
-		Float2 right_stick(u32 id) const;
+		Vec2F left_stick(u32 id) const;
+		Vec2F right_stick(u32 id) const;
 
 		float left_trigger(u32 id) const;
 		float right_trigger(u32 id) const;

@@ -88,7 +88,7 @@ Mat2x3 Mat2x3::create_scale(float scale)
 Mat2x3 Mat2x3::create_rotation(float angle)
 {
 	return Mat2x3(
-		CalcF::cos(angle), CalcF::sin(angle), 0,
+		 CalcF::cos(angle), CalcF::sin(angle), 0,
 		-CalcF::sin(angle), CalcF::cos(angle), 0
 	);
 }

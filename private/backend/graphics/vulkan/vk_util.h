@@ -10,6 +10,8 @@
 
 namespace wvn::gfx
 {
+	class VulkanBackend;
+
 	namespace vkutil
 	{
 		VkSurfaceFormatKHR choose_swap_surface_format(const Vector<VkSurfaceFormatKHR>& available_surface_formats);
@@ -28,9 +30,12 @@ namespace wvn::gfx
 		VkFilter get_vk_filter(TextureFilter filter);
 		VkSamplerAddressMode get_vk_address_mode(TextureWrap wrap);
 		VkShaderStageFlagBits get_vk_shader_flag_bits(ShaderType type);
+		VkImageViewType get_vk_image_view_type(TextureType type);
+		VkImageType get_vk_image_type(TextureType type);
 
 		VkCommandBuffer begin_single_time_commands(VkCommandPool cmd_pool, VkDevice device);
 		void end_single_time_commands(VkCommandPool cmd_pool, VkCommandBuffer cmd_buf, VkDevice device, VkQueue graphics);
+		void end_single_time_graphics_commands(VulkanBackend* backend, VkCommandBuffer cmd_buf);
 	}
 }
 

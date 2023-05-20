@@ -2,9 +2,10 @@
 #define MESH_MGR_H
 
 #include <wvn/singleton.h>
+#include <wvn/container/vector.h>
 #include <wvn/graphics/gpu_buffer.h>
 #include <wvn/graphics/vertex.h>
-#include <wvn/container/vector.h>
+#include <wvn/graphics/mesh.h>
 
 namespace wvn::gfx
 {
@@ -19,12 +20,12 @@ namespace wvn::gfx
 		MeshMgr();
 		~MeshMgr();
 
-		GPUBuffer* create_vertex_buffer(const Vector<Vertex>& vtx);
-		GPUBuffer* create_index_buffer(const Vector<u16>& idx);
+		Mesh* create_mesh(const Vector<Vertex>& vtx, const Vector<u16>& idx);
 
 	private:
 		Vector<GPUBuffer*> m_vertex_buffers;
 		Vector<GPUBuffer*> m_index_buffers;
+		Vector<Mesh*> m_meshes;
 	};
 }
 #endif // MESH_MGR_H

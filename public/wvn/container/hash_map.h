@@ -2,7 +2,6 @@
 #define HASH_MAP_H
 
 #include <wvn/common.h>
-#include <wvn/assert.h>
 #include <wvn/container/pair.h>
 
 // std::hash
@@ -388,6 +387,7 @@ namespace wvn
 		}
 
 		WVN_ERROR("[HASHMAP|DEBUG] Could not find bucket matching key.");
+		return m_elements[0]->data.second;
 	}
 
 	template <typename TKey, typename TValue>
@@ -405,6 +405,7 @@ namespace wvn
 		}
 
 		WVN_ERROR("[HASHMAP|DEBUG] Could not find element matching key.");
+		return m_elements[0]->data.second;
 	}
 
 	template <typename TKey, typename TValue>

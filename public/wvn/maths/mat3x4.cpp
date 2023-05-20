@@ -104,19 +104,19 @@ Mat3x4 Mat3x4::create_rotation(const Vec3F& axis, float angle)
 	float cos_inv   = 1.0f - cos_theta;
 
 	return Mat3x4(
-		(axis.x * axis.x * cos_inv) + cos_theta,
+		 (axis.x * axis.x * cos_inv) +           cos_theta,
 		-(axis.x * axis.y * cos_inv) + (axis.z * sin_theta),
-		(axis.x * axis.z * cos_inv) + (axis.y * sin_theta),
+		 (axis.x * axis.z * cos_inv) + (axis.y * sin_theta),
 		0.0f,
 
 		-(axis.y * axis.x * cos_inv) - (axis.z * sin_theta),
-		(axis.y * axis.y * cos_inv) + cos_theta,
+		 (axis.y * axis.y * cos_inv) +           cos_theta,
 		-(axis.y * axis.z * cos_inv) + (axis.x * sin_theta),
 		0.0f,
 
-		(axis.z * axis.x * cos_inv) - (axis.y * sin_theta),
+		 (axis.z * axis.x * cos_inv) - (axis.y * sin_theta),
 		-(axis.z * axis.y * cos_inv) - (axis.x * sin_theta),
-		(axis.z * axis.z * cos_inv) + cos_theta,
+		 (axis.z * axis.z * cos_inv) +           cos_theta,
 		0.0f
 	);
 }
@@ -142,7 +142,7 @@ Mat3x4 Mat3x4::create_translation(float x, float y, float z)
 Mat3x4 Mat3x4::create_transform(
 	const Vec3F& position,
 	const Quat& quat,
-	const Size3& scale,
+	const Vec3F& scale,
 	const Vec3F& origin
 )
 {
@@ -152,7 +152,7 @@ Mat3x4 Mat3x4::create_transform(
 		mat *= create_translation(-origin);
 	}
 
-	if (scale != Size3::zero()) {
+	if (scale != Vec3F::zero()) {
 		mat *= create_scale(scale);
 	}
 

@@ -2,7 +2,6 @@
 #define ARRAY_H
 
 #include <initializer_list>
-
 #include <wvn/common.h>
 
 namespace wvn
@@ -28,6 +27,14 @@ namespace wvn
 
 		T* data();
 		const T* data() const;
+
+		T* begin();
+		const T* begin() const;
+		T* end();
+		const T* end() const;
+
+		const T* cbegin() const;
+		const T* cend() const;
 
 		T& at(u64 idx);
 		const T& at(u64 idx) const;
@@ -104,6 +111,42 @@ namespace wvn
 	const T* Array<T, TSize>::data() const
 	{
 		return m_buf;
+	}
+
+	template <typename T, u64 TSize>
+	T* Array<T, TSize>::begin()
+	{
+		return &m_buf[0];
+	}
+
+	template <typename T, u64 TSize>
+	const T* Array<T, TSize>::begin() const
+	{
+		return &m_buf[0];
+	}
+
+	template <typename T, u64 TSize>
+	T* Array<T, TSize>::end()
+	{
+		return &m_buf[TSize];
+	}
+
+	template <typename T, u64 TSize>
+	const T* Array<T, TSize>::end() const
+	{
+		return &m_buf[TSize];
+	}
+
+	template <typename T, u64 TSize>
+	const T* Array<T, TSize>::cbegin() const
+	{
+		return &m_buf[0];
+	}
+
+	template <typename T, u64 TSize>
+	const T* Array<T, TSize>::cend() const
+	{
+		return &m_buf[TSize];
 	}
 
 	template <typename T, u64 TSize>

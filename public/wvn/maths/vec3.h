@@ -93,14 +93,6 @@ namespace wvn
 	using Vec3D		= Vec3<double>;
 	using Vec3I		= Vec3<int>;
 	using Vec3U		= Vec3<unsigned>;
-
-	using Float3	= Vec3<float>;
-	using Double3	= Vec3<double>;
-	using Size3		= Vec3<float>;
-	using Int3		= Vec3<int>;
-	using Point3	= Vec3<float>;
-	using UInt3		= Vec3<unsigned>;
-	using Unsigned3 = Vec3<unsigned>;
 	
 	template <typename T>
 	Vec3<T>::Vec3()

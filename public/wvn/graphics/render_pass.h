@@ -18,7 +18,6 @@ namespace wvn::gfx
 	 */
 	struct RenderPass
 	{
-		Optional<Colour> clear_colour;
 		Optional<RectF> viewport;
 		Optional<RectI> scissor;
 

@@ -7,6 +7,20 @@
 // not used in here but makes sense for types.h as this is just custom rtti pretty much
 //#include <wvn/class_db.h>
 
+#ifdef WVN_DEBUG
+
+#include <stdio.h>
+
+#define WVN_ASSERT(_exp, _msg, ...) do{if(!(_exp)){::printf((_msg "\n"), ##__VA_ARGS__);*((volatile int*)0)=0;}}while(0)
+#define WVN_ERROR(_msg, ...) do{::printf((_msg "\n"), ##__VA_ARGS__);*((volatile int*)0)=0;}while(0)
+
+#else // WVN_DEBUG
+
+#define WVN_ASSERT(_exp, _msg)
+#define WVN_ERROR(_msg)
+
+#endif // WVN_DEBUG
+
 #define SWAP(_x, _y) (::__wvnutils_swap((_x), (_y)))
 #define SID(_str) (::__wvnutils_hash((_str)))
 #define ARRAY_LENGTH(_arr) (sizeof((_arr)) / sizeof((*_arr)))

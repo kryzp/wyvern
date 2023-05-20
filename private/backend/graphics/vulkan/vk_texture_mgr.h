@@ -18,6 +18,7 @@ namespace wvn::gfx
 
 		Texture* create(const Image& image) override;
 		Texture* create(u32 width, u32 height, TextureFormat format, TextureTiling tiling, const byte* data, u64 size) override;
+		Texture* create_cube_map(TextureFormat format, const Image& right, const Image& left, const Image& top, const Image& bottom, const Image& front, const Image& back) override;
 
 		TextureSampler* create_sampler(const TextureSampler::Style& style) override;
 

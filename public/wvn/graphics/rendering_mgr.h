@@ -22,16 +22,25 @@ namespace wvn::gfx
 		RenderingMgr();
 		~RenderingMgr();
 
-		void render_scene();
-		void swap_buffers();
+		void render_scene_and_swap_buffers();
 
 		Model* create_model();
 
 	private:
+		void create_skybox();
+		void render_skybox();
+
+		void render_actors();
+
 		Vector<Model*> m_models;
 
 		Shader* m_vertex_shader;
 		Shader* m_fragment_shader;
+
+		Shader* m_skybox_fragment;
+		Texture* m_skybox_texture;
+		TextureSampler* m_skybox_sampler;
+		Mesh* m_skybox_mesh;
 	};
 }
 

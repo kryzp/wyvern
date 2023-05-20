@@ -9,10 +9,6 @@
 #include <wvn/plugin/graphics/vulkan_plugin.h>
 #endif
 
-#if WVN_USE_OPENGL
-#include <wvn/plugin/graphics/opengl_plugin.h>
-#endif
-
 #if WVN_USE_OPENAL
 #include <wvn/plugin/audio/openal_plugin.h>
 #endif
@@ -41,10 +37,6 @@ Vector<Plugin*> PluginLoader::load_plugins()
 		{
 #if WVN_USE_VULKAN
 			plugins.push_back(new VulkanPlugin());
-#endif
-
-#if WVN_USE_OPENGL
-			plugins.push_back(new OpenGLPlugin());
 #endif
 		}
 

@@ -1,7 +1,7 @@
 #ifndef SINGLETON_H
 #define SINGLETON_H
 
-#include <wvn/assert.h>
+#include <wvn/common.h>
 
 /**
  * All singletons must also use these two macros

@@ -2,19 +2,15 @@
 #include <backend/graphics/vulkan/vk_backend.h>
 #include <wvn/system/system_backend.h>
 #include <wvn/devenv/log_mgr.h>
-#include <wvn/assert.h>
 
 using namespace wvn;
 using namespace wvn::gfx;
 
+// todo: this could be ranked based on how good each format is rather than choosing the first one that fits
 VkSurfaceFormatKHR vkutil::choose_swap_surface_format(const Vector<VkSurfaceFormatKHR>& available_surface_formats)
 {
-	// todo: this could be ranked based on how good each format is rather than choosing the first one that fits
-
-	for (auto& available_format : available_surface_formats)
-	{
-		if (available_format.format == VK_FORMAT_B8G8R8A8_SRGB && available_format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
-		{
+	for (auto& available_format : available_surface_formats) {
+		if (available_format.format == VK_FORMAT_B8G8R8A8_SRGB && available_format.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) {
 			return available_format;
 		}
 	}
@@ -24,10 +20,8 @@ VkSurfaceFormatKHR vkutil::choose_swap_surface_format(const Vector<VkSurfaceForm
 
 VkPresentModeKHR vkutil::choose_swap_present_mode(const Vector<VkPresentModeKHR>& available_present_modes)
 {
-	for (const auto& available_present_mode : available_present_modes)
-	{
-		if (available_present_mode == VK_PRESENT_MODE_MAILBOX_KHR)
-		{
+	for (const auto& available_present_mode : available_present_modes) {
+		if (available_present_mode == VK_PRESENT_MODE_MAILBOX_KHR) {
 			return available_present_mode;
 		}
 	}
@@ -43,8 +37,8 @@ VkExtent2D vkutil::choose_swap_extent(const VkSurfaceCapabilitiesKHR& capabiliti
 	}
 	else
 	{
-		Vec2I wh = Root::get_singleton()->system_backend()->get_window_size();
-		VkExtent2D actual_extent = { static_cast<u32>(wh.x), static_cast<u32>(wh.y) };
+		Vec2I wh = Root::get_singleton()->system_backend()->get_draw_size();
+		VkExtent2D actual_extent = { (u32)wh.x, (u32)wh.y };
 
 		actual_extent.width  = CalcU::clamp(actual_extent.width,  capabilities.minImageExtent.width,  capabilities.maxImageExtent.width );
 		actual_extent.height = CalcU::clamp(actual_extent.height, capabilities.minImageExtent.height, capabilities.maxImageExtent.height);
@@ -122,7 +116,7 @@ VkFormat vkutil::get_vk_texture_format(TextureFormat fmt)
 		case TEX_FMT_D24_UNORM_S8_UINT:
 			return VK_FORMAT_D24_UNORM_S8_UINT;
 		default:
-			WVN_ERROR("[VULKAN:UTIL|DEBUG] Failed to find VkFormat given TextureFormat.");
+			WVN_ERROR("[VULKAN:UTIL|DEBUG] Failed to find VkFormat given TextureFormat: %d", fmt);
 			return VK_FORMAT_MAX_ENUM;
 	}
 }
@@ -142,7 +136,7 @@ TextureFormat vkutil::get_wvn_texture_format(VkFormat fmt)
 		case VK_FORMAT_D24_UNORM_S8_UINT:
 			return TEX_FMT_D24_UNORM_S8_UINT;
 		default:
-			WVN_ERROR("[VULKAN:UTIL|DEBUG] Failed to find TextureFormat given VkFormat.");
+			WVN_ERROR("[VULKAN:UTIL|DEBUG] Failed to find TextureFormat given VkFormat: %d", fmt);
 			return TEX_FMT_MAX;
 	}
 }
@@ -156,7 +150,7 @@ VkImageTiling vkutil::get_vk_texture_tile(TextureTiling tiling)
 		case TEX_TILE_OPTIMAL:
 			return VK_IMAGE_TILING_OPTIMAL;
 		default:
-			WVN_ERROR("[VULKAN:UTIL|DEBUG] Failed to find VkImageTiling given TextureTiling.");
+			WVN_ERROR("[VULKAN:UTIL|DEBUG] Failed to find VkImageTiling given TextureTiling: %d", tiling);
 			return VK_IMAGE_TILING_MAX_ENUM;
 	}
 }
@@ -170,7 +164,7 @@ VkFilter vkutil::get_vk_filter(TextureFilter filter)
 		case TEX_FILTER_NEAREST:
 			return VK_FILTER_NEAREST;
 		default:
-			WVN_ERROR("[VULKAN:UTIL|DEBUG] Failed to find VkFilter given TextureFilter.");
+			WVN_ERROR("[VULKAN:UTIL|DEBUG] Failed to find VkFilter given TextureFilter: %d", filter);
 			return VK_FILTER_MAX_ENUM;
 	}
 }
@@ -184,7 +178,7 @@ VkSamplerAddressMode vkutil::get_vk_address_mode(TextureWrap wrap)
 		case TEX_WRAP_CLAMP:
 			return VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
 		default:
-			WVN_ERROR("[VULKAN:UTIL|DEBUG] Failed to find VkSamplerAddressMode given TextureWrap.");
+			WVN_ERROR("[VULKAN:UTIL|DEBUG] Failed to find VkSamplerAddressMode given TextureWrap: %d", wrap);
 			return VK_SAMPLER_ADDRESS_MODE_MAX_ENUM;
 	}
 }
@@ -202,8 +196,56 @@ VkShaderStageFlagBits vkutil::get_vk_shader_flag_bits(ShaderType type)
 		case SHADER_TYPE_COMPUTE:
 			return VK_SHADER_STAGE_COMPUTE_BIT;
 		default:
-			WVN_ERROR("[VULKAN:UTIL|DEBUG] Failed to find VkShaderStageFlagBits given ShaderType.");
+			WVN_ERROR("[VULKAN:UTIL|DEBUG] Failed to find VkShaderStageFlagBits given ShaderType: %d", type);
 			return VK_SHADER_STAGE_FLAG_BITS_MAX_ENUM;
+	}
+}
+
+VkImageViewType vkutil::get_vk_image_view_type(TextureType type)
+{
+	switch (type)
+	{
+		case TEX_TYPE_1D:
+			return VK_IMAGE_VIEW_TYPE_1D;
+		case TEX_TYPE_1D_ARRAY:
+			return VK_IMAGE_VIEW_TYPE_1D_ARRAY;
+		case TEX_TYPE_2D:
+			return VK_IMAGE_VIEW_TYPE_2D;
+		case TEX_TYPE_2D_ARRAY:
+			return VK_IMAGE_VIEW_TYPE_2D_ARRAY;
+		case TEX_TYPE_3D:
+			return VK_IMAGE_VIEW_TYPE_3D;
+		case TEX_TYPE_CUBE:
+			return VK_IMAGE_VIEW_TYPE_CUBE;
+		case TEX_TYPE_CUBE_ARRAY:
+			return VK_IMAGE_VIEW_TYPE_CUBE_ARRAY;
+		default:
+			WVN_ERROR("[VULKAN:UTIL|DEBUG] Failed to find VkImageViewType given TextureType: %d", type);
+			return VK_IMAGE_VIEW_TYPE_MAX_ENUM;
+	}
+}
+
+VkImageType vkutil::get_vk_image_type(TextureType type)
+{
+	switch (type)
+	{
+		case TEX_TYPE_1D:
+			return VK_IMAGE_TYPE_1D;
+		case TEX_TYPE_1D_ARRAY:
+			return VK_IMAGE_TYPE_1D;
+		case TEX_TYPE_2D:
+			return VK_IMAGE_TYPE_2D;
+		case TEX_TYPE_2D_ARRAY:
+			return VK_IMAGE_TYPE_2D;
+		case TEX_TYPE_3D:
+			return VK_IMAGE_TYPE_3D;
+		case TEX_TYPE_CUBE:
+			return VK_IMAGE_TYPE_2D;
+		case TEX_TYPE_CUBE_ARRAY:
+			return VK_IMAGE_TYPE_2D;
+		default:
+			WVN_ERROR("[VULKAN:UTIL|DEBUG] Failed to find VkImageType given TextureType: %d", type);
+			return VK_IMAGE_TYPE_MAX_ENUM;
 	}
 }
 
@@ -218,8 +260,7 @@ VkCommandBuffer vkutil::begin_single_time_commands(VkCommandPool cmd_pool, VkDev
 	VkCommandBuffer cmd_buf = {};
 
 	if (VkResult result = vkAllocateCommandBuffers(device, &alloc_info, &cmd_buf); result != VK_SUCCESS) {
-		dev::LogMgr::get_singleton()->print("[VULKAN] Result: %d", result);
-		WVN_ERROR("[VULKAN:UTIL|DEBUG] Failed to reallocate command buffers when copying buffer.");
+		WVN_ERROR("[VULKAN:UTIL|DEBUG] Failed to reallocate command buffers when copying buffer: %d", result);
 	}
 
 	VkCommandBufferBeginInfo begin_info = {};
@@ -227,8 +268,7 @@ VkCommandBuffer vkutil::begin_single_time_commands(VkCommandPool cmd_pool, VkDev
 	begin_info.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 
 	if (VkResult result = vkBeginCommandBuffer(cmd_buf, &begin_info); result != VK_SUCCESS) {
-		dev::LogMgr::get_singleton()->print("[VULKAN] Result: %d", result);
-		WVN_ERROR("[VULKAN:UTIL|DEBUG] Failed to begin command buffer when copying buffer.");
+		WVN_ERROR("[VULKAN:UTIL|DEBUG] Failed to begin command buffer when copying buffer: %d", result);
 	}
 
 	return cmd_buf;
@@ -247,4 +287,9 @@ void vkutil::end_single_time_commands(VkCommandPool cmd_pool, VkCommandBuffer cm
 	vkQueueWaitIdle(graphics);
 
 	vkFreeCommandBuffers(device, cmd_pool, 1, &cmd_buf);
+}
+
+void vkutil::end_single_time_graphics_commands(VulkanBackend* backend, VkCommandBuffer cmd_buf)
+{
+	vkutil::end_single_time_commands(backend->current_frame().command_pool, cmd_buf, backend->device, backend->queues.graphics);
 }

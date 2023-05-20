@@ -10,8 +10,7 @@ namespace wvn
 	struct Mat3x4;
 
 	/**
-	 * Generic 4x4 matrix.
-	 * Useful for camera / projection based transformations.
+	 * 4x4 general purpose matrix.
 	 */
 	struct Mat4x4
 	{
@@ -41,9 +40,6 @@ namespace wvn
 
 		static const Mat4x4& identity();
 
-		static Mat4x4 from_mat3x2(const Mat2x3& mat);
-		static Mat4x4 from_mat4x3(const Mat3x4& mat);
-
 		static Mat4x4 create_translation(float x, float y, float z);
 		static Mat4x4 create_rotation(Vec3F axis, float angle);
 		static Mat4x4 create_rotation(const Quat& quat);
@@ -55,6 +51,8 @@ namespace wvn
 		static Mat4x4 create_orthographic_ext(float left, float right, float bottom, float top, float near, float far);
 
         static Mat4x4 create_perspective(float fov, float aspect, float near, float far);
+
+		Mat4x4 basis() const;
 
         float determinant() const;
         Mat4x4 inverse() const;

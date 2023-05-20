@@ -17,7 +17,7 @@ namespace wvn::gfx
 
 		void load_from_source(const char* source, u64 source_size) override;
 
-		VkShaderModule get_module() const;
+		VkShaderModule module() const;
 		VkPipelineShaderStageCreateInfo get_shader_stage_create_info() const;
 
 	private:

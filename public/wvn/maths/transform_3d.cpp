@@ -2,10 +2,6 @@
 
 using namespace wvn;
 
-// todo: m_rotation is never renormalized.
-//       floating point errors may build
-//       up and cause some issues.
-
 Transform3D::Transform3D()
 	: m_dirty(false)
 	, m_matrix(1.0f)
@@ -173,7 +169,7 @@ Vec3F Transform3D::origin() const
 	return m_origin;
 }
 
-void Transform3D::scale(const wvn::Size3& v)
+void Transform3D::scale(const Vec3F& v)
 {
 	if (v == m_scale) {
 		return;
@@ -222,9 +218,9 @@ void Transform3D::scale(float x, float y, float z)
 	m_dirty = true;
 }
 
-void Transform3D::scale_by(const Size3& dv)
+void Transform3D::scale_by(const Vec3F& dv)
 {
-	if (dv == Size3::zero()) {
+	if (dv == Vec3F::zero()) {
 		return;
 	}
 
@@ -271,7 +267,7 @@ void Transform3D::scale_by(float dx, float dy, float dz)
 	m_dirty = true;
 }
 
-Size3 Transform3D::scale() const
+Vec3F Transform3D::scale() const
 {
 	return m_scale;
 }
@@ -282,7 +278,7 @@ void Transform3D::rotate(const Vec3F& axis, float angle)
 		on_transformed();
 	}
 
-	m_rotation = m_rotation.rotate_on_axis(axis, angle);
+	m_rotation = m_rotation.rotate_on_axis(axis, angle).normalized();
 
     m_dirty = true;
 }
@@ -294,6 +290,7 @@ void Transform3D::rotate(const Quat& quat)
 	}
 
 	m_rotation *= quat;
+	m_rotation = m_rotation.normalized();
 
     m_dirty = true;
 }

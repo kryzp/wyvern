@@ -2,6 +2,7 @@
 #define SHADER_H
 
 #include <wvn/common.h>
+#include <wvn/container/vector.h>
 
 namespace wvn::gfx
 {
@@ -18,10 +19,31 @@ namespace wvn::gfx
 	};
 
 	/**
+	 * Types of shader parameter
+	 */
+	enum ShaderParameterType
+	{
+		SHADER_PARAM_INTEGER,
+		SHADER_PARAM_FLOAT,
+		SHADER_PARAM_VEC2,
+		SHADER_PARAM_VEC3,
+		SHADER_PARAM_VEC4,
+		SHADER_PARAM_SAMPLER_2D,
+		SHADER_PARAM_SAMPLER_CUBE,
+	};
+
+	/**
 	 * Represents the possible parameters that can be passed into a shader.
 	 */
 	struct ShaderParams
 	{
+		struct Parameter
+		{
+			ShaderParameterType type;
+			const char* name;
+		};
+
+		Vector<Parameter> parameters;
 	};
 
 	/**

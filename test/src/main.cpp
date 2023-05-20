@@ -9,6 +9,7 @@
 #include <wvn/graphics/model.h>
 #include <wvn/graphics/vertex.h>
 #include <wvn/graphics/texture_mgr.h>
+#include <wvn/graphics/mesh_mgr.h>
 #include <wvn/graphics/rendering_mgr.h>
 #include <wvn/system/system_backend.h>
 #include <wvn/time.h>
@@ -22,40 +23,42 @@
 using Vertices = wvn::Vector<wvn::gfx::Vertex>;
 using Indices = wvn::Vector<u16>;
 
-class Debug : public wvn::act::Actor
+class CameraController : public wvn::act::Actor
 {
 private:
 	wvn::act::ActorHandle m_cube_handle;
 
 	void movement_wasd()
 	{
+		const float move_speed = 0.025f;
+
 		auto& camera = wvn::Root::get_singleton()->main_camera;
 		auto* inp = wvn::inp::InputMgr::get_singleton();
 
 		wvn::Vec3F v1 = wvn::Vec3F::cross(camera.direction, wvn::Vec3F::up()).normalized();
-		wvn::Vec3F v2 = wvn::Vec3F::cross(camera.direction, v1).normalized();
+		wvn::Vec3F v2 = wvn::Vec3F::cross(v1, camera.direction).normalized();
 
 		if (inp->is_down(wvn::inp::KEY_A)) {
-			camera.transform.move(-(-v1) * 0.025f);
+			camera.transform.move( v1 * move_speed); // remember: left-handed coordinate system, so naturally the left-hand rule is used for cross products!
 		} else if (inp->is_down(wvn::inp::KEY_D)) {
-			camera.transform.move(  -v1  * 0.025f);
+			camera.transform.move(-v1  * move_speed);
 		}
 
 		if (inp->is_down(wvn::inp::KEY_SPACE)) {
-			camera.transform.move(v2 * 0.025f);
+			camera.transform.move( v2 * move_speed);
 		} else if (inp->is_down(wvn::inp::KEY_LEFT_SHIFT)) {
-			camera.transform.move(v2 * -0.025f);
+			camera.transform.move(-v2 * move_speed);
 		}
 
-		if (inp->is_down(wvn::inp::KEY_S)) {
-			camera.transform.move(-camera.direction * 0.025f);
-		} else if (inp->is_down(wvn::inp::KEY_W)) {
-			camera.transform.move( camera.direction * 0.025f);
+		if (inp->is_down(wvn::inp::KEY_W)) {
+			camera.transform.move( camera.direction * move_speed);
+		} else if (inp->is_down(wvn::inp::KEY_S)) {
+			camera.transform.move(-camera.direction * move_speed);
 		}
 	}
 
 public:
-	Debug(const wvn::act::ActorHandle& cube)
+	CameraController(const wvn::act::ActorHandle& cube)
 		: wvn::act::Actor()
 		, m_cube_handle(cube)
 	{
@@ -81,19 +84,19 @@ public:
 			wvn::Root::get_singleton()->exit();
 		}
 
-		float sensitivity = 0.005f;
-		float dx = (float)(inp->mouse_position().x - 1280.0f / 2.0f);
-		float dy = (float)(inp->mouse_position().y -  720.0f / 2.0f);
+		float sensitivity = 0.003f;
+		float dx = (float)(inp->mouse_position().x - wvn::Root::get_singleton()->config().width / 2.0f);
+		float dy = (float)(inp->mouse_position().y - wvn::Root::get_singleton()->config().height / 2.0f);
 
 		if (dx * dx + dy * dy > 0.5f) {
 			tgtt += dx * sensitivity;
 			tgts += dy * sensitivity;
 		}
 
-		t = wvn::CalcF::lerp(t, tgtt, 0.2f);
-		s = wvn::CalcF::lerp(s, tgts, 0.2f);
+		t = wvn::CalcF::lerp(t, tgtt, 0.4f);
+		s = wvn::CalcF::lerp(s, tgts, 0.4f);
 
-		wvn::Vec3F direction = wvn::Vec3F::from_angle(s, -t + wvn::CalcF::PI / 2.0f, 1.0f);
+		wvn::Vec3F direction = wvn::Vec3F::from_angle(-s, -t + wvn::CalcF::PI / 2.0f, 1.0f);
 		camera.direction = direction;
 
 		movement_wasd();
@@ -118,7 +121,11 @@ public:
 		: wvn::act::Actor()
 	{
 		p_model = wvn::gfx::RenderingMgr::get_singleton()->create_model();
-		p_model->mesh(new wvn::gfx::Mesh(vv, ii)); // should be meshmgr :/
+		p_model->mesh(wvn::gfx::MeshMgr::get_singleton()->create_mesh(vv, ii));
+	}
+
+	~Cube() override
+	{
 	}
 
 	void init() override
@@ -160,7 +167,7 @@ public:
 
 int main()
 {
-	Vertices box_vertices = {
+	Vertices cube_vertices = {
 		{ { -0.5f, -0.5f, -0.5f }, { 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f } },
 		{ {  0.5f, -0.5f, -0.5f }, { 1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f } },
 		{ {  0.5f,  0.5f, -0.5f }, { 1.0f, 1.0f }, { 1.0f, 1.0f, 1.0f } },
@@ -171,7 +178,7 @@ int main()
 		{ { -0.5f,  0.5f,  0.5f }, { 0.0f, 1.0f }, { 1.0f, 1.0f, 1.0f } },
 	};
 
-	Indices box_indices = {
+	Indices cube_indices = {
 		0, 1, 2,
 		2, 3, 0,
 
@@ -211,15 +218,15 @@ int main()
 		wvn::Root::get_singleton()->system_backend()->set_cursor_position(1280 / 2, 720 / 2);
 
 		auto* root = wvn::Root::get_singleton();
-		auto* act = wvn::act::ActorMgr::get_singleton();
-		auto& cam = root->main_camera;
+		auto* act  = wvn::act::ActorMgr::get_singleton();
+		auto& cam  = root->main_camera;
 
 		cam.fov  = 45.0f;
 		cam.near =  0.1f;
 		cam.far  = 10.0f;
 
-		auto cb = act->create<Cube>(box_vertices, box_indices);
-		auto db = act->create<Debug>(cb);
+		auto cb = act->create<Cube>(cube_vertices, cube_indices);
+		auto db = act->create<CameraController>(cb);
 
 		root->run();
 	}

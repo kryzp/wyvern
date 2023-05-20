@@ -51,7 +51,7 @@ namespace wvn::phys
 		void add_torque(const Vec3F& torque);
 		void add_torque_relative(const Vec3F& torque);
 
-		void set_position(const Point3& position);
+		void set_position(const Vec3F& position);
 		void move_position(const Vec3F& amount);
 
 		void set_rotation(const Quat& rotation);
@@ -61,9 +61,9 @@ namespace wvn::phys
 		void sleep();
 		void wake_up();
 
-		Point3 closest_point_on_bounds(const Point3& point) const;
+		Vec3F closest_point_on_bounds(const Vec3F& point) const;
 
-		void set_centre_of_mass(const Point3& position);
+		void set_centre_of_mass(const Vec3F& position);
 		void reset_centre_of_mass();
 
 		void apply_forces();
@@ -78,11 +78,11 @@ namespace wvn::phys
 		Vec3F m_angular_velocity;
 		float m_max_angular_velocity;
 
-		Point3 m_position;
+		Vec3F m_position;
 		float m_drag;
 		Vec3F m_velocity;
 		float m_max_speed;
-		Point3 m_centre_of_mass;
+		Vec3F m_centre_of_mass;
 
 		float m_mass;
 		Mat3x3 m_tensor;

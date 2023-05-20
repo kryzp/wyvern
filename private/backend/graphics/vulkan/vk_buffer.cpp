@@ -10,6 +10,7 @@ using namespace wvn::gfx;
 
 VulkanBuffer::VulkanBuffer(GPUBufferUsage usage)
 	: GPUBuffer(usage)
+	, m_backend(nullptr)
 	, m_buffer(VK_NULL_HANDLE)
 	, m_memory(VK_NULL_HANDLE)
 	, m_usage(usage)
@@ -34,8 +35,7 @@ void VulkanBuffer::create(VulkanBackend* backend, VkMemoryPropertyFlags properti
 	buffer_create_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
 	if (VkResult result = vkCreateBuffer(m_backend->device, &buffer_create_info, nullptr, &m_buffer); result != VK_SUCCESS) {
-		dev::LogMgr::get_singleton()->print("[VULKAN:BUFFER] Result: %d", result);
-		WVN_ERROR("[VULKAN:BUFFER|DEBUG] Failed to create buffer.");
+		WVN_ERROR("[VULKAN:BUFFER|DEBUG] Failed to create buffer: %d", result);
 	}
 
 	VkMemoryRequirements memory_requirements = {};
@@ -47,8 +47,7 @@ void VulkanBuffer::create(VulkanBackend* backend, VkMemoryPropertyFlags properti
 	memory_allocate_info.memoryTypeIndex = vkutil::find_memory_type(m_backend->physical_data.device, memory_requirements.memoryTypeBits, properties);
 
 	if (VkResult result = vkAllocateMemory(m_backend->device, &memory_allocate_info, nullptr, &m_memory); result != VK_SUCCESS) {
-		dev::LogMgr::get_singleton()->print("[VULKAN:BUFFER] Result: %d", result);
-		WVN_ERROR("[VULKAN:BUFFER|DEBUG] Failed to reallocate memory for buffer.");
+		WVN_ERROR("[VULKAN:BUFFER|DEBUG] Failed to reallocate memory for buffer: %d", result);
 	}
 
 	vkBindBufferMemory(m_backend->device, m_buffer, m_memory, 0);
@@ -86,7 +85,7 @@ void VulkanBuffer::write_data(void* dst, u64 length, u64 offset)
 
 void VulkanBuffer::write_to(const GPUBuffer* other, u64 length, u64 src_offset, u64 dst_offset)
 {
-	VkCommandBuffer cmd_buf = vkutil::begin_single_time_commands(m_backend->frames[m_backend->frame()].command_pool, m_backend->device);
+	VkCommandBuffer cmd_buf = vkutil::begin_single_time_commands(m_backend->current_frame().command_pool, m_backend->device);
 	{
 		VkBufferCopy region = {};
 		region.srcOffset = src_offset;
@@ -101,20 +100,22 @@ void VulkanBuffer::write_to(const GPUBuffer* other, u64 length, u64 src_offset, 
 			&region
 		);
 	}
-	vkutil::end_single_time_commands(m_backend->frames[m_backend->frame()].command_pool, cmd_buf, m_backend->device, m_backend->queues.graphics);
+	vkutil::end_single_time_graphics_commands(m_backend, cmd_buf);
 }
 
-void VulkanBuffer::write_to_tex(const Texture* texture, u64 size)
+void VulkanBuffer::write_to_tex(const Texture* texture, u64 size, u64 offset, u32 base_array_layer)
 {
-	VkCommandBuffer cmd_buf = vkutil::begin_single_time_commands(m_backend->frames[m_backend->frame()].command_pool, m_backend->device);
+	const VulkanTexture* vktex = (const VulkanTexture*)texture;
+
+	VkCommandBuffer cmd_buf = vkutil::begin_single_time_commands(m_backend->current_frame().command_pool, m_backend->device);
 	{
 		VkBufferImageCopy region = {};
-		region.bufferOffset = 0;
+		region.bufferOffset = offset;
 		region.bufferRowLength = 0;
 		region.bufferImageHeight = 0;
 		region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 		region.imageSubresource.mipLevel = 0;
-		region.imageSubresource.baseArrayLayer = 0;
+		region.imageSubresource.baseArrayLayer = base_array_layer;
 		region.imageSubresource.layerCount = 1;
 		region.imageOffset = { 0, 0, 0 };
 		region.imageExtent = { texture->width(), texture->height(), 1 };
@@ -128,7 +129,7 @@ void VulkanBuffer::write_to_tex(const Texture* texture, u64 size)
 			&region
 		);
 	}
-	vkutil::end_single_time_commands(m_backend->frames[m_backend->frame()].command_pool, cmd_buf, m_backend->device, m_backend->queues.graphics);
+	vkutil::end_single_time_graphics_commands(m_backend, cmd_buf);
 }
 
 VkBuffer VulkanBuffer::buffer() const { return m_buffer; }

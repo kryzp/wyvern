@@ -12,17 +12,11 @@
 
 #include <backend/graphics/vulkan/vk_texture.h>
 
-/// debug ///
-#include <wvn/io/file_stream.h>
-/// debug ///
-
 /*
  * =====================
  * VULKAN TODO LIST:
  * ---------------------
- * [ ] PIPELINE CACHE
  * [ ] INSTANCED RENDERING
- * [ ] DYNAMIC UNIFORMS
  * [ ] COMPUTE SHADERS
  * [ ] MULTIPLE SUBPASSES
  * [ ] MULTITHREADED COMMAND BUFFER GENERATION
@@ -203,22 +197,24 @@ VulkanBackend::VulkanBackend()
 	, m_current_frame(0)
 	, m_is_framebuffer_resized(false)
 	, m_render_pass(VK_NULL_HANDLE)
+	, m_render_pass_builder()
 	, m_pipeline_layout(VK_NULL_HANDLE)
 	, m_descriptor_set_layout(VK_NULL_HANDLE)
-    , m_descriptor_pool(VK_NULL_HANDLE)
-    , m_descriptor_sets()
+	, m_descriptor_pool_mgr(this)
 	, m_descriptor_writes()
 	, m_image_infos()
 	, m_shader_stages()
 	, m_pipeline_cache()
+	, m_descriptor_set_cache()
+	, m_pipeline_process_cache()
 	, m_swap_chain(VK_NULL_HANDLE)
 	, m_swap_chain_images()
 	, m_swap_chain_image_views()
 	, m_swap_chain_image_format()
 	, m_swap_chain_extent()
 	, m_swap_chain_framebuffers()
-	, m_curr_image_idx(0)
 	, m_buffer_mgr(nullptr)
+	, m_curr_image_idx(0)
 	, m_texture_mgr(nullptr)
 	, m_shader_mgr(nullptr)
 	, frames()
@@ -226,6 +222,7 @@ VulkanBackend::VulkanBackend()
 	, device(VK_NULL_HANDLE)
 	, physical_data()
 	, m_depth(this)
+	, m_depth_stencil_create_info()
 	, m_colour(this)
 	, m_msaa_samples(VK_SAMPLE_COUNT_1_BIT)
 #if WVN_DEBUG
@@ -280,46 +277,54 @@ VulkanBackend::VulkanBackend()
 	create_info.flags |= VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
 
 	if (VkResult result = vkCreateInstance(&create_info, nullptr, &m_instance); result != VK_SUCCESS) {
-		dev::LogMgr::get_singleton()->print("[VULKAN] Result: %d", result);
-		WVN_ERROR("[VULKAN|DEBUG] Failed to create instance.");
+		WVN_ERROR("[VULKAN|DEBUG] Failed to create instance: %d", result);
 	}
 
 #if WVN_DEBUG
 	if (VkResult result = debug_create_debug_utils_messenger_ext(m_instance, &debug_create_info, nullptr, &m_debug_messenger); result != VK_SUCCESS) {
-		dev::LogMgr::get_singleton()->print("[VULKAN|DEBUG] Result: %d", result);
-		WVN_ERROR("[VULKAN|DEBUG] Failed to create debug messenger.");
+		WVN_ERROR("[VULKAN|DEBUG] Failed to create debug messenger: %d", result);
 	}
 #endif
 
 	// create surface
 	if (bool result = Root::get_singleton()->system_backend()->vk_create_surface(m_instance, &m_surface); !result) {
-		dev::LogMgr::get_singleton()->print("[VULKAN] Result: %d", result);
-		WVN_ERROR("[VULKAN|DEBUG] Failed to create surface.");
+		WVN_ERROR("[VULKAN|DEBUG] Failed to create surface: %d", result);
 	}
 
 	enumerate_physical_devices();
 
 	QueueFamilyIdx phys_idx = find_queue_families(physical_data.device);
 
+	m_depth_stencil_create_info.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+	m_depth_stencil_create_info.depthTestEnable  = VK_TRUE;
+	m_depth_stencil_create_info.depthWriteEnable = VK_TRUE;
+	m_depth_stencil_create_info.depthCompareOp = VK_COMPARE_OP_LESS;
+	m_depth_stencil_create_info.depthBoundsTestEnable = VK_FALSE;
+	m_depth_stencil_create_info.minDepthBounds = 0.0f;
+	m_depth_stencil_create_info.maxDepthBounds = 1.0f;
+	m_depth_stencil_create_info.stencilTestEnable = VK_FALSE;
+	m_depth_stencil_create_info.front = {};
+	m_depth_stencil_create_info.back  = {};
+
 	create_logical_device(phys_idx);
 	create_swap_chain(phys_idx);
-	create_image_views();
+	create_swap_chain_image_views();
 	create_render_pass();
 	create_descriptor_set_layout();
 	create_pipeline_layout();
+	create_pipeline_process_cache();
 	create_command_pools(phys_idx);
 	create_colour_resources();
 	create_depth_resources();
 	create_swap_chain_framebuffers();
 	create_uniform_buffers();
-    create_descriptor_pool();
-    create_descriptor_sets();
+	m_descriptor_pool_mgr.init();
 	create_command_buffers();
 	create_sync_objects();
 
-	m_buffer_mgr  = new VulkanBufferMgr (this);
+	m_buffer_mgr  = new VulkanBufferMgr(this);
 	m_texture_mgr = new VulkanTextureMgr(this);
-	m_shader_mgr  = new VulkanShaderMgr (this);
+	m_shader_mgr  = new VulkanShaderMgr(this);
 
 	acquire_next_image();
 
@@ -343,18 +348,21 @@ VulkanBackend::~VulkanBackend()
 	m_colour.clean_up();
 
 	clear_pipeline_cache();
+
+	vkDestroyPipelineCache(this->device, m_pipeline_process_cache, nullptr);
 	vkDestroyPipelineLayout(this->device, m_pipeline_layout, nullptr);
 	vkDestroyRenderPass(this->device, m_render_pass, nullptr);
 
-	for (u64 i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
-		frames[i].uniform_buffer->clean_up();
+	for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+		delete frames[i].uniform_buffer;
 	}
 
-	vkDestroyDescriptorPool(this->device, m_descriptor_pool, nullptr);
+	clear_descriptor_set_cache();
+
+	m_descriptor_pool_mgr.clean_up();
 	vkDestroyDescriptorSetLayout(this->device, m_descriptor_set_layout, nullptr);
 
-
-	for (u32 i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+	for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
 		vkDestroyFence(this->device, frames[i].in_flight_fence, nullptr);
 		vkDestroySemaphore(this->device, frames[i].render_finished_semaphore, nullptr);
 		vkDestroySemaphore(this->device, frames[i].image_available_semaphore, nullptr);
@@ -474,8 +482,7 @@ void VulkanBackend::create_logical_device(const QueueFamilyIdx& phys_idx)
 #endif
 
 	if (VkResult result = vkCreateDevice(physical_data.device, &create_info, nullptr, &this->device); result != VK_SUCCESS) {
-		dev::LogMgr::get_singleton()->print("[VULKAN] Result: %d", result);
-		WVN_ERROR("[VULKAN|DEBUG] Failed to create logical device.");
+		WVN_ERROR("[VULKAN|DEBUG] Failed to create logical device: %d", result);
 	}
 
 	vkGetDeviceQueue(this->device, phys_idx.graphics_family.value(), 0, &queues.graphics);
@@ -532,8 +539,7 @@ void VulkanBackend::create_swap_chain(const QueueFamilyIdx& phys_idx)
 	create_info.oldSwapchain = VK_NULL_HANDLE;
 
 	if (VkResult result = vkCreateSwapchainKHR(this->device, &create_info, nullptr, &m_swap_chain); result != VK_SUCCESS) {
-		dev::LogMgr::get_singleton()->print("[VULKAN] Result: %d", result);
-		WVN_ERROR("[VULKAN|DEBUG] Failed to create swap chain.");
+		WVN_ERROR("[VULKAN|DEBUG] Failed to create swap chain: %d", result);
 	}
 
 	vkGetSwapchainImagesKHR(this->device, m_swap_chain, &img_count, nullptr);
@@ -557,7 +563,7 @@ void VulkanBackend::create_swap_chain(const QueueFamilyIdx& phys_idx)
 	dev::LogMgr::get_singleton()->print("[VULKAN] Created the swap chain!");
 }
 
-void VulkanBackend::create_image_views()
+void VulkanBackend::create_swap_chain_image_views()
 {
 	m_swap_chain_image_views.resize(m_swap_chain_images.size());
 
@@ -581,12 +587,27 @@ void VulkanBackend::create_image_views()
 		view_info.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
 
 		if (VkResult result = vkCreateImageView(this->device, &view_info, nullptr, &m_swap_chain_image_views[i]); result != VK_SUCCESS) {
-			dev::LogMgr::get_singleton()->print("[VULKAN] Result: %d", result);
-			WVN_ERROR("[VULKAN|DEBUG] Failed to create texture image view.");
+			WVN_ERROR("[VULKAN|DEBUG] Failed to create texture image view: %d", result);
 		}
 	}
 
-	dev::LogMgr::get_singleton()->print("[VULKAN] Created image views!");
+	dev::LogMgr::get_singleton()->print("[VULKAN] Created swap chain image views!");
+}
+
+void VulkanBackend::create_pipeline_process_cache()
+{
+	VkPipelineCacheCreateInfo pipeline_cache_create_info = {};
+	pipeline_cache_create_info.sType = VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO;
+	pipeline_cache_create_info.pNext = nullptr;
+	pipeline_cache_create_info.flags = 0;
+	pipeline_cache_create_info.initialDataSize = 0;
+	pipeline_cache_create_info.pInitialData = nullptr;
+
+	if (VkResult result = vkCreatePipelineCache(device, &pipeline_cache_create_info, nullptr, &m_pipeline_process_cache); result != VK_SUCCESS) {
+		WVN_ERROR("[VULKAN|DEBUG] Failed to process pipeline cache: %d", result);
+	}
+
+	dev::LogMgr::get_singleton()->print("[VULKAN] Created graphics pipeline process cache!");
 }
 
 VkPipeline VulkanBackend::get_graphics_pipeline()
@@ -632,7 +653,7 @@ VkPipeline VulkanBackend::get_graphics_pipeline()
 	rasterization_state_create_info.polygonMode = VK_POLYGON_MODE_FILL;
 	rasterization_state_create_info.lineWidth = 1.0f;
 	rasterization_state_create_info.cullMode = VK_CULL_MODE_BACK_BIT;
-	rasterization_state_create_info.frontFace = VK_FRONT_FACE_CLOCKWISE;
+	rasterization_state_create_info.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 	rasterization_state_create_info.depthBiasEnable = VK_FALSE;
 	rasterization_state_create_info.depthBiasConstantFactor = 0.0f;
 	rasterization_state_create_info.depthBiasClamp = 0.0f;
@@ -646,18 +667,6 @@ VkPipeline VulkanBackend::get_graphics_pipeline()
 	multisample_state_create_info.pSampleMask = nullptr;
 	multisample_state_create_info.alphaToCoverageEnable = VK_FALSE;
 	multisample_state_create_info.alphaToOneEnable = VK_FALSE;
-
-	VkPipelineDepthStencilStateCreateInfo depth_stencil_state_create_info = {};
-	depth_stencil_state_create_info.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
-	depth_stencil_state_create_info.depthTestEnable  = VK_TRUE;
-	depth_stencil_state_create_info.depthWriteEnable = VK_TRUE;
-	depth_stencil_state_create_info.depthCompareOp = VK_COMPARE_OP_LESS;
-	depth_stencil_state_create_info.depthBoundsTestEnable = VK_FALSE;
-	depth_stencil_state_create_info.minDepthBounds = 0.0f;
-	depth_stencil_state_create_info.maxDepthBounds = 1.0f;
-	depth_stencil_state_create_info.stencilTestEnable = VK_FALSE;
-	depth_stencil_state_create_info.front = {};
-	depth_stencil_state_create_info.back  = {};
 
 	VkPipelineColorBlendAttachmentState colour_blend_attachment_state = {};
 	colour_blend_attachment_state.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
@@ -681,6 +690,7 @@ VkPipeline VulkanBackend::get_graphics_pipeline()
 	colour_blend_state_create_info.blendConstants[3] = 0.0f;
 
 	u32 created_pipeline_hash = 0;
+
 	hash::combine(&created_pipeline_hash, colour_blend_attachment_state);
 	hash::combine(&created_pipeline_hash, rasterization_state_create_info);
 	hash::combine(&created_pipeline_hash, input_assembly_state_create_info);
@@ -718,7 +728,7 @@ VkPipeline VulkanBackend::get_graphics_pipeline()
 	graphics_pipeline_create_info.pViewportState = &viewport_state_create_info;
 	graphics_pipeline_create_info.pRasterizationState = &rasterization_state_create_info;
 	graphics_pipeline_create_info.pMultisampleState = &multisample_state_create_info;
-	graphics_pipeline_create_info.pDepthStencilState = &depth_stencil_state_create_info;
+	graphics_pipeline_create_info.pDepthStencilState = &m_depth_stencil_create_info;
 	graphics_pipeline_create_info.pColorBlendState = &colour_blend_state_create_info;
 	graphics_pipeline_create_info.pDynamicState = &dynamic_state_create_info;
 	graphics_pipeline_create_info.layout = m_pipeline_layout;
@@ -730,8 +740,7 @@ VkPipeline VulkanBackend::get_graphics_pipeline()
 	VkPipeline created_pipeline = VK_NULL_HANDLE;
 
 	if (VkResult result = vkCreateGraphicsPipelines(this->device, VK_NULL_HANDLE, 1, &graphics_pipeline_create_info, nullptr, &created_pipeline); result != VK_SUCCESS) {
-		dev::LogMgr::get_singleton()->print("[VULKAN] Result: %d", result);
-		WVN_ERROR("[VULKAN|DEBUG] Failed to create new graphics pipeline.");
+		WVN_ERROR("[VULKAN|DEBUG] Failed to create new graphics pipeline: %d", result);
 	}
 
 	dev::LogMgr::get_singleton()->print("[VULKAN] Created new graphics pipeline!");
@@ -814,8 +823,7 @@ void VulkanBackend::create_render_pass()
 	render_pass_create_info.dependencyCount = 1;
 
 	if (VkResult result = vkCreateRenderPass(this->device, &render_pass_create_info, nullptr, &m_render_pass); result != VK_SUCCESS) {
-		dev::LogMgr::get_singleton()->print("[VULKAN] Result: %d", result);
-		WVN_ERROR("[VULKAN|DEBUG] Failed to create render pass.");
+		WVN_ERROR("[VULKAN|DEBUG] Failed to create render pass: %d", result);
 	}
 
 	dev::LogMgr::get_singleton()->print("[VULKAN] Created render pass!");
@@ -843,8 +851,7 @@ void VulkanBackend::create_swap_chain_framebuffers()
 		framebuffer_info.layers = 1;
 
 		if (VkResult result = vkCreateFramebuffer(this->device, &framebuffer_info, nullptr, &m_swap_chain_framebuffers[i]); result != VK_SUCCESS) {
-			dev::LogMgr::get_singleton()->print("[VULKAN] Result (Index: %d): %d", i, result);
-			WVN_ERROR("[VULKAN|DEBUG] Failed to create framebuffer.");
+			WVN_ERROR("[VULKAN|DEBUG] Failed to create framebuffer: (Index: %llu), %d", i, result);
 		}
 	}
 
@@ -873,7 +880,7 @@ void VulkanBackend::rebuild_swap_chain()
 	clean_up_swap_chain();
 
 	create_swap_chain(find_queue_families(physical_data.device));
-	create_image_views();
+	create_swap_chain_image_views();
 	create_colour_resources();
 	create_depth_resources();
 	create_swap_chain_framebuffers();
@@ -888,8 +895,7 @@ void VulkanBackend::create_command_pools(const QueueFamilyIdx& phys_idx)
 
 	for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
 		if (VkResult result = vkCreateCommandPool(this->device, &create_info, nullptr, &frames[i].command_pool); result != VK_SUCCESS) {
-			dev::LogMgr::get_singleton()->print("[VULKAN] Result: %d", result);
-			WVN_ERROR("[VULKAN|DEBUG] Failed to create command pools.");
+			WVN_ERROR("[VULKAN|DEBUG] Failed to create command pools: %d", result);
 		}
 	}
 
@@ -907,8 +913,7 @@ void VulkanBackend::create_command_buffers()
 		command_buffer_allocate_info.commandBufferCount = 1;
 
 		if (VkResult result = vkAllocateCommandBuffers(this->device, &command_buffer_allocate_info, &frames[i].command_buffer); result != VK_SUCCESS) {
-			dev::LogMgr::get_singleton()->print("[VULKAN] Result: %d", result);
-			WVN_ERROR("[VULKAN|DEBUG] Failed to create command buffers.");
+			WVN_ERROR("[VULKAN|DEBUG] Failed to create command buffers: %d", result);
 		}
 	}
 
@@ -927,18 +932,15 @@ void VulkanBackend::create_sync_objects()
 	for (u32 i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 	{
 		if (VkResult result = vkCreateSemaphore(this->device, &semaphore_create_info, nullptr, &frames[i].image_available_semaphore); result != VK_SUCCESS) {
-			dev::LogMgr::get_singleton()->print("[VULKAN] Result: %d", result);
-			WVN_ERROR("[VULKAN|DEBUG] Failed to create image available semaphore.");
+			WVN_ERROR("[VULKAN|DEBUG] Failed to create image available semaphore: %d", result);
 		}
 
 		if (VkResult result = vkCreateSemaphore(this->device, &semaphore_create_info, nullptr, &frames[i].render_finished_semaphore); result != VK_SUCCESS) {
-			dev::LogMgr::get_singleton()->print("[VULKAN] Result: %d", result);
-			WVN_ERROR("[VULKAN|DEBUG] Failed to create render finished semaphore.");
+			WVN_ERROR("[VULKAN|DEBUG] Failed to create render finished semaphore: %d", result);
 		}
 
 		if (VkResult result = vkCreateFence(this->device, &fence_create_info, nullptr, &frames[i].in_flight_fence); result != VK_SUCCESS) {
-			dev::LogMgr::get_singleton()->print("[VULKAN] Result: %d", result);
-			WVN_ERROR("[VULKAN|DEBUG] Failed to create in flight fence.");
+			WVN_ERROR("[VULKAN|DEBUG] Failed to create in flight fence: %d", result);
 		}
 	}
 
@@ -947,30 +949,39 @@ void VulkanBackend::create_sync_objects()
 
 void VulkanBackend::create_descriptor_set_layout()
 {
-	Array<VkDescriptorSetLayoutBinding, 2> bindings;
+	int n_tex = 0;
+	for (; n_tex < m_image_infos.size(); n_tex++) {
+		if (!m_image_infos[n_tex].imageView) {
+			break;
+		}
+	}
+
+	Array<VkDescriptorSetLayoutBinding, 1 + WVN_MAX_BOUND_TEXTURES> bindings;
 
 	// ubo binding
 	bindings[0].binding = 0;
-	bindings[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	bindings[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
 	bindings[0].descriptorCount = 1;
 	bindings[0].stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
 	bindings[0].pImmutableSamplers = nullptr;
 
-	// sampler layout binding
-	bindings[1].binding = 1;
-	bindings[1].descriptorCount = 1;
-	bindings[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	bindings[1].pImmutableSamplers = nullptr;
-	bindings[1].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+	// samplers
+	for (int i = 0; i < WVN_MAX_BOUND_TEXTURES; i++) {
+		int idx = i + 1;
+		bindings[idx].binding = idx;
+		bindings[idx].descriptorCount = 1;
+		bindings[idx].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		bindings[idx].pImmutableSamplers = nullptr;
+		bindings[idx].stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+	}
 
 	VkDescriptorSetLayoutCreateInfo layout_create_info = {};
 	layout_create_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-	layout_create_info.bindingCount = bindings.size();
+	layout_create_info.bindingCount = 1 + WVN_MAX_BOUND_TEXTURES;
 	layout_create_info.pBindings = bindings.data();
 
 	if (VkResult result = vkCreateDescriptorSetLayout(this->device, &layout_create_info, nullptr, &m_descriptor_set_layout); result != VK_SUCCESS) {
-		dev::LogMgr::get_singleton()->print("[VULKAN] Result: %d", result);
-		WVN_ERROR("[VULKAN|DEBUG] Failed to create descriptor set layout.");
+		WVN_ERROR("[VULKAN|DEBUG] Failed to create descriptor set layout: %d", result);
 	}
 
 	dev::LogMgr::get_singleton()->print("[VULKAN] Created descriptor set layout!");
@@ -986,118 +997,69 @@ void VulkanBackend::create_pipeline_layout()
 	pipeline_layout_create_info.pPushConstantRanges = nullptr;
 
 	if (VkResult result = vkCreatePipelineLayout(this->device, &pipeline_layout_create_info, nullptr, &m_pipeline_layout); result != VK_SUCCESS) {
-		dev::LogMgr::get_singleton()->print("[VULKAN] Result: %d", result);
-		WVN_ERROR("[VULKAN|DEBUG] Failed to create pipeline layout.");
+		WVN_ERROR("[VULKAN|DEBUG] Failed to create pipeline layout: %d", result);
 	}
 }
 
-void VulkanBackend::create_descriptor_pool()
+VkDescriptorSet VulkanBackend::get_descriptor_set()
 {
-	Array<VkDescriptorPoolSize, 2> pool_sizes;
-	pool_sizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	pool_sizes[0].descriptorCount = MAX_FRAMES_IN_FLIGHT;
-	pool_sizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	pool_sizes[1].descriptorCount = MAX_FRAMES_IN_FLIGHT;
+	u32 descriptor_set_hash = 0;
 
-	VkDescriptorPoolCreateInfo pool_create_info = {};
-	pool_create_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-	pool_create_info.poolSizeCount = pool_sizes.size();
-	pool_create_info.pPoolSizes = pool_sizes.data();
-	pool_create_info.maxSets = MAX_FRAMES_IN_FLIGHT;
-
-	if (VkResult result = vkCreateDescriptorPool(this->device, &pool_create_info, nullptr, &m_descriptor_pool); result != VK_SUCCESS) {
-		dev::LogMgr::get_singleton()->print("[VULKAN] Result: %d", result);
-		WVN_ERROR("[VULKAN|DEBUG] Failed to create descriptor pool.");
-	}
-
-	dev::LogMgr::get_singleton()->print("[VULKAN] Created descriptor pool!");
-}
-
-const Vector<VkDescriptorSet>& VulkanBackend::get_descriptor_sets()
-{
-	update_descriptor_sets();
-	return m_descriptor_sets;
-}
-
-void VulkanBackend::update_descriptor_sets()
-{
 	int n_tex = 0;
-	for (; n_tex < 1; n_tex++) {
+	for (; n_tex < m_image_infos.size(); n_tex++) {
 		if (!m_image_infos[n_tex].imageView) {
 			break;
+		} else {
+			hash::combine(&descriptor_set_hash, m_image_infos[n_tex]);
 		}
 	}
 
-	for (u32 i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
-	{
-		VkDescriptorBufferInfo descriptor_buffer_info = {};
-		descriptor_buffer_info.buffer = frames[i].uniform_buffer->buffer();
-		descriptor_buffer_info.offset = 0;
-		descriptor_buffer_info.range = sizeof(UniformBufferObject);
+	hash::combine(&descriptor_set_hash, m_current_frame);
 
-		m_descriptor_writes[0].dstBinding = 0;
-		m_descriptor_writes[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-		m_descriptor_writes[0].descriptorCount = 1;
-		m_descriptor_writes[0].pBufferInfo = &descriptor_buffer_info;
-
-		for (u32 j = 0; j < 2; j++) {
-			m_descriptor_writes[j].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-			m_descriptor_writes[j].dstSet = m_descriptor_sets[i];
-		}
-
-		vkUpdateDescriptorSets(this->device, 1 + n_tex, m_descriptor_writes.data(), 0, nullptr);
-	}
-}
-
-void VulkanBackend::create_descriptor_sets()
-{
-	m_descriptor_sets.resize(MAX_FRAMES_IN_FLIGHT);
-
-	Array<VkDescriptorSetLayout, MAX_FRAMES_IN_FLIGHT> layouts;
-	layouts.fill(m_descriptor_set_layout);
-
-	VkDescriptorSetAllocateInfo alloc_info = {};
-	alloc_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-	alloc_info.descriptorPool = m_descriptor_pool;
-	alloc_info.descriptorSetCount = MAX_FRAMES_IN_FLIGHT;
-	alloc_info.pSetLayouts = layouts.data();
-
-	if (VkResult result = vkAllocateDescriptorSets(this->device, &alloc_info, m_descriptor_sets.data()); result != VK_SUCCESS) {
-		dev::LogMgr::get_singleton()->print("[VULKAN] Result: %d", result);
-		WVN_ERROR("[VULKAN|DEBUG] Failed to create descriptor pool.");
+	if (m_descriptor_set_cache.contains(descriptor_set_hash)) {
+		return m_descriptor_set_cache[descriptor_set_hash];
 	}
 
-	Array<VkDescriptorBufferInfo, MAX_FRAMES_IN_FLIGHT> buffer_descriptions;
+	VkDescriptorSet descriptor_set_result = m_descriptor_pool_mgr.allocate_descriptor_set(m_descriptor_set_layout);
 
-	for (u32 i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
-	{
-		buffer_descriptions[i].buffer = frames[i].uniform_buffer->buffer();
-		buffer_descriptions[i].offset = 0;
-		buffer_descriptions[i].range = sizeof(UniformBufferObject);
+	VkDescriptorBufferInfo descriptor_buffer_info = {};
+	descriptor_buffer_info.buffer = current_frame().uniform_buffer->buffer();
+	//descriptor_buffer_info.offset = 0;//jjj * sizeof(UniformBufferObject);
+	descriptor_buffer_info.range = sizeof(UniformBufferObject);
 
-		m_descriptor_writes[0].dstBinding = 0;
-		m_descriptor_writes[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-		m_descriptor_writes[0].descriptorCount = 1;
-		m_descriptor_writes[0].pBufferInfo = &buffer_descriptions[i];
+	m_descriptor_writes[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+	m_descriptor_writes[0].dstSet = descriptor_set_result;
+	m_descriptor_writes[0].dstBinding = 0;
+	m_descriptor_writes[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC;
+	m_descriptor_writes[0].descriptorCount = 1;
+	m_descriptor_writes[0].pBufferInfo = &descriptor_buffer_info;
 
-		m_descriptor_writes[1].dstBinding = 1;
-		m_descriptor_writes[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-		m_descriptor_writes[1].descriptorCount = 1;
-		m_descriptor_writes[1].pImageInfo = &m_image_infos[0];
+	for (int i = 0; i < WVN_MAX_BOUND_TEXTURES; i++) {
+		int idx = i + 1;
+		m_descriptor_writes[idx].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		m_descriptor_writes[idx].dstSet = descriptor_set_result;
+		m_descriptor_writes[idx].dstBinding = idx;
+		m_descriptor_writes[idx].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		m_descriptor_writes[idx].descriptorCount = 1;
+		m_descriptor_writes[idx].pImageInfo = &m_image_infos[i];
 	}
 
-	update_descriptor_sets();
+	vkUpdateDescriptorSets(this->device, 1 + n_tex, m_descriptor_writes.data(), 0, nullptr);
 
-	dev::LogMgr::get_singleton()->print("[VULKAN] Created descriptor sets!");
+	dev::LogMgr::get_singleton()->print("[VULKAN] Created new descriptor set!");
+
+	m_descriptor_set_cache.insert(Pair(descriptor_set_hash, descriptor_set_result));
+
+	return descriptor_set_result;
 }
 
 void VulkanBackend::create_uniform_buffers()
 {
-	VkDeviceSize buffer_size = sizeof(UniformBufferObject);
+	VkDeviceSize buffer_size = sizeof(UniformBufferObject) * MAX_UBOS;
 
 	for (u32 i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 	{
-		frames[i].uniform_buffer = create_ref<VulkanBuffer>(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
+		frames[i].uniform_buffer = new VulkanBuffer(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
 
 		frames[i].uniform_buffer->create(
 			this,
@@ -1114,9 +1076,9 @@ void VulkanBackend::create_depth_resources()
 	VkFormat format = vkutil::find_depth_format(physical_data.device);
 
 	m_depth.create(
-            m_swap_chain_extent.width, m_swap_chain_extent.height,
-            vkutil::get_wvn_texture_format(format), TEX_TILE_OPTIMAL,
-            1, m_msaa_samples, false
+		m_swap_chain_extent.width, m_swap_chain_extent.height,
+		vkutil::get_wvn_texture_format(format), TEX_TILE_OPTIMAL, TEX_TYPE_2D,
+		1, m_msaa_samples, false
 	);
 
 	m_depth.transition_layout(VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
@@ -1129,9 +1091,9 @@ void VulkanBackend::create_colour_resources()
 	VkFormat format = m_swap_chain_image_format;
 
 	m_colour.create(
-            m_swap_chain_extent.width, m_swap_chain_extent.height,
-            vkutil::get_wvn_texture_format(format), TEX_TILE_OPTIMAL,
-            1, m_msaa_samples, true
+		m_swap_chain_extent.width, m_swap_chain_extent.height,
+		vkutil::get_wvn_texture_format(format), TEX_TILE_OPTIMAL, TEX_TYPE_2D,
+		1, m_msaa_samples, true
 	);
 
 	dev::LogMgr::get_singleton()->print("[VULKAN] Created colour resources!");
@@ -1289,7 +1251,12 @@ void VulkanBackend::clear_pipeline_cache()
 	m_pipeline_cache.clear();
 }
 
-VkSampleCountFlagBits VulkanBackend::get_max_usable_sample_count()
+void VulkanBackend::clear_descriptor_set_cache()
+{
+	m_descriptor_set_cache.clear();
+}
+
+VkSampleCountFlagBits VulkanBackend::get_max_usable_sample_count() const
 {
 	VkSampleCountFlags counts =
 		physical_data.properties.limits.framebufferColorSampleCounts &
@@ -1339,6 +1306,11 @@ void VulkanBackend::bind_shader(Shader* shader)
 	m_shader_stages[vksh->type] = vksh->get_shader_stage_create_info();
 }
 
+VulkanBackend::FrameData& VulkanBackend::current_frame()
+{
+	return frames[m_current_frame];
+}
+
 u64 VulkanBackend::frame() const
 {
 	return m_current_frame;
@@ -1346,131 +1318,154 @@ u64 VulkanBackend::frame() const
 
 void VulkanBackend::wait_for_sync()
 {
-	vkWaitForFences(this->device, 1, &frames[m_current_frame].in_flight_fence, VK_TRUE, UINT64_MAX);
+	vkWaitForFences(this->device, 1, &current_frame().in_flight_fence, VK_TRUE, UINT64_MAX);
+}
+
+void VulkanBackend::begin_render()
+{
+	const float ASPECT = static_cast<float>(m_swap_chain_extent.width) / static_cast<float>(m_swap_chain_extent.height);
+
+	vkResetCommandPool(this->device, current_frame().command_pool, 0);
+	VkCommandBuffer current_buffer = current_frame().command_buffer;
+
+	VkCommandBufferBeginInfo command_buffer_begin_info = {};
+	command_buffer_begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+	command_buffer_begin_info.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+	if (VkResult result = vkBeginCommandBuffer(current_buffer, &command_buffer_begin_info); result != VK_SUCCESS) {
+		WVN_ERROR("[VULKAN|DEBUG] Failed to begin recording command buffer: %d", result);
+	}
+
+	VkRenderPassBeginInfo render_pass_begin_info = m_render_pass_builder.begin_info(
+		m_render_pass,
+		m_swap_chain_framebuffers[m_curr_image_idx],
+		m_swap_chain_extent
+	);
+
+	vkCmdBeginRenderPass(current_buffer, &render_pass_begin_info, VK_SUBPASS_CONTENTS_INLINE);
 }
 
 void VulkanBackend::render(const RenderPass& pass)
 {
-	const float ASPECT = static_cast<float>(m_swap_chain_extent.width) / static_cast<float>(m_swap_chain_extent.height);
+	VkCommandBuffer current_buffer = current_frame().command_buffer;
 
-	// update uniform buffer
+	UniformBufferObject ubo = {};
+
+	ubo.model = Mat4x4(
+		pass.model_matrix.m11, pass.model_matrix.m12, pass.model_matrix.m13, 0.0f,
+		pass.model_matrix.m21, pass.model_matrix.m22, pass.model_matrix.m23, 0.0f,
+		pass.model_matrix.m31, pass.model_matrix.m32, pass.model_matrix.m33, 0.0f,
+		pass.model_matrix.m14, pass.model_matrix.m24, pass.model_matrix.m34, 1.0f
+	);
+
+	ubo.view = pass.view_matrix;
+	ubo.proj = pass.proj_matrix;
+	ubo.proj.m22 *= -1.0f; // -y is up, simplest way to do this it seems. that and making sure we're using COUNTER_CLOCKWISE rendering.
+
+	u32 ubo_dynamic_offset = sizeof(UniformBufferObject) * jjj;
+	current_frame().uniform_buffer->read_data(&ubo, sizeof(UniformBufferObject), sizeof(UniformBufferObject) * jjj);
+
+	VkViewport viewport = {};
+
+	if (pass.viewport.has_value())
 	{
-		UniformBufferObject ubo = {};
-		ubo.model = Mat4x4(
-			pass.model_matrix.m11, pass.model_matrix.m12, pass.model_matrix.m13, 0.0f,
-			pass.model_matrix.m21, pass.model_matrix.m22, pass.model_matrix.m23, 0.0f,
-			pass.model_matrix.m31, pass.model_matrix.m32, pass.model_matrix.m33, 0.0f,
-			pass.model_matrix.m14, pass.model_matrix.m24, pass.model_matrix.m34, 1.0f
-		);
-		ubo.view = pass.view_matrix;
-		ubo.proj = pass.proj_matrix;
-		frames[m_current_frame].uniform_buffer->read_data(&ubo, sizeof(UniformBufferObject), 0);
+		const auto& pass_viewport = pass.viewport.value();
+
+		viewport.x = pass_viewport.x;
+		viewport.y = pass_viewport.y;
+		viewport.width = pass_viewport.w;
+		viewport.height = pass_viewport.h;
+		viewport.minDepth = 0.0f;
+		viewport.maxDepth = 1.0f;
+	}
+	else
+	{
+		viewport.x = 0.0f;
+		viewport.y = 0.0f;
+		viewport.width = (float)m_swap_chain_extent.width;
+		viewport.height = (float)m_swap_chain_extent.height;
+		viewport.minDepth = 0.0f;
+		viewport.maxDepth = 1.0f;
 	}
 
-	vkResetCommandPool(this->device, frames[m_current_frame].command_pool, 0);
-	VkCommandBuffer current_buffer = frames[m_current_frame].command_buffer;
+	VkRect2D scissor = {};
 
-	// render pass stuff
+	if (pass.scissor.has_value())
 	{
-		VkCommandBufferBeginInfo command_buffer_begin_info = {};
-		command_buffer_begin_info.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-		command_buffer_begin_info.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+		const auto& pass_scissor = pass.scissor.value();
 
-		if (VkResult result = vkBeginCommandBuffer(frames[m_current_frame].command_buffer, &command_buffer_begin_info); result != VK_SUCCESS) {
-			dev::LogMgr::get_singleton()->print("[VULKAN] Result: %d", result);
-			WVN_ERROR("[VULKAN|DEBUG] Failed to begin recording command buffer.");
-		}
-
-		Array<VkClearValue, 2> clear_colours;
-
-		if (pass.clear_colour.has_value()) {
-			pass.clear_colour.value().premultiplied().export_to_float(clear_colours[0].color.float32); // { r, g, b, a }
-		} else {
-			clear_colours[0].color = { 0.0f, 0.0f, 0.0f, 1.0f }; // default black
-		}
-
-		clear_colours[1].depthStencil = { 1.0f, 0 }; // { depth, stencil }
-
-		VkRenderPassBeginInfo render_pass_begin_info = {};
-		render_pass_begin_info.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-		render_pass_begin_info.renderPass = m_render_pass;
-		render_pass_begin_info.framebuffer = m_swap_chain_framebuffers[m_curr_image_idx];
-		render_pass_begin_info.renderArea.offset = { 0, 0 };
-		render_pass_begin_info.renderArea.extent = m_swap_chain_extent;
-		render_pass_begin_info.pClearValues = clear_colours.data();
-		render_pass_begin_info.clearValueCount = clear_colours.size();
-
-		VkViewport viewport = {};
-
-		if (pass.viewport.has_value())
-		{
-			const auto& pass_viewport = pass.viewport.value();
-
-			viewport.x = pass_viewport.x;
-			viewport.y = pass_viewport.y;
-			viewport.width = pass_viewport.w;
-			viewport.height = pass_viewport.h;
-			viewport.minDepth = 0.0f;
-			viewport.maxDepth = 1.0f;
-		}
-		else
-		{
-			viewport.x = 0.0f;
-			viewport.y = 0.0f;
-			viewport.width = (float)m_swap_chain_extent.width;
-			viewport.height = (float)m_swap_chain_extent.height;
-			viewport.minDepth = 0.0f;
-			viewport.maxDepth = 1.0f;
-		}
-
-		VkRect2D scissor = {};
-
-		if (pass.scissor.has_value())
-		{
-			const auto& pass_scissor = pass.scissor.value();
-
-			scissor.offset.x = pass_scissor.x;
-			scissor.offset.y = pass_scissor.y;
-			scissor.extent.width = pass_scissor.w;
-			scissor.extent.height = pass_scissor.h;
-		}
-		else
-		{
-			scissor.offset = { 0, 0 };
-			scissor.extent = m_swap_chain_extent;
-		}
-
-		vkCmdBeginRenderPass(current_buffer, &render_pass_begin_info, VK_SUBPASS_CONTENTS_INLINE);
-		{
-			const auto& vertex_buffer = static_cast<VulkanBuffer*>(pass.mesh->vertex_buffer())->buffer();
-			const auto& index_buffer = static_cast<VulkanBuffer*>(pass.mesh->index_buffer())->buffer();
-
-			vkCmdSetViewport(current_buffer, 0, 1, &viewport);
-			vkCmdSetScissor(current_buffer, 0, 1, &scissor);
-
-			VkBuffer vertex_buffers[] = { vertex_buffer };
-			VkDeviceSize offsets[] = { 0 };
-
-			vkCmdBindVertexBuffers(current_buffer, 0, 1, vertex_buffers, offsets);
-			vkCmdBindIndexBuffer(current_buffer, index_buffer, 0, VK_INDEX_TYPE_UINT16);
-
-			auto dsets = get_descriptor_sets();
-
-			vkCmdBindDescriptorSets(current_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline_layout, 0, 1, &dsets[m_current_frame], 0, nullptr);
-			vkCmdBindPipeline(current_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, get_graphics_pipeline());
-
-			vkCmdDrawIndexed(current_buffer, pass.mesh->index_count(), 1, 0, 0, 0);
-		}
-		vkCmdEndRenderPass(current_buffer);
-
-		if (VkResult result = vkEndCommandBuffer(frames[m_current_frame].command_buffer); result != VK_SUCCESS) {
-			dev::LogMgr::get_singleton()->print("[VULKAN] Result: %d", result);
-			WVN_ERROR("[VULKAN|DEBUG] Failed to record command buffer.");
-		}
+		scissor.offset.x = pass_scissor.x;
+		scissor.offset.y = pass_scissor.y;
+		scissor.extent.width = pass_scissor.w;
+		scissor.extent.height = pass_scissor.h;
+	}
+	else
+	{
+		scissor.offset = { 0, 0 };
+		scissor.extent = m_swap_chain_extent;
 	}
 
-	VkSemaphore wait_semaphore = frames[m_current_frame].image_available_semaphore;
-	VkSemaphore queue_finished_semaphore = frames[m_current_frame].render_finished_semaphore;
+	const auto& vertex_buffer = static_cast<VulkanBuffer*>(pass.mesh->vertex_buffer())->buffer();
+	const auto& index_buffer = static_cast<VulkanBuffer*>(pass.mesh->index_buffer())->buffer();
+
+	vkCmdSetViewport(current_buffer, 0, 1, &viewport);
+	vkCmdSetScissor(current_buffer, 0, 1, &scissor);
+
+	VkBuffer vertex_buffers[] = { vertex_buffer };
+	VkDeviceSize offsets[] = { 0 };
+
+	vkCmdBindVertexBuffers(current_buffer, 0, 1, vertex_buffers, offsets);
+	vkCmdBindIndexBuffer(current_buffer, index_buffer, 0, VK_INDEX_TYPE_UINT16);
+
+	VkPipeline pipeline = get_graphics_pipeline();
+	VkDescriptorSet dset = get_descriptor_set();
+
+	vkCmdBindDescriptorSets(
+		current_buffer,
+		VK_PIPELINE_BIND_POINT_GRAPHICS,
+		m_pipeline_layout,
+		0,
+		1, &dset,
+		1, &ubo_dynamic_offset
+	);
+
+	vkCmdBindPipeline(
+		current_buffer,
+		VK_PIPELINE_BIND_POINT_GRAPHICS,
+		pipeline
+	);
+
+	vkCmdDrawIndexed(
+		current_buffer,
+		pass.mesh->index_count(),
+		1,
+		0,
+		0,
+		0
+	);
+
+	jjj++;
+	if (jjj >= MAX_UBOS) {
+		jjj = 0;
+	}
+}
+
+void VulkanBackend::end_render()
+{
+	VkCommandBuffer current_buffer = current_frame().command_buffer;
+
+	vkCmdEndRenderPass(current_buffer);
+
+	if (VkResult result = vkEndCommandBuffer(current_buffer); result != VK_SUCCESS) {
+		WVN_ERROR("[VULKAN|DEBUG] Failed to record command buffer: %d", result);
+	}
+}
+
+void VulkanBackend::swap_buffers()
+{
+	VkCommandBuffer current_buffer = current_frame().command_buffer;
+	VkSemaphore wait_semaphore = current_frame().image_available_semaphore;
+	VkSemaphore queue_finished_semaphore = current_frame().render_finished_semaphore;
 	VkPipelineStageFlags wait_stage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 
 	VkSubmitInfo submit_info = {};
@@ -1483,19 +1478,13 @@ void VulkanBackend::render(const RenderPass& pass)
 	submit_info.pSignalSemaphores = &queue_finished_semaphore;
 	submit_info.signalSemaphoreCount = 1;
 
-	vkResetFences(this->device, 1, &frames[m_current_frame].in_flight_fence);
+	vkResetFences(this->device, 1, &current_frame().in_flight_fence);
 
-	if (VkResult result = vkQueueSubmit(queues.graphics, 1, &submit_info, frames[m_current_frame].in_flight_fence); result != VK_SUCCESS) {
-		dev::LogMgr::get_singleton()->print("[VULKAN] Result: %d", result);
-		WVN_ERROR("[VULKAN|DEBUG] Failed to submit draw command to buffer.");
+	if (VkResult result = vkQueueSubmit(queues.graphics, 1, &submit_info, current_frame().in_flight_fence); result != VK_SUCCESS) {
+		WVN_ERROR("[VULKAN|DEBUG] Failed to submit draw command to buffer: %d", result);
 	}
 
 	wait_for_sync();
-}
-
-void VulkanBackend::swap_buffers()
-{
-	VkSemaphore queue_finished_semaphore = frames[m_current_frame].render_finished_semaphore;
 
 	VkPresentInfoKHR present_info = {};
 	present_info.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
@@ -1510,8 +1499,7 @@ void VulkanBackend::swap_buffers()
 		m_is_framebuffer_resized = false;
 		rebuild_swap_chain();
 	} else if (result != VK_SUCCESS) {
-		dev::LogMgr::get_singleton()->print("[VULKAN] Result: %d", result);
-		WVN_ERROR("[VULKAN|DEBUG] Failed to present swap chain image.");
+		WVN_ERROR("[VULKAN|DEBUG] Failed to present swap chain image: %d", result);
 	}
 
 	m_current_frame = (m_current_frame + 1) % MAX_FRAMES_IN_FLIGHT;
@@ -1521,11 +1509,22 @@ void VulkanBackend::swap_buffers()
 
 void VulkanBackend::acquire_next_image()
 {
-	if (VkResult result = vkAcquireNextImageKHR(this->device, m_swap_chain, UINT64_MAX, frames[m_current_frame].image_available_semaphore, VK_NULL_HANDLE, &m_curr_image_idx); result == VK_ERROR_OUT_OF_DATE_KHR) {
+	if (VkResult result = vkAcquireNextImageKHR(this->device, m_swap_chain, UINT64_MAX, current_frame().image_available_semaphore, VK_NULL_HANDLE, &m_curr_image_idx); result == VK_ERROR_OUT_OF_DATE_KHR) {
 		rebuild_swap_chain();
 		return;
 	} else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
-		dev::LogMgr::get_singleton()->print("[VULKAN] Result: %d", result);
-		WVN_ERROR("[VULKAN|DEBUG] Failed to acquire next image in swap chain.");
+		WVN_ERROR("[VULKAN|DEBUG] Failed to acquire next image in swap chain: %d", result);
 	}
+}
+
+void VulkanBackend::set_clear_colour(const Colour& colour)
+{
+	m_render_pass_builder.set_clear_colour(colour);
+	m_render_pass_builder.set_depth_stencil_clear(1.0f, 0);
+}
+
+void VulkanBackend::set_depth_params(bool depth_test, bool depth_write)
+{
+	m_depth_stencil_create_info.depthTestEnable  = depth_test ? VK_TRUE : VK_FALSE;
+	m_depth_stencil_create_info.depthWriteEnable = depth_write ? VK_TRUE : VK_FALSE;
 }

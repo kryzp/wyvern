@@ -21,6 +21,8 @@ namespace wvn
 		void render_to(const gfx::RenderTarget& target);
 
 		Mat4x4 view_matrix() const;
+		Mat4x4 view_matrix_basis() const;
+
 		Mat4x4 proj_matrix() const;
 
 		Transform3D transform;

@@ -2,8 +2,6 @@
 #define DEQUE_H
 
 #include <wvn/common.h>
-#include <wvn/assert.h>
-
 #include <new>
 
 // todo: add WVN_ASSERT's

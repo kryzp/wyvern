@@ -20,7 +20,7 @@ namespace wvn::dev
 
 		void store_sample(const char* name, u64 elapsed)
 		{
-			printf("PROFILER: %s | %d\n", name, elapsed);
+			printf("PROFILER: %s | %llu\n", name, elapsed);
 		}
 	};
 

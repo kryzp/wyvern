@@ -1,9 +1,6 @@
 #include <wvn/devenv/log_mgr.h>
 #include <wvn/root.h>
 
-// THIS IS A TEMPORARY CLASS MOST LIKELY
-// THIS WILL BE LIKELY REPLACED WITH A MORE DEVELOPED CONSOLE
-
 #include <stdarg.h>
 #include <stdio.h>
 

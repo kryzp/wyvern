@@ -9,14 +9,17 @@
 
 namespace wvn::gfx
 {
+	class MeshMgr;
+
 	/**
 	 * Generic mesh class for representing, storing and manipulating a mesh.
 	 */
 	class Mesh
 	{
+		friend class MeshMgr;
+
 	public:
 		Mesh();
-		Mesh(const Vector<Vertex>& vtx, const Vector<u16>& idx);
 		virtual ~Mesh();
 
 		GPUBuffer* vertex_buffer();

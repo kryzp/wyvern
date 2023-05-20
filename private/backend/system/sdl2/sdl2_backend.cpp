@@ -21,8 +21,7 @@ SDL2Backend::SDL2Backend()
 	: m_window(nullptr)
 {
 	if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
-		dev::LogMgr::get_singleton()->print("[SDL2] %s", SDL_GetError());
-		WVN_ERROR("[SDL2|DEBUG] Failed to initialize!");
+		WVN_ERROR("[SDL2|DEBUG] Failed to initialize: %s", SDL_GetError());
 	}
 
 	u64 flags = SDL_WINDOW_ALLOW_HIGHDPI;

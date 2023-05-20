@@ -21,8 +21,8 @@ namespace wvn::gfx
 
 		virtual Texture* create(const Image& image) = 0;
 		virtual Texture* create(u32 width, u32 height, TextureFormat format, TextureTiling tiling, const byte* data, u64 size) = 0;
+		virtual Texture* create_cube_map(TextureFormat format, const Image& right, const Image& left, const Image& top, const Image& bottom, const Image& front, const Image& back) = 0;
 
-		// todo: ??? shouldn't this just not need me to create an entire new "sampler" ""thing"" just to... have a sampler? am I over or under thinking this??? is this ok??? :((((
 		virtual TextureSampler* create_sampler(const TextureSampler::Style& style) = 0;
 	};
 }

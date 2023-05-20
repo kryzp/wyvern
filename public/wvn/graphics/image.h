@@ -42,7 +42,7 @@ namespace wvn::gfx
 		const Colour* pixels() const;
 
 		byte* raw_pixel_data();
-		const byte* raw_pixel_data() const;
+		const byte* data() const;
 
 		u32 width() const;
 		u32 height() const;

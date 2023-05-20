@@ -4,12 +4,10 @@
 #include <initializer_list>
 #include <new>
 
-#include <wvn/assert.h>
 #include <wvn/common.h>
 
 // todo: does resizing work downwards
-// todo: why dont i call resize(m_size - 1) in the pop_...() calls?????
-// todo: check this out!!!
+// why don't I call resize(m_size - 1) in the pop_...() calls?????
 
 namespace wvn
 {

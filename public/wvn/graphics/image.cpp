@@ -166,7 +166,7 @@ Colour Image::pixel_at(u32 x, u32 y) const
 Colour* Image::pixels() { return m_pixels; }
 const Colour* Image::pixels() const { return m_pixels; }
 byte* Image::raw_pixel_data() { return (byte*)m_pixels; }
-const byte* Image::raw_pixel_data() const { return (const byte*)m_pixels; }
+const byte* Image::data() const { return (const byte*)m_pixels; }
 u32 Image::width() const { return m_width; }
 u32 Image::height() const { return m_height; }
 u64 Image::size() const { return m_width * m_height * 4; }

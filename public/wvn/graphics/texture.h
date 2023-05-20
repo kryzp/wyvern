@@ -28,6 +28,20 @@ namespace wvn::gfx
 		TEX_TILE_MAX
 	};
 
+	enum TextureType
+	{
+		TEX_TYPE_NONE = 0,
+		TEX_TYPE_1D,
+		TEX_TYPE_1D_ARRAY,
+		TEX_TYPE_2D,
+		TEX_TYPE_2D_ARRAY,
+		TEX_TYPE_3D,
+		TEX_TYPE_CUBE,
+		TEX_TYPE_CUBE_ARRAY,
+		TEX_TYPE_MAX
+	};
+
+	// uhhh what was this going to be used for? was this meant to be TextureType? whoops.
 	enum TextureUsage
 	{
 	};
@@ -36,6 +50,7 @@ namespace wvn::gfx
 	{
 		TextureFormat format;
 		TextureTiling tiling;
+		TextureType type;
 	};
 
 	/**
@@ -50,6 +65,9 @@ namespace wvn::gfx
 		virtual u32 width() const = 0;
 		virtual u32 height() const = 0;
 		virtual TextureMetaData meta_data() const = 0;
+
+	protected:
+		u32 p_depth;
 	};
 }
 

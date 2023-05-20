@@ -14,6 +14,8 @@
 
 #include <wvn/container/vector.h>
 
+#define WVN_MAX_BOUND_TEXTURES 16
+
 namespace wvn::gfx
 {
 	/**
@@ -25,9 +27,7 @@ namespace wvn::gfx
 	};
 
 	/**
-	 * Renderer backend that can be implemented by specific API's to
-	 * disconnect them from being directly connected to the actual game
-	 * engine, effectively acting as an interface.
+	 * Renderer backend interface.
 	 */
 	class RendererBackend
 	{
@@ -37,8 +37,14 @@ namespace wvn::gfx
 
 		virtual RendererBackendProperties properties() = 0;
 
+		virtual void begin_render() = 0;
 		virtual void render(const RenderPass& pass) = 0;
+		virtual void end_render() = 0;
+
 		virtual void swap_buffers() = 0;
+		virtual void set_clear_colour(const Colour& colour) = 0;
+
+		virtual void set_depth_params(bool depth_test, bool depth_write) = 0;
 
 		virtual void set_texture(u32 idx, const Texture* texture) = 0;
 		virtual void set_sampler(u32 idx, TextureSampler* sampler) = 0;

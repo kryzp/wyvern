@@ -1,4 +1,6 @@
 #include <wvn/root.h>
+
+#include <wvn/plugin/plugin.h>
 #include <wvn/plugin/plugin_loader.h>
 
 #include <wvn/system/system_backend.h>
@@ -11,12 +13,13 @@
 #include <wvn/physics/physics_mgr.h>
 #include <wvn/input/input_mgr.h>
 #include <wvn/graphics/rendering_mgr.h>
+#include <wvn/graphics/mesh_mgr.h>
 #include <wvn/network/network_mgr.h>
 #include <wvn/animation/animation_mgr.h>
 #include <wvn/resource/resource_mgr.h>
 #include <wvn/devenv/log_mgr.h>
 #include <wvn/devenv/console.h>
-#include <wvn/plugin/plugin.h>
+#include <wvn/devenv/profiler.h>
 
 #include <wvn/time.h>
 
@@ -38,6 +41,7 @@ Root::Root(const Config& cfg)
 	m_physics_mgr 	= new phys::PhysicsMgr();
 	m_actor_mgr 	= new act ::ActorMgr();
 	m_event_mgr 	= new act ::EventMgr();
+	m_mesh_mgr      = new gfx ::MeshMgr();
 	m_rendering_mgr = new gfx ::RenderingMgr();
 	m_audio_mgr 	= new sfx ::AudioMgr();
 	m_input_mgr 	= new inp ::InputMgr();
@@ -100,6 +104,7 @@ Root::~Root()
 	delete inp ::InputMgr    ::get_singleton();
 	delete sfx ::AudioMgr    ::get_singleton();
 	delete gfx ::RenderingMgr::get_singleton();
+	delete gfx ::MeshMgr     ::get_singleton();
 	delete act ::EventMgr    ::get_singleton();
 	delete act ::ActorMgr    ::get_singleton();
 	delete phys::PhysicsMgr  ::get_singleton();
@@ -111,8 +116,6 @@ Root::~Root()
 
 	uninstall_plugins();
 }
-
-#include <wvn/devenv/profiler.h>
 
 void Root::run()
 {
@@ -146,8 +149,7 @@ void Root::run()
 		{
 			WVN_PROFILE(root_render);
 
-			m_rendering_mgr->render_scene();
-			m_rendering_mgr->swap_buffers();
+			m_rendering_mgr->render_scene_and_swap_buffers();
 		}
 	}
 }

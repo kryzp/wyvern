@@ -25,7 +25,12 @@ VulkanTextureSampler::~VulkanTextureSampler()
 
 void VulkanTextureSampler::clean_up()
 {
+	if (m_sampler == VK_NULL_HANDLE) {
+		return;
+	}
+
 	vkDestroySampler(static_cast<VulkanBackend*>(Root::get_singleton()->renderer_backend())->device, m_sampler, nullptr);
+	m_sampler = VK_NULL_HANDLE;
 }
 
 VkSampler VulkanTextureSampler::bind(VkDevice device, VkPhysicalDeviceProperties properties, int mip_levels)
@@ -40,7 +45,7 @@ VkSampler VulkanTextureSampler::bind(VkDevice device, VkPhysicalDeviceProperties
 
 	VkSamplerCreateInfo create_info = {};
 	create_info.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-	create_info.magFilter = vkutil::get_vk_filter(style.filter);
+	create_info.minFilter = vkutil::get_vk_filter(style.filter);
 	create_info.magFilter = vkutil::get_vk_filter(style.filter);
 	create_info.addressModeU = vkutil::get_vk_address_mode(style.wrap_x);
 	create_info.addressModeV = vkutil::get_vk_address_mode(style.wrap_y);
@@ -57,8 +62,7 @@ VkSampler VulkanTextureSampler::bind(VkDevice device, VkPhysicalDeviceProperties
 	create_info.maxLod = (float)mip_levels;
 
 	if (VkResult result = vkCreateSampler(device, &create_info, nullptr, &m_sampler); result != VK_SUCCESS) {
-		dev::LogMgr::get_singleton()->print("[VULKAN:SAMPLER] Result: %d", result);
-		WVN_ERROR("[VULKAN:SAMPLER|DEBUG] Failed to create swap chain.");
+		WVN_ERROR("[VULKAN:SAMPLER|DEBUG] Failed to create texture sampler: %d", result);
 	}
 
 	return m_sampler;

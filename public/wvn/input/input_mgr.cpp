@@ -160,7 +160,7 @@ Vec2F InputMgr::mouse_draw_position() const
 	return m_current_state.mouse.draw_position;
 }
 
-Float2 InputMgr::mouse_wheel() const
+Vec2F InputMgr::mouse_wheel() const
 {
 	return m_current_state.mouse.wheel;
 }
@@ -185,12 +185,12 @@ const char* InputMgr::text() const
 	return m_current_state.keyboard.text;
 }
 
-Float2 InputMgr::left_stick(u32 id) const
+Vec2F InputMgr::left_stick(u32 id) const
 {
 	return m_current_state.joysticks[id].left_stick;
 }
 
-Float2 InputMgr::right_stick(u32 id) const
+Vec2F InputMgr::right_stick(u32 id) const
 {
 	return m_current_state.joysticks[id].right_stick;
 }
@@ -207,7 +207,7 @@ float InputMgr::right_trigger(u32 id) const
 
 void InputMgr::on_mouse_wheel(float x, float y)
 {
-	m_next_state.mouse.wheel = Float2(x, y);
+	m_next_state.mouse.wheel = Vec2F(x, y);
 }
 
 void InputMgr::on_mouse_screen_move(float x, float y)

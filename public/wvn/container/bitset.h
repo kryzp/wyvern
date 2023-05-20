@@ -2,7 +2,6 @@
 #define BITSET_H
 
 #include <wvn/common.h>
-#include <wvn/assert.h>
 
 namespace wvn
 {

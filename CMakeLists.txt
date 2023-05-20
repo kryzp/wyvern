@@ -5,7 +5,7 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_OSX_ARCHITECTURES "arm64")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0")
 set(CMAKE_CXX_FLAGS_DEBUG_INIT "-Wall")
-set(CMAKE_OSX_DEPLOYMENT_TARGET 13.3.1)
+#set(CMAKE_OSX_DEPLOYMENT_TARGET 13.3.1)
 
 add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
 add_compile_definitions(WVN_DEBUG)
@@ -77,7 +77,7 @@ add_library(${PROJECT_NAME}
 	public/wvn/maths/mat4x4.cpp
 	public/wvn/maths/polygon.cpp
 	public/wvn/maths/quad.cpp
-        public/wvn/maths/quat.cpp
+	public/wvn/maths/quat.cpp
 	public/wvn/maths/timer.cpp
 	public/wvn/maths/triangle.cpp
 	public/wvn/maths/transform_3d.cpp
@@ -85,12 +85,13 @@ add_library(${PROJECT_NAME}
 	public/wvn/plugin/plugin_loader.cpp
 	public/wvn/plugin/system/sdl2_plugin.cpp
 	public/wvn/plugin/graphics/vulkan_plugin.cpp
-	public/wvn/plugin/graphics/opengl_plugin.cpp
 	public/wvn/plugin/audio/openal_plugin.cpp
 
 	private/backend/system/sdl2/sdl2_backend.cpp
 
 	private/backend/graphics/vulkan/vk_backend.cpp
+	private/backend/graphics/vulkan/vk_descriptor_pool_mgr.cpp
+	private/backend/graphics/vulkan/vk_render_pass_builder.cpp
 	private/backend/graphics/vulkan/vk_buffer.cpp
 	private/backend/graphics/vulkan/vk_buffer_mgr.cpp
 	private/backend/graphics/vulkan/vk_util.cpp
@@ -99,8 +100,6 @@ add_library(${PROJECT_NAME}
 	private/backend/graphics/vulkan/vk_texture_sampler.cpp
 	private/backend/graphics/vulkan/vk_shader_mgr.cpp
 	private/backend/graphics/vulkan/vk_shader.cpp
-
-	private/backend/graphics/opengl/gl_backend.cpp
 
 	private/backend/audio/openal/openal_backend.cpp
 )
@@ -114,27 +113,20 @@ target_include_directories(${PROJECT_NAME}
 	${CMAKE_CURRENT_SOURCE_DIR}/private
 )
 
-find_package(SDL2 REQUIRED)
-find_package(Vulkan REQUIRED)
-
 set(SDL2_ENABLED true CACHE BOOL "Use SDL2 as the system implementation")
 set(VK_ENABLED true CACHE BOOL "Use Vulkan as the renderer implementation")
-set(OPENGL_ENABLED false CACHE BOOL "Use OpenGL as the renderer implementation")
 set(OPENAL_ENABLED true CACHE BOOL "Use OpenAL as the audio implementation")
 
 if (SDL2_ENABLED)
+	find_package(SDL2 REQUIRED)
 	add_compile_definitions(WVN_USE_SDL2)
 	target_link_libraries(${PROJECT_NAME} SDL2::SDL2)
 endif()
 
 if (VK_ENABLED)
+	find_package(Vulkan REQUIRED)
 	add_compile_definitions(WVN_USE_VULKAN)
 	target_link_libraries(${PROJECT_NAME} Vulkan::Vulkan)
-endif()
-
-if (OPENGL_ENABLED)
-	add_compile_definitions(WVN_USE_OPENGL)
-	# todo: link opengl
 endif()
 
 if (OPENAL_ENABLED)
@@ -144,9 +136,3 @@ endif()
 add_executable(wvn_test test/src/main.cpp)
 target_include_directories(wvn_test PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/public)
 target_link_libraries(wvn_test PUBLIC ${PROJECT_NAME})
-
-add_custom_command(TARGET wvn_test
-	POST_BUILD
-	COMMAND ${CMAKE_COMMAND} -E copy_directory
-	${CMAKE_SOURCE_DIR}/test/res/ $<TARGET_FILE_DIR:wvn_test>/res
-)
