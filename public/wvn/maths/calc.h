@@ -234,7 +234,7 @@ namespace wvn
 	T Calc<T>::spring_t(T from, T to, T bounciness, T tension, T time)
 	{
 		T beta = std::sqrt((4.0 * bounciness * tension) - 1.0);
-		return to - (to / beta * std::exp(-time / (2.0 * bounciness)) * (std::sin(beta * time / (2.0 * bounciness)) + (beta * std::cos(beta * time / (2.0 * bounciness)))))
+		return to - (to / beta * std::exp(-time / (2.0 * bounciness)) * (std::sin(beta * time / (2.0 * bounciness)) + (beta * std::cos(beta * time / (2.0 * bounciness)))));
 	}
 
 	template <typename T>
