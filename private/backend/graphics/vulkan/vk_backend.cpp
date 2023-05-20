@@ -204,6 +204,7 @@ VulkanBackend::VulkanBackend()
 	, m_descriptor_writes()
 	, m_image_infos()
 	, m_shader_stages()
+	, m_current_ubo(0)
 	, m_pipeline_cache()
 	, m_descriptor_set_cache()
 	, m_pipeline_process_cache()
@@ -1323,7 +1324,7 @@ void VulkanBackend::wait_for_sync()
 
 void VulkanBackend::begin_render()
 {
-	const float ASPECT = static_cast<float>(m_swap_chain_extent.width) / static_cast<float>(m_swap_chain_extent.height);
+	m_current_ubo = 0;
 
 	vkResetCommandPool(this->device, current_frame().command_pool, 0);
 	VkCommandBuffer current_buffer = current_frame().command_buffer;
@@ -1348,22 +1349,6 @@ void VulkanBackend::begin_render()
 void VulkanBackend::render(const RenderPass& pass)
 {
 	VkCommandBuffer current_buffer = current_frame().command_buffer;
-
-	UniformBufferObject ubo = {};
-
-	ubo.model = Mat4x4(
-		pass.model_matrix.m11, pass.model_matrix.m12, pass.model_matrix.m13, 0.0f,
-		pass.model_matrix.m21, pass.model_matrix.m22, pass.model_matrix.m23, 0.0f,
-		pass.model_matrix.m31, pass.model_matrix.m32, pass.model_matrix.m33, 0.0f,
-		pass.model_matrix.m14, pass.model_matrix.m24, pass.model_matrix.m34, 1.0f
-	);
-
-	ubo.view = pass.view_matrix;
-	ubo.proj = pass.proj_matrix;
-	ubo.proj.m22 *= -1.0f; // -y is up, simplest way to do this it seems. that and making sure we're using COUNTER_CLOCKWISE rendering.
-
-	u32 ubo_dynamic_offset = sizeof(UniformBufferObject) * jjj;
-	current_frame().uniform_buffer->read_data(&ubo, sizeof(UniformBufferObject), sizeof(UniformBufferObject) * jjj);
 
 	VkViewport viewport = {};
 
@@ -1411,6 +1396,22 @@ void VulkanBackend::render(const RenderPass& pass)
 	vkCmdSetViewport(current_buffer, 0, 1, &viewport);
 	vkCmdSetScissor(current_buffer, 0, 1, &scissor);
 
+	UniformBufferObject ubo = {};
+
+	ubo.model = Mat4x4(
+		pass.model_matrix.m11, pass.model_matrix.m12, pass.model_matrix.m13, 0.0f,
+		pass.model_matrix.m21, pass.model_matrix.m22, pass.model_matrix.m23, 0.0f,
+		pass.model_matrix.m31, pass.model_matrix.m32, pass.model_matrix.m33, 0.0f,
+		pass.model_matrix.m14, pass.model_matrix.m24, pass.model_matrix.m34, 1.0f
+	);
+
+	ubo.view = pass.view_matrix;
+	ubo.proj = pass.proj_matrix;
+	ubo.proj.m22 *= -1.0f; // -y is up, simplest way to do this it seems. that and making sure we're using COUNTER_CLOCKWISE rendering.
+
+	u32 ubo_dynamic_offset = sizeof(UniformBufferObject) * m_current_ubo;
+	current_frame().uniform_buffer->read_data(&ubo, sizeof(UniformBufferObject), ubo_dynamic_offset);
+
 	VkBuffer vertex_buffers[] = { vertex_buffer };
 	VkDeviceSize offsets[] = { 0 };
 
@@ -1444,10 +1445,7 @@ void VulkanBackend::render(const RenderPass& pass)
 		0
 	);
 
-	jjj++;
-	if (jjj >= MAX_UBOS) {
-		jjj = 0;
-	}
+	m_current_ubo++;
 }
 
 void VulkanBackend::end_render()

@@ -170,11 +170,13 @@ Mat4x4 Mat4x4::create_lookat(const Vec3F& eye, const Vec3F& centre, const Vec3F&
 	);
 }
 
+// removes the translation component
 Mat4x4 Mat4x4::basis() const
 {
-	// removes the translation component
 	Mat4x4 ret = *this;
-	ret.m41 = ret.m42 = ret.m43 = 0.0f;
+	ret.m41 = 0.0f;
+	ret.m42 = 0.0f;
+	ret.m43 = 0.0f;
 	ret.m44 = 1.0f;
 	return ret;
 }

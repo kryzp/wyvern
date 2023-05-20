@@ -47,8 +47,9 @@ namespace wvn
 
 		static T approach(T from, T to, T amount);
 		static T lerp(T from, T to, T t);
-		static T smooth(T from, T to, T amount, T t);
+		static T smooth(T from, T to, T amount, T time);
 		static T spring(T from, T to, T bounciness, T tension, T& intermediate);
+		static T spring_t(T from, T to, T bounciness, T tension, T time);
 
 		static T sin(T x);
 		static T cos(T x);
@@ -212,9 +213,9 @@ namespace wvn
 	}
 
 	template <typename T>
-	T Calc<T>::smooth(T from, T to, T amount, T t)
+	T Calc<T>::smooth(T from, T to, T amount, T time)
 	{
-		return (std::exp(amount * t / (amount - 1.0)) * (from - to)) + to;
+		return (std::exp(amount * time / (amount - 1.0)) * (from - to)) + to;
 	}
 
 	template <typename T>
@@ -222,6 +223,18 @@ namespace wvn
 	{
 		intermediate = lerp(intermediate, (to - from) * tension, 1.0 / bounciness);
 		return from + intermediate;
+	}
+
+	/*
+	 * I'm actually really proud of this because I got down
+	 * and actually managed to solve the differential
+	 * equation properly over the course of 3 pages! :D
+	 */
+	template <typename T>
+	T Calc<T>::spring_t(T from, T to, T bounciness, T tension, T time)
+	{
+		T beta = std::sqrt((4.0 * bounciness * tension) - 1.0);
+		return to - (to / beta * std::exp(-time / (2.0 * bounciness)) * (std::sin(beta * time / (2.0 * bounciness)) + (beta * std::cos(beta * time / (2.0 * bounciness)))))
 	}
 
 	template <typename T>

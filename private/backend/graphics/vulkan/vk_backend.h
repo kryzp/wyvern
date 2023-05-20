@@ -28,13 +28,6 @@
 
 namespace wvn::gfx
 {
-	struct UniformBufferObject
-	{
-		alignas(16) Mat4x4 model;
-		alignas(16) Mat4x4 view;
-		alignas(16) Mat4x4 proj;
-	};
-
 	struct QueueFamilyIdx
 	{
 		Optional<u32> graphics_family;
@@ -111,7 +104,7 @@ namespace wvn::gfx
 
 	public:
 		static constexpr u32 MAX_FRAMES_IN_FLIGHT = 2;
-		static constexpr u32 MAX_UBOS = 2;
+		static constexpr u32 MAX_UBOS = 128;
 
 		VulkanBackend();
 		~VulkanBackend() override;
@@ -199,9 +192,7 @@ namespace wvn::gfx
 		Array<VkWriteDescriptorSet, 1 + WVN_MAX_BOUND_TEXTURES> m_descriptor_writes;
 		Array<VkDescriptorImageInfo, WVN_MAX_BOUND_TEXTURES> m_image_infos;
 		Array<VkPipelineShaderStageCreateInfo, SHADER_TYPE_MAX> m_shader_stages;
-
-		// pain
-		int jjj = 0;
+		u32 m_current_ubo;
 
 		// swap chain
 		VkSwapchainKHR m_swap_chain;

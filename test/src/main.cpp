@@ -28,7 +28,7 @@ class CameraController : public wvn::act::Actor
 private:
 	wvn::act::ActorHandle m_cube_handle;
 
-	void movement_wasd()
+	void movement_keyboard()
 	{
 		const float move_speed = 0.025f;
 
@@ -57,6 +57,27 @@ private:
 		}
 	}
 
+	void movement_mouse()
+	{
+		auto* inp = wvn::inp::InputMgr::get_singleton();
+		auto& camera = wvn::Root::get_singleton()->main_camera;
+
+		float sensitivity = 0.003f;
+		float dx = (float)(inp->mouse_position().x - wvn::Root::get_singleton()->config().width / 2.0f);
+		float dy = (float)(inp->mouse_position().y - wvn::Root::get_singleton()->config().height / 2.0f);
+
+		if ((dx * dx) + (dy * dy) > 0.5f) {
+			tgtt += dx * sensitivity;
+			tgts += dy * sensitivity;
+		}
+
+		t = wvn::CalcF::lerp(t, tgtt, 0.4f);
+		s = wvn::CalcF::lerp(s, tgts, 0.4f);
+
+		wvn::Vec3F direction = wvn::Vec3F::from_angle(-s, -t + wvn::CalcF::PI / 2.0f, 1.0f);
+		camera.direction = direction;
+	}
+
 public:
 	CameraController(const wvn::act::ActorHandle& cube)
 		: wvn::act::Actor()
@@ -77,48 +98,33 @@ public:
 
 	void tick() override
 	{
-		auto& camera = wvn::Root::get_singleton()->main_camera;
 		auto* inp = wvn::inp::InputMgr::get_singleton();
 
 		if (inp->is_down(wvn::inp::KEY_ESCAPE)) {
 			wvn::Root::get_singleton()->exit();
 		}
 
-		float sensitivity = 0.003f;
-		float dx = (float)(inp->mouse_position().x - wvn::Root::get_singleton()->config().width / 2.0f);
-		float dy = (float)(inp->mouse_position().y - wvn::Root::get_singleton()->config().height / 2.0f);
-
-		if (dx * dx + dy * dy > 0.5f) {
-			tgtt += dx * sensitivity;
-			tgts += dy * sensitivity;
+		if (inp->is_pressed(wvn::inp::KEY_G)) {
+			wvn::act::Event("pingpong").send(m_cube_handle);
 		}
 
-		t = wvn::CalcF::lerp(t, tgtt, 0.4f);
-		s = wvn::CalcF::lerp(s, tgts, 0.4f);
+		movement_mouse();
+		movement_keyboard();
 
-		wvn::Vec3F direction = wvn::Vec3F::from_angle(-s, -t + wvn::CalcF::PI / 2.0f, 1.0f);
-		camera.direction = direction;
 
-		movement_wasd();
-
-		// send event to destroy cube
-		if (inp->is_pressed(wvn::inp::KEY_G))
-		{
-			wvn::act::Event destroy_evt("destroy");
-			destroy_evt.append_str("message.quit", "Goodbye, World!");
-			destroy_evt.send(m_cube_handle);
-		}
-
-		// lock mouse to center of window
 		wvn::Root::get_singleton()->system_backend()->set_cursor_position(1280 / 2, 720 / 2);
 	}
 };
 
 class Cube : public wvn::act::Actor
 {
+	wvn::Vec3F m_velocity;
+	wvn::Vec3F m_angular_velocity;
+
 public:
 	Cube(const Vertices& vv, const Indices& ii)
 		: wvn::act::Actor()
+		, m_velocity(0, 0, 0)
 	{
 		p_model = wvn::gfx::RenderingMgr::get_singleton()->create_model();
 		p_model->mesh(wvn::gfx::MeshMgr::get_singleton()->create_mesh(vv, ii));
@@ -143,6 +149,12 @@ public:
 
 	void tick() override
 	{
+		p_transform.move(m_velocity * 0.1f);
+		p_transform.rotate(m_angular_velocity.normalized(), m_angular_velocity.length_squared() * 0.2f);
+
+		m_velocity = wvn::Vec3F::lerp(m_velocity, wvn::Vec3F::zero(), 0.05f);
+		m_angular_velocity = wvn::Vec3F::lerp(m_angular_velocity, wvn::Vec3F::zero(), 0.05f);
+
 		//p_transform.rotate(wvn::Vec3F::up(), 0.01f);
 	}
 
@@ -152,11 +164,23 @@ public:
 			return true;
 		}
 
-		if (event.is_type("destroy"))
+		if (event.is_type("pingpong"))
 		{
-			wvn::act::ActorHandle handle(this);
-			wvn::act::ActorMgr::get_singleton()->destroy(handle);
-			wvn::dev::LogMgr::get_singleton()->print(event.args["message.quit"].data.string);
+			m_velocity = wvn::Vec3F::from_angle(
+				wvn::Root::get_singleton()->random.real32(0, wvn::CalcF::TAU),
+				wvn::Root::get_singleton()->random.real32(0, wvn::CalcF::TAU),
+				1.0f
+			);
+
+			m_angular_velocity = wvn::Vec3F::from_angle(
+				wvn::Root::get_singleton()->random.real32(0, wvn::CalcF::TAU),
+				wvn::Root::get_singleton()->random.real32(0, wvn::CalcF::TAU),
+				wvn::Root::get_singleton()->random.real32(0.5f, 1.5f)
+			);
+
+//			wvn::act::ActorHandle handle(this);
+//			wvn::act::ActorMgr::get_singleton()->destroy(handle);
+//			wvn::dev::LogMgr::get_singleton()->print(event.args["message.quit"].data.string);
 
 			return true;
 		}
@@ -168,14 +192,14 @@ public:
 int main()
 {
 	Vertices cube_vertices = {
-		{ { -0.5f, -0.5f, -0.5f }, { 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f } },
-		{ {  0.5f, -0.5f, -0.5f }, { 1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f } },
-		{ {  0.5f,  0.5f, -0.5f }, { 1.0f, 1.0f }, { 1.0f, 1.0f, 1.0f } },
-		{ { -0.5f,  0.5f, -0.5f }, { 0.0f, 1.0f }, { 1.0f, 1.0f, 1.0f } },
-		{ { -0.5f, -0.5f,  0.5f }, { 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f } },
-		{ {  0.5f, -0.5f,  0.5f }, { 1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f } },
-		{ {  0.5f,  0.5f,  0.5f }, { 1.0f, 1.0f }, { 1.0f, 1.0f, 1.0f } },
-		{ { -0.5f,  0.5f,  0.5f }, { 0.0f, 1.0f }, { 1.0f, 1.0f, 1.0f } },
+		{ { -0.5f, -0.5f, -0.5f }, { 0.0f, 1.0f }, { 1.0f, 1.0f, 1.0f } },
+		{ {  0.5f, -0.5f, -0.5f }, { 1.0f, 1.0f }, { 1.0f, 1.0f, 1.0f } },
+		{ {  0.5f,  0.5f, -0.5f }, { 1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f } },
+		{ { -0.5f,  0.5f, -0.5f }, { 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f } },
+		{ { -0.5f, -0.5f,  0.5f }, { 1.0f, 1.0f }, { 1.0f, 1.0f, 1.0f } },
+		{ {  0.5f, -0.5f,  0.5f }, { 0.0f, 1.0f }, { 1.0f, 1.0f, 1.0f } },
+		{ {  0.5f,  0.5f,  0.5f }, { 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f } },
+		{ { -0.5f,  0.5f,  0.5f }, { 1.0f, 0.0f }, { 1.0f, 1.0f, 1.0f } },
 	};
 
 	Indices cube_indices = {
@@ -226,6 +250,7 @@ int main()
 		cam.far  = 10.0f;
 
 		auto cb = act->create<Cube>(cube_vertices, cube_indices);
+		auto cb2 = act->create<Cube>(cube_vertices, cube_indices);
 		auto db = act->create<CameraController>(cb);
 
 		root->run();

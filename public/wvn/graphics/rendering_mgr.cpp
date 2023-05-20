@@ -48,12 +48,12 @@ RenderingMgr::~RenderingMgr()
 
 void RenderingMgr::create_skybox()
 {
-	Image img_rt("../test/res/skybox/right.jpg");
-	Image img_lf("../test/res/skybox/left.jpg");
-	Image img_tp("../test/res/skybox/top.jpg");
-	Image img_bt("../test/res/skybox/bottom.jpg");
-	Image img_ft("../test/res/skybox/front.jpg");
-	Image img_bk("../test/res/skybox/back.jpg");
+	Image img_rt("../test/res/skybox1/right.jpg");
+	Image img_lf("../test/res/skybox1/left.jpg");
+	Image img_tp("../test/res/skybox1/top.jpg");
+	Image img_bt("../test/res/skybox1/bottom.jpg");
+	Image img_ft("../test/res/skybox1/front.jpg");
+	Image img_bk("../test/res/skybox1/back.jpg");
 
 	m_skybox_texture = TextureMgr::get_singleton()->create_cube_map(TEX_FMT_R8G8B8A8_SRGB,
 		img_rt, img_lf, img_tp, img_bt, img_ft, img_bk
@@ -99,6 +99,8 @@ void RenderingMgr::render_skybox()
 {
 	auto* renderer = Root::get_singleton()->renderer_backend();
 
+	renderer->set_depth_params(true, false);
+
 	renderer->bind_shader(m_vertex_shader);
 	renderer->bind_shader(m_skybox_fragment);
 
@@ -118,6 +120,8 @@ void RenderingMgr::render_actors()
 {
 	auto* renderer = Root::get_singleton()->renderer_backend();
 
+	renderer->set_depth_params(true, true);
+
 	renderer->bind_shader(m_vertex_shader);
 	renderer->bind_shader(m_fragment_shader);
 
@@ -130,6 +134,9 @@ void RenderingMgr::render_actors()
 
 			renderer->set_texture(0, model->material().texture());
 			renderer->set_sampler(0, model->material().sampler());
+
+			renderer->set_texture(1, m_skybox_texture);
+			renderer->set_sampler(1, m_skybox_sampler);
 
 			renderer->render({
 				.mesh = model->mesh(),
@@ -149,9 +156,7 @@ void RenderingMgr::render_scene_and_swap_buffers()
 	renderer->set_clear_colour(wvn::Colour::black());
 
 	renderer->begin_render();
-	renderer->set_depth_params(true, false);
 	render_skybox();
-	renderer->set_depth_params(true, true);
 	render_actors();
 	renderer->end_render();
 

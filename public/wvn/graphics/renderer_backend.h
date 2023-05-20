@@ -19,6 +19,17 @@
 namespace wvn::gfx
 {
 	/**
+	 * The UBO currently being sent to the shaders.
+	 * todo: this should be modifiable! custom ubo's.
+	 */
+	struct UniformBufferObject
+	{
+		alignas(16) Mat4x4 model;
+		alignas(16) Mat4x4 view;
+		alignas(16) Mat4x4 proj;
+	};
+
+	/**
 	 * Properties a rendering backend might have that are exclusive to itself.
 	 */
 	struct RendererBackendProperties
