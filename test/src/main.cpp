@@ -111,7 +111,6 @@ public:
 		movement_mouse();
 		movement_keyboard();
 
-
 		wvn::Root::get_singleton()->system_backend()->set_cursor_position(1280 / 2, 720 / 2);
 	}
 };
@@ -137,7 +136,7 @@ public:
 	void init() override
 	{
 		// set model
-		p_model->material().texture(wvn::gfx::TextureMgr::get_singleton()->create("../test/res/kitty.png"));
+		p_model->material().texture(wvn::gfx::TextureMgr::get_singleton()->create("../../../test/res/kitty.png"));
 		p_model->material().sampler(wvn::gfx::TextureMgr::get_singleton()->create_sampler(wvn::gfx::TEX_FILTER_LINEAR));
 
 		// set transform

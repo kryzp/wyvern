@@ -2,10 +2,7 @@ cmake_minimum_required(VERSION 3.7)
 project(wyvern)
 
 set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_OSX_ARCHITECTURES "arm64")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0")
 set(CMAKE_CXX_FLAGS_DEBUG_INIT "-Wall")
-#set(CMAKE_OSX_DEPLOYMENT_TARGET 13.3.1)
 
 add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
 add_compile_definitions(WVN_DEBUG)

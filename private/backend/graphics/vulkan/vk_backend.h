@@ -60,10 +60,10 @@ namespace wvn::gfx
 		const Array<u32, 4> package() const
 		{
 			return {
-				graphics_family.value(),
-				present_family.value(),
-				compute_family.value(),
-				transfer_family.value()
+				graphics_family.value_or(-1),
+				present_family.value_or(-1),
+				compute_family.value_or(-1),
+				transfer_family.value_or(-1)
 			};
 		}
 	};

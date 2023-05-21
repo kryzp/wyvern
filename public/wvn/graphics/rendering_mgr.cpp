@@ -26,9 +26,9 @@ RenderingMgr::RenderingMgr()
 {
 	auto* renderer = Root::get_singleton()->renderer_backend();
 
-	m_vertex_shader = ShaderMgr::get_singleton()->create("../test/res/vert.spv", SHADER_TYPE_VERTEX);
-	m_fragment_shader = ShaderMgr::get_singleton()->create("../test/res/frag.spv", SHADER_TYPE_FRAGMENT);
-	m_skybox_fragment = ShaderMgr::get_singleton()->create("../test/res/skybox_frag.spv", SHADER_TYPE_FRAGMENT);
+	m_vertex_shader = ShaderMgr::get_singleton()->create("../../../test/res/vert.spv", SHADER_TYPE_VERTEX);
+	m_fragment_shader = ShaderMgr::get_singleton()->create("../../../test/res/frag.spv", SHADER_TYPE_FRAGMENT);
+	m_skybox_fragment = ShaderMgr::get_singleton()->create("../../../test/res/skybox_frag.spv", SHADER_TYPE_FRAGMENT);
 
 	renderer->bind_shader(m_vertex_shader);
 
@@ -48,12 +48,12 @@ RenderingMgr::~RenderingMgr()
 
 void RenderingMgr::create_skybox()
 {
-	Image img_rt("../test/res/skybox1/right.jpg");
-	Image img_lf("../test/res/skybox1/left.jpg");
-	Image img_tp("../test/res/skybox1/top.jpg");
-	Image img_bt("../test/res/skybox1/bottom.jpg");
-	Image img_ft("../test/res/skybox1/front.jpg");
-	Image img_bk("../test/res/skybox1/back.jpg");
+	Image img_rt("../../../test/res/skybox1/right.jpg");
+	Image img_lf("../../../test/res/skybox1/left.jpg");
+	Image img_tp("../../../test/res/skybox1/top.jpg");
+	Image img_bt("../../../test/res/skybox1/bottom.jpg");
+	Image img_ft("../../../test/res/skybox1/front.jpg");
+	Image img_bk("../../../test/res/skybox1/back.jpg");
 
 	m_skybox_texture = TextureMgr::get_singleton()->create_cube_map(TEX_FMT_R8G8B8A8_SRGB,
 		img_rt, img_lf, img_tp, img_bt, img_ft, img_bk

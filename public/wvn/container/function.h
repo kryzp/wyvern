@@ -90,8 +90,9 @@ namespace wvn
 		, m_create_func(other.m_create_func)
 		, m_destroy_func(other.m_destroy_func)
 		, m_data_size(other.m_data_size)
+		, m_data(nullptr)
 	{
-		if (m_call_func)
+		if (m_call_func && other.m_data)
 		{
 			m_data = new byte[this->m_data_size];
 			m_create_func(m_data, other.m_data);
@@ -107,7 +108,6 @@ namespace wvn
 	{
 		m_data_size = sizeof(F);
 		m_data = new byte[m_data_size];
-
 		m_create_func(m_data, reinterpret_cast<byte*>(&fn));
 	}
 

@@ -34,7 +34,7 @@ static const char* VALIDATION_LAYERS[] = {
 
 static const char* DEVICE_EXTENSIONS[] = {
 	VK_KHR_SWAPCHAIN_EXTENSION_NAME,
-	"VK_KHR_portability_subset" // same here lol
+	//"VK_KHR_portability_subset" // same here lol
 };
 
 static VkDynamicState DYNAMIC_STATES[] = {
@@ -151,7 +151,7 @@ static Vector<const char*> get_instance_extensions()
 	extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 #endif
 
-	extensions.push_back(VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
+//	extensions.push_back(VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
 	extensions.push_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
 
 	return extensions;
@@ -275,7 +275,7 @@ VulkanBackend::VulkanBackend()
 	create_info.enabledExtensionCount = extensions.size();
 	create_info.ppEnabledExtensionNames = extensions.data();
 
-	create_info.flags |= VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
+//	create_info.flags |= VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
 
 	if (VkResult result = vkCreateInstance(&create_info, nullptr, &m_instance); result != VK_SUCCESS) {
 		WVN_ERROR("[VULKAN|DEBUG] Failed to create instance: %d", result);
@@ -456,6 +456,10 @@ void VulkanBackend::create_logical_device(const QueueFamilyIdx& phys_idx)
 
 	for (auto& family : phys_idx.package())
 	{
+        if (family == -1) {
+            continue;
+        }
+
 		queue_create_infos.push_back({
 			.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
 			.queueFamilyIndex = family,
@@ -1025,7 +1029,7 @@ VkDescriptorSet VulkanBackend::get_descriptor_set()
 
 	VkDescriptorBufferInfo descriptor_buffer_info = {};
 	descriptor_buffer_info.buffer = current_frame().uniform_buffer->buffer();
-	//descriptor_buffer_info.offset = 0;//jjj * sizeof(UniformBufferObject);
+	descriptor_buffer_info.offset = 0;
 	descriptor_buffer_info.range = sizeof(UniformBufferObject);
 
 	m_descriptor_writes[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -1056,7 +1060,9 @@ VkDescriptorSet VulkanBackend::get_descriptor_set()
 
 void VulkanBackend::create_uniform_buffers()
 {
-	VkDeviceSize buffer_size = sizeof(UniformBufferObject) * MAX_UBOS;
+	VkDeviceSize buffer_size_object = sizeof(UniformBufferObject) * MAX_UBOS;
+    VkDeviceSize minimum_size = physical_data.properties.limits.minUniformBufferOffsetAlignment;
+    VkDeviceSize buffer_size = (buffer_size_object / minimum_size) * minimum_size + ((buffer_size_object % minimum_size) > 0 ? minimum_size : 0);
 
 	for (u32 i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
 	{
@@ -1410,6 +1416,8 @@ void VulkanBackend::render(const RenderPass& pass)
 	ubo.proj.m22 *= -1.0f; // -y is up, simplest way to do this it seems. that and making sure we're using COUNTER_CLOCKWISE rendering.
 
 	u32 ubo_dynamic_offset = sizeof(UniformBufferObject) * m_current_ubo;
+    VkDeviceSize minimum_size = physical_data.properties.limits.minUniformBufferOffsetAlignment;
+    ubo_dynamic_offset = (ubo_dynamic_offset / minimum_size) * minimum_size + ((ubo_dynamic_offset % minimum_size) > 0 ? minimum_size : 0);
 	current_frame().uniform_buffer->read_data(&ubo, sizeof(UniformBufferObject), ubo_dynamic_offset);
 
 	VkBuffer vertex_buffers[] = { vertex_buffer };

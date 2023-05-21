@@ -9,6 +9,11 @@ using namespace wvn::act;
 Actor::Actor()
 	: m_flags(0)
 	, m_id(NULL_ID)
+    , p_transform()
+    , p_rigidbody(nullptr)
+    , p_model(nullptr)
+    , p_velocity()
+    , p_angular_velocity()
 {
 }
 
