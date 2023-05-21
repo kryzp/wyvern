@@ -1,4 +1,5 @@
 #include <wvn/graphics/mesh_mgr.h>
+#include <wvn/devenv/log_mgr.h>
 
 using namespace wvn;
 using namespace wvn::gfx;
@@ -10,6 +11,7 @@ MeshMgr::MeshMgr()
 	, m_index_buffers()
 	, m_meshes()
 {
+	dev::LogMgr::get_singleton()->print("[MESH] Initialized!");
 }
 
 MeshMgr::~MeshMgr()
@@ -17,6 +19,8 @@ MeshMgr::~MeshMgr()
 	for (auto& mesh : m_meshes) {
 		delete mesh;
 	}
+
+	dev::LogMgr::get_singleton()->print("[MESH] Destroyed!");
 }
 
 Mesh* MeshMgr::create_mesh(const Vector<Vertex>& vtx, const Vector<u16>& idx)
