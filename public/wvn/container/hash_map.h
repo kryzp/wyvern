@@ -142,11 +142,22 @@ namespace wvn
 
 		realloc();
 
-		for (int i = 0; i < other.m_element_count; i++)
+		if (!other.m_elements) {
+			return;
+		}
+
+		for (int i = 0; i < other.m_capacity; i++)
 		{
-			Element* elem_ptr = other.m_elements[i];
-			if (elem_ptr) {
-				_insert(elem_ptr->data);
+			if (other.m_elements[i])
+			{
+				Element* elem_ptr = other.m_elements[i];
+
+				while (elem_ptr) {
+					_insert(elem_ptr->data);
+					elem_ptr = elem_ptr->next;
+				}
+
+				break;
 			}
 		}
 
