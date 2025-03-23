@@ -8,13 +8,23 @@ using namespace wvn::gfx;
 
 VulkanShader::VulkanShader(VulkanBackend* backend)
 	: m_backend(backend)
-	, m_shader_module()
+	, m_shader_module(VK_NULL_HANDLE)
 {
 }
 
 VulkanShader::~VulkanShader()
 {
+	clean_up();
+}
+
+void VulkanShader::clean_up()
+{
+	if (m_shader_module == VK_NULL_HANDLE) {
+		return;
+	}
+
 	vkDestroyShaderModule(m_backend->device, m_shader_module, nullptr);
+	m_shader_module = VK_NULL_HANDLE;
 }
 
 void VulkanShader::load_from_source(const char* source, u64 source_size)
@@ -25,7 +35,7 @@ void VulkanShader::load_from_source(const char* source, u64 source_size)
 	module_create_info.pCode = (const u32*)source;
 
 	if (VkResult result = vkCreateShaderModule(m_backend->device, &module_create_info, nullptr, &m_shader_module); result != VK_SUCCESS) {
-		WVN_ERROR("[VULKAN|DEBUG] Failed to create shader module: %d", result);
+		wvn_ERROR("[VULKAN:SHADER|DEBUG] Failed to create shader module: %d", result);
 	}
 }
 

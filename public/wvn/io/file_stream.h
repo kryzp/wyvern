@@ -1,5 +1,5 @@
-#ifndef FILE_STREAM_H
-#define FILE_STREAM_H
+#ifndef FILE_STREAM_H_
+#define FILE_STREAM_H_
 
 #include <wvn/io/stream.h>
 #include <wvn/container/string.h>
@@ -16,8 +16,8 @@ namespace wvn::io
 		FileStream(const char* filename, const char* mode);
 		FileStream& open(const char* filename, const char* mode);
 
-		bool get_line(String& str, s32& seek_cache);
+		bool get_line(String& str, s32& pointer);
 	};
 }
 
-#endif // FILE_STREAM_H
+#endif // FILE_STREAM_H_

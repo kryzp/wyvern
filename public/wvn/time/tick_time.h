@@ -1,5 +1,5 @@
-#ifndef TICK_TIME_H
-#define TICK_TIME_H
+#ifndef TICK_TIME_H_
+#define TICK_TIME_H_
 
 namespace wvn::time
 {
@@ -11,4 +11,4 @@ namespace wvn::time
 	};
 }
 
-#endif // TICK_TIME_H
+#endif // TICK_TIME_H_

@@ -1,5 +1,5 @@
-#ifndef PAIR_H
-#define PAIR_H
+#ifndef PAIR_H_
+#define PAIR_H_
 
 namespace wvn
 {
@@ -89,4 +89,4 @@ namespace wvn
 	}
 }
 
-#endif // PAIR_H
+#endif // PAIR_H_

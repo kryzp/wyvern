@@ -1,5 +1,5 @@
-#ifndef SOCKET_H
-#define SOCKET_H
+#ifndef SOCKET_H_
+#define SOCKET_H_
 
 #include <wvn/common.h>
 #include <wvn/network/network_mgr.h>
@@ -45,4 +45,4 @@ namespace wvn::net
 	};
 }
 
-#endif // SOCKET_H
+#endif // SOCKET_H_

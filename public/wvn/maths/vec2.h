@@ -1,8 +1,7 @@
-#ifndef VEC2_H
-#define VEC2_H
+#ifndef VEC2_H_
+#define VEC2_H_
 
 #include <wvn/maths/calc.h>
-#include <wvn/maths/mat2x3.h>
 #include <wvn/maths/random.h>
 
 namespace wvn
@@ -25,7 +24,7 @@ namespace wvn
 		Vec2(T s);
 		Vec2(T x, T y);
 
-		// enable implicit casting to other vectors
+		// enable implicit casting to other types of vectors
 		template <typename Y>
 		Vec2(const Vec2<Y>& other) noexcept
 			: x(other.x)
@@ -41,9 +40,10 @@ namespace wvn
 		static const Vec2& up();
 		static const Vec2& down();
 
-		static Vec2 transform(const Vec2& vec, const Mat2x3& mat);
+//		static Vec2 transform(const Vec2& vec, const Mat2x3& mat);
 		static T dot(const Vec2& a, const Vec2& b);
-		static Vec2 from_angle(float angle, float length);
+		static T cross(const Vec2& a, const Vec2& b);
+		static Vec2 from_angle(float radius, float angle);
 		static Vec2 lerp(const Vec2& from, const Vec2& to, float amount);
 		static Vec2 spring(const Vec2& from, const Vec2& to, float bounciness, float tension, Vec2& intermediate);
 		static Vec2 approach(const Vec2& from, const Vec2& to, float amount);
@@ -100,27 +100,33 @@ namespace wvn
 	{
 	}
 
-	template <typename T>
-	Vec2<T> Vec2<T>::transform(const Vec2& vec, const Mat2x3& mat)
-	{
-		return Vec2(
-			(vec.x * mat.m11) + (vec.y * mat.m21) + mat.m13,
-			(vec.x * mat.m12) + (vec.y * mat.m22) + mat.m23
-		);
-	}
+//	template <typename T>
+//	Vec2<T> Vec2<T>::transform(const Vec2& vec, const Mat2x3& mat)
+//	{
+//		return Vec2(
+//			(vec.x * mat.m11) + (vec.y * mat.m21) + mat.m13,
+//			(vec.x * mat.m12) + (vec.y * mat.m22) + mat.m23
+//		);
+//	}
 	
 	template <typename T>
 	T Vec2<T>::dot(const Vec2& a, const Vec2& b)
 	{
 		return (a.x * b.x) + (a.y * b.y);
 	}
+
+	template <typename T>
+	T Vec2<T>::cross(const Vec2& a, const Vec2& b)
+	{
+		return (a.x * b.y) - (a.y * b.x);
+	}
 	
 	template <typename T>
-	Vec2<T> Vec2<T>::from_angle(float angle, float length)
+	Vec2<T> Vec2<T>::from_angle(float radius, float angle)
 	{
 		return Vec2(
-			Calc<T>::cos(angle) * length,
-			Calc<T>::sin(angle) * length
+			radius * Calc<T>::cos(angle),
+			radius * Calc<T>::sin(angle)
 		);
 	}
 	
@@ -218,4 +224,4 @@ namespace wvn
 	template <typename T> const Vec2<T>& Vec2<T>::down()	{ static const Vec2 DOWN	= Vec2( 0,  1); return DOWN;	}
 }
 
-#endif // VEC2_H
+#endif // VEC2_H_

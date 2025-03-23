@@ -1,5 +1,5 @@
-#ifndef OPENAL_BACKEND_H
-#define OPENAL_BACKEND_H
+#ifndef OPENAL_BACKEND_H_
+#define OPENAL_BACKEND_H_
 
 #include <wvn/audio/audio_backend.h>
 
@@ -15,4 +15,4 @@ namespace wvn::sfx
 	};
 }
 
-#endif // OPENAL_BACKEND_H
+#endif // OPENAL_BACKEND_H_

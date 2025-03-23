@@ -1,5 +1,5 @@
-#ifndef TIMER_H
-#define TIMER_H
+#ifndef TIMER_H_
+#define TIMER_H_
 
 #include <wvn/common.h>
 
@@ -14,10 +14,10 @@ namespace wvn
 		void stop();
 		void pause();
 		void resume();
-		u64 reset();
+		double reset();
 
-		u64 milliseconds() const;
-		u64 seconds() const;
+		double milliseconds() const;
+		double seconds() const;
 
 		bool started() const;
 		bool paused() const;
@@ -31,4 +31,4 @@ namespace wvn
 	};
 }
 
-#endif // TIMER_H
+#endif // TIMER_H_

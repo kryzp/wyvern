@@ -9,6 +9,11 @@ Quat::Quat()
 {
 }
 
+Quat::Quat(const Vec3F& xyz)
+	: w(0.0f), x(xyz.x), y(xyz.y), z(xyz.z)
+{
+}
+
 Quat::Quat(float x, float y, float z)
 	: w(0.0f), x(x), y(y), z(z)
 {
@@ -35,7 +40,6 @@ Quat Quat::from_axis_angle(const Vec3F& axis, float angle)
 	return q;
 }
 
-// i think this might be using the wrong coordinate axis...
 Quat Quat::from_euler(float pitch, float yaw, float roll)
 {
 	float ps = CalcF::sin(pitch / 2.0f);
@@ -90,10 +94,10 @@ Quat Quat::inverse() const
 
 	if (prod > CalcF::epsilon())
 	{
-		ret.w =  this->w / prod;
-		ret.x = -this->x / prod;
-		ret.y = -this->y / prod;
-		ret.z = -this->z / prod;
+		ret.w =  this->w / CalcF::sqrt(prod);
+		ret.x = -this->x / CalcF::sqrt(prod);
+		ret.y = -this->y / CalcF::sqrt(prod);
+		ret.z = -this->z / CalcF::sqrt(prod);
 	}
 	else
 	{
@@ -164,11 +168,6 @@ Quat Quat::operator * (const Quat& other) const
 		(this->w * other.y) - (this->x * other.z) + (this->y * other.w) + (this->z * other.x),
 		(this->w * other.z) + (this->x * other.y) - (this->y * other.x) + (this->z * other.w)
 	);
-}
-
-Quat Quat::operator * (float scalar) const
-{
-	return Quat(w * scalar, x * scalar, y * scalar, z * scalar);
 }
 
 Quat Quat::operator / (float scalar) const

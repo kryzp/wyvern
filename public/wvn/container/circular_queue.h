@@ -1,8 +1,7 @@
-#ifndef CIRCULAR_QUEUE_H
-#define CIRCULAR_QUEUE_H
+#ifndef CIRCULAR_QUEUE_H_
+#define CIRCULAR_QUEUE_H_
 
 #include <wvn/common.h>
-#include <wvn/assert.h>
 
 namespace wvn
 {
@@ -12,7 +11,7 @@ namespace wvn
 	 * which then wraps back around after max capacity is reached,
 	 * overwriting older items.
 	 */
-	template <typename T, u64 Size>
+	template <typename T, u64 Capacity>
 	class CircularQueue
 	{
 	public:
@@ -33,8 +32,10 @@ namespace wvn
 
 		void clear();
 		bool empty() const;
+		bool full() const;
+
 		u64 size() const;
-		void swap(CircularQueue& other);
+		constexpr u64 capacity() const;
 
 		T& push(const T& item);
 		T pop();
@@ -43,162 +44,149 @@ namespace wvn
 		T& emplace(Args&&... args);
 
 	private:
-		T* m_ptr;
+		s64 m_front;
+		s64 m_rear;
 		u64 m_size;
+		T* m_buf;
 	};
 
-	template <typename T, u64 Size>
-	CircularQueue<T, Size>::CircularQueue()
-		: m_size(0)
+	template <typename T, u64 Capacity>
+	CircularQueue<T, Capacity>::CircularQueue()
+		: m_front(0)
+		, m_rear(-1)
+		, m_size(0)
+		, m_buf(nullptr)
 	{
-		m_ptr = new T[Size];
+		m_buf = new T[Capacity];
 	}
 
-	template <typename T, u64 Size>
-	CircularQueue<T, Size>::CircularQueue(const CircularQueue<T, Size>& other)
+	template <typename T, u64 Capacity>
+	CircularQueue<T, Capacity>::CircularQueue(const CircularQueue<T, Capacity>& other)
 	{
-		this->CAPACITY = other.CAPACITY;
-		this->m_size = other.m_size;
-
-		this->m_ptr = new T[other.CAPACITY];
-
-		for (int i = 0; i < other.m_size; i++)
-			new(m_ptr + i) T(other.m_ptr[i]);
 	}
 
-	template <typename T, u64 Size>
-	CircularQueue<T, Size>::CircularQueue(CircularQueue<T, Size>&& other) noexcept
+	template <typename T, u64 Capacity>
+	CircularQueue<T, Capacity>::CircularQueue(CircularQueue<T, Capacity>&& other) noexcept
 	{
-		this->CAPACITY = std::move(other.CAPACITY);
-		this->m_size = std::move(other.m_size);
-		this->m_ptr = std::move(other.m_ptr);
-
-		other.m_size = 0;
-		other.m_ptr = nullptr;
 	}
 
-	template <typename T, u64 Size>
-	CircularQueue<T, Size>& CircularQueue<T, Size>::operator = (const CircularQueue<T, Size>& other)
+	template <typename T, u64 Capacity>
+	CircularQueue<T, Capacity>& CircularQueue<T, Capacity>::operator = (const CircularQueue<T, Capacity>& other)
 	{
-		this->CAPACITY = other.CAPACITY;
-		this->m_size = other.m_size;
-
-		this->m_ptr = new T[other.CAPACITY];
-
-		for (int i = 0; i < other.m_size; i++) {
-			new (m_ptr + i) T(other.m_ptr[i]);
-		}
-
 		return *this;
 	}
 
-	template <typename T, u64 Size>
-	CircularQueue<T, Size>& CircularQueue<T, Size>::operator = (CircularQueue<T, Size>&& other) noexcept
+	template <typename T, u64 Capacity>
+	CircularQueue<T, Capacity>& CircularQueue<T, Capacity>::operator = (CircularQueue<T, Capacity>&& other) noexcept
 	{
-		this->CAPACITY = std::move(other.CAPACITY);
-		this->m_size = std::move(other.m_size);
-		this->m_ptr = std::move(other.m_ptr);
-
-		other.m_size = 0;
-		other.m_ptr = nullptr;
-
 		return *this;
 	}
 
-	template <typename T, u64 Size>
-	CircularQueue<T, Size>::~CircularQueue()
+	template <typename T, u64 Capacity>
+	CircularQueue<T, Capacity>::~CircularQueue()
 	{
 		clear();
-	}
 
-	template <typename T, u64 Size>
-	T& CircularQueue<T, Size>::front()
-	{
-		return *m_ptr;
-	}
+		if (m_buf) {
+			::operator delete (m_buf, sizeof(T) * Capacity);
+		}
 
-	template <typename T, u64 Size>
-	const T& CircularQueue<T, Size>::front() const
-	{
-		return *m_ptr;
-	}
-
-	template <typename T, u64 Size>
-	T& CircularQueue<T, Size>::back()
-	{
-		return *(m_ptr + m_size);
-	}
-
-	template <typename T, u64 Size>
-	const T& CircularQueue<T, Size>::back() const
-	{
-		return *(m_ptr + m_size);
-	}
-
-	template <typename T, u64 Size>
-	void CircularQueue<T, Size>::clear()
-	{
-		delete[] m_ptr;
-
+		m_buf = nullptr;
 		m_size = 0;
-		m_ptr = nullptr;
+		m_front = 0;
+		m_rear = -1;
 	}
 
-	template <typename T, u64 Size>
-	bool CircularQueue<T, Size>::empty() const
+	template <typename T, u64 Capacity>
+	T& CircularQueue<T, Capacity>::front()
+	{
+		return m_buf[m_front];
+	}
+
+	template <typename T, u64 Capacity>
+	const T& CircularQueue<T, Capacity>::front() const
+	{
+		return m_buf[m_front];
+	}
+
+	template <typename T, u64 Capacity>
+	T& CircularQueue<T, Capacity>::back()
+	{
+		return m_buf[m_rear];
+	}
+
+	template <typename T, u64 Capacity>
+	const T& CircularQueue<T, Capacity>::back() const
+	{
+		return m_buf[m_rear];
+	}
+
+	template <typename T, u64 Capacity>
+	void CircularQueue<T, Capacity>::clear()
+	{
+		for (int i = 0; i < m_size; i++) {
+			m_buf[i].~T();
+		}
+
+		mem::set(m_buf, 0, m_size * sizeof(T));
+		m_size = 0;
+
+		m_front = 0;
+		m_rear = -1;
+	}
+
+	template <typename T, u64 Capacity>
+	T CircularQueue<T, Capacity>::pop()
+	{
+		wvn_ASSERT(m_size > 0, "[CIRQUE|DEBUG] must contain at least one element!");
+		s64 tmp = m_front;
+		m_front = (m_front + 1) % Capacity;
+		m_size--;
+		return m_buf[tmp];
+	}
+
+	template <typename T, u64 Capacity>
+	T& CircularQueue<T, Capacity>::push(const T& item)
+	{
+		m_rear = (m_rear + 1) % Capacity;
+		m_buf[m_rear] = item;
+		m_size++;
+		return m_buf[m_rear];
+	}
+
+	template <typename T, u64 Capacity>
+	template <typename... Args>
+	T& CircularQueue<T, Capacity>::emplace(Args&&... args)
+	{
+		m_rear = (m_rear + 1) % Capacity;
+		new (m_buf + m_rear) T(std::forward<Args>(args)...);
+		m_size++;
+		return m_buf[m_rear];
+	}
+
+	template <typename T, u64 Capacity>
+	bool CircularQueue<T, Capacity>::empty() const
 	{
 		return m_size == 0;
 	}
 
-	template <typename T, u64 Size>
-	u64 CircularQueue<T, Size>::size() const
+	template <typename T, u64 Capacity>
+	bool CircularQueue<T, Capacity>::full() const
+	{
+		return m_size == Capacity;
+	}
+
+	template <typename T, u64 Capacity>
+	u64 CircularQueue<T, Capacity>::size() const
 	{
 		return m_size;
 	}
 
-	template <typename T, u64 Size>
-	void CircularQueue<T, Size>::swap(CircularQueue<T, Size>& other)
+	template <typename T, u64 Capacity>
+	constexpr u64 CircularQueue<T, Capacity>::capacity() const
 	{
-		T*  t_ptr  = m_ptr;
-		u64 t_size = m_size;
-
-		m_ptr  = other.m_ptr;
-		m_size = other.m_size;
-
-		other.m_ptr  = t_ptr;
-		other.m_size = t_size;
-	}
-
-	template <typename T, u64 Size>
-	T CircularQueue<T, Size>::pop()
-	{
-		WVN_ASSERT(m_size > 0, "[CIRQUEUE|DEBUG] Must not be empty when calling pop().");
-		m_size--;
-		if (m_size < 0) {
-			m_size = Size - 1;
-			return m_ptr[0];
-		}
-		return m_ptr[m_size + 1];
-	}
-
-	template <typename T, u64 Size>
-	T& CircularQueue<T, Size>::push(const T& item)
-	{
-		WVN_ASSERT(m_size < Size, "[CIRQUEUE|DEBUG] Size must not be greater than max capacity.");
-		m_size = (m_size + 1) % Size;
-		new (m_ptr + m_size) T(std::move(item));
-		return m_ptr[m_size];
-	}
-
-	template <typename T, u64 Size>
-	template <typename... Args>
-	T& CircularQueue<T, Size>::emplace(Args&&... args)
-	{
-		WVN_ASSERT(m_size < Size, "[CIRQUEUE|DEBUG] Size must not be greater than max capacity.");
-		m_size = (m_size + 1) % Size;
-		new (m_ptr + m_size) T(std::forward<Args>(args)...);
-		return m_ptr[m_size];
+		return Capacity;
 	}
 }
 
-#endif // CIRCULAR_QUEUE_H
+#endif // CIRCULAR_QUEUE_H_

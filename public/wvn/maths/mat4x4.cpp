@@ -2,6 +2,10 @@
 #include <wvn/maths/vec3.h>
 #include <wvn/maths/calc.h>
 
+// fixes the orthographic and perspective projections by flipping y-axis
+#include <wvn/root.h>
+#include <wvn/graphics/renderer_backend.h>
+
 using namespace wvn;
 
 Mat4x4::Mat4x4()
@@ -43,39 +47,48 @@ Mat4x4::Mat4x4(
 
 Mat4x4 Mat4x4::create_orthographic(float width, float height, float near, float far)
 {
-	return create_orthographic_ext(0.0f, width, height, 0.0f, near, far);
+	return create_orthographic_ext(0.0f, width, 0.0f, height, near, far);
 }
 
 Mat4x4 Mat4x4::create_orthographic_ext(float left, float right, float bottom, float top, float near, float far)
 {
-	Mat4x4 result = Mat4x4::identity();
+	Mat4x4 result = Mat4x4::zero();
 
-	result.m11 = 2.0f / (right - left);
-	result.m22 = 2.0f / (top - bottom);
-	result.m33 = 1.0f / (near - far);
-	result.m41 = (left + right) / (left - right);
-	result.m42 = (top + bottom) / (bottom - top);
-	result.m43 = near / (near - far);
+	result.m11 =  2.0f / (right - left);
+	result.m22 =  2.0f / (top - bottom);
+	result.m33 = -1.0f / (far - near);
+
+	result.m14 = -(right + left) / (right - left);
+	result.m24 = -(top + bottom) / (top - bottom);
+	result.m34 = -near / (far - near);
 	result.m44 = 1.0f;
+
+	if (Root::get_singleton()->renderer_backend()->properties().y_positive_down) {
+		result.m22 *= -1.0f;
+	}
 
 	return result;
 }
 
 Mat4x4 Mat4x4::create_perspective(float fov, float aspect, float near, float far)
 {
-	WVN_ASSERT(fov > 0.0f, "[MAT4X4|DEBUG] FOV must be greater than 0.");
-	WVN_ASSERT(aspect != 0.0f, "[MAT4X4|DEBUG] Aspect must not be 0.");
+	wvn_ASSERT(fov > 0.0f, "[MAT4X4|DEBUG] FOV must be greater than 0.");
+	wvn_ASSERT(aspect > 0.0f, "[MAT4X4|DEBUG] Aspect must be greater than 0.");
 
-	Mat4x4 result = Mat4x4::identity();
+	Mat4x4 result = Mat4x4::zero();
 
 	const float tan_half_fov = CalcF::tan(fov * CalcF::DEG2RAD * 0.5f);
 
 	result.m11 = 1.0f / (aspect * tan_half_fov);
 	result.m22 = 1.0f / (tan_half_fov);
 	result.m33 = -(far + near) / (far - near);
-	result.m34 = -1.0f;
-	result.m43 = -(2.0f * far * near) / (far - near);
-	result.m44 = 0.0f;
+
+	result.m43 = -1.0f;
+	result.m34 = -(2.0f * far * near) / (far - near);
+
+	if (Root::get_singleton()->renderer_backend()->properties().y_positive_down) {
+		result.m22 *= -1.0f;
+	}
 
 	return result;
 }
@@ -92,26 +105,24 @@ Mat4x4 Mat4x4::create_translation(float x, float y, float z)
 
 Mat4x4 Mat4x4::create_rotation(Vec3F axis, float angle)
 {
-	axis = axis.normalized();
-
 	float sin_theta = CalcF::sin(angle);
 	float cos_theta = CalcF::cos(angle);
-	float cos_inv   = 1.0f - cos_theta;
+	float cos_compl = 1.0f - cos_theta;
 
 	return Mat4x4(
-		 (axis.x * axis.x * cos_inv) + cos_theta,
-		-(axis.x * axis.y * cos_inv) + (axis.z * sin_theta),
-		 (axis.x * axis.z * cos_inv) + (axis.y * sin_theta),
+		 (axis.x * axis.x * cos_compl) + cos_theta,
+		-(axis.x * axis.y * cos_compl) + (axis.z * sin_theta),
+		 (axis.x * axis.z * cos_compl) + (axis.y * sin_theta),
 		0.0f,
 
-		-(axis.y * axis.x * cos_inv) - (axis.z * sin_theta),
-		 (axis.y * axis.y * cos_inv) + cos_theta,
-		-(axis.y * axis.z * cos_inv) + (axis.x * sin_theta),
+		-(axis.y * axis.x * cos_compl) - (axis.z * sin_theta),
+		 (axis.y * axis.y * cos_compl) + cos_theta,
+		-(axis.y * axis.z * cos_compl) + (axis.x * sin_theta),
 		0.0f,
 
-		 (axis.z * axis.x * cos_inv) - (axis.y * sin_theta),
-		-(axis.z * axis.y * cos_inv) - (axis.x * sin_theta),
-		 (axis.z * axis.z * cos_inv) + cos_theta,
+		 (axis.z * axis.x * cos_compl) - (axis.y * sin_theta),
+		-(axis.z * axis.y * cos_compl) - (axis.x * sin_theta),
+		 (axis.z * axis.z * cos_compl) + cos_theta,
 		0.0f,
 
 		0.0f,
@@ -125,17 +136,17 @@ Mat4x4 Mat4x4::create_rotation(const Quat& quat)
 {
 	return Mat4x4(
 		1.0f - 2.0f * (quat.y * quat.y - quat.z * quat.z),
-		2.0f * (quat.x * quat.y - quat.z * quat.w),
-		2.0f * (quat.x * quat.z + quat.y * quat.w),
+		       2.0f * (quat.x * quat.y - quat.z * quat.w),
+		       2.0f * (quat.x * quat.z + quat.y * quat.w),
 		0.0f,
 
-		2.0f * (quat.x * quat.y + quat.z * quat.w),
+		       2.0f * (quat.x * quat.y + quat.z * quat.w),
 		1.0f - 2.0f * (quat.x * quat.x + quat.z * quat.z),
-		2.0f * (quat.y * quat.z - quat.x * quat.w),
+		       2.0f * (quat.y * quat.z - quat.x * quat.w),
 		0.0f,
 
-		2.0f * (quat.x * quat.z + quat.y * quat.w),
-		2.0f * (quat.y * quat.z + quat.x * quat.w),
+		       2.0f * (quat.x * quat.z + quat.y * quat.w),
+		       2.0f * (quat.y * quat.z + quat.x * quat.w),
 		1.0f - 2.0f * (quat.x * quat.x + quat.y * quat.y),
 		0.0f,
 
@@ -158,15 +169,15 @@ Mat4x4 Mat4x4::create_scale(float x, float y, float z)
 
 Mat4x4 Mat4x4::create_lookat(const Vec3F& eye, const Vec3F& centre, const Vec3F& up)
 {
-	Vec3F p = (eye - centre).normalized();
-	Vec3F q = Vec3F::cross(p, up).normalized();
-	Vec3F r = Vec3F::cross(q, p);
+	Vec3F za = (centre - eye).normalized();
+	Vec3F xa = Vec3F::cross(za, up).normalized();
+	Vec3F ya = Vec3F::cross(xa, za).normalized();
 
 	return Mat4x4(
-		q.x, r.x, p.x, 0.0f,
-		q.y, r.y, p.y, 0.0f,
-		q.z, r.z, p.z, 0.0f,
-		-Vec3F::dot(q, eye), -Vec3F::dot(r, eye), -Vec3F::dot(p, eye), 1.0f
+		 xa.x,  xa.y,  xa.z, -Vec3F::dot(xa, eye),
+		 ya.x,  ya.y,  ya.z, -Vec3F::dot(ya, eye),
+		-za.x, -za.y, -za.z,  Vec3F::dot(za, eye),
+		 0.0f,  0.0f,  0.0f,  1.0f
 	);
 }
 
@@ -174,17 +185,15 @@ Mat4x4 Mat4x4::create_lookat(const Vec3F& eye, const Vec3F& centre, const Vec3F&
 Mat4x4 Mat4x4::basis() const
 {
 	Mat4x4 ret = *this;
-	ret.m41 = 0.0f;
-	ret.m42 = 0.0f;
-	ret.m43 = 0.0f;
+	ret.m14 = 0.0f;
+	ret.m24 = 0.0f;
+	ret.m34 = 0.0f;
 	ret.m44 = 1.0f;
 	return ret;
 }
 
 float Mat4x4::determinant() const
 {
-	// https://stackoverflow.com/questions/1148309/inverting-a-4x4-matrix
-
 	float A2323 = (this->m33 * this->m44) - (this->m34 * this->m43);
 	float A1323 = (this->m32 * this->m44) - (this->m34 * this->m42);
 	float A1223 = (this->m32 * this->m43) - (this->m33 * this->m42);
@@ -202,8 +211,6 @@ float Mat4x4::determinant() const
 
 Mat4x4 Mat4x4::inverse() const
 {
-	// https://stackoverflow.com/questions/1148309/inverting-a-4x4-matrix
-
 	float A2323 = (this->m33 * this->m44) - (this->m34 * this->m43);
 	float A1323 = (this->m32 * this->m44) - (this->m34 * this->m42);
 	float A1223 = (this->m32 * this->m43) - (this->m33 * this->m42);
@@ -223,29 +230,30 @@ Mat4x4 Mat4x4::inverse() const
 	float A0113 = (this->m21 * this->m42) - (this->m22 * this->m41);
 	float A0112 = (this->m21 * this->m32) - (this->m22 * this->m31);
 
-	float invdet = 1.0f / (
+	float inv_det = 1.0f / (
 		this->m11 * ((this->m22 * A2323) - (this->m23 * A1323) + (this->m24 * A1223)) -
 		this->m12 * ((this->m21 * A2323) - (this->m23 * A0323) + (this->m24 * A0223)) +
 		this->m13 * ((this->m21 * A1323) - (this->m22 * A0323) + (this->m24 * A0123)) -
-		this->m14 * ((this->m21 * A1223) - (this->m22 * A0223) + (this->m23 * A0123)));
+		this->m14 * ((this->m21 * A1223) - (this->m22 * A0223) + (this->m23 * A0123))
+	);
 
 	return Mat4x4(
-		invdet *   ((this->m22 * A2323) - (this->m23 * A1323) + (this->m24 * A1223)),
-		invdet * - ((this->m12 * A2323) - (this->m13 * A1323) + (this->m14 * A1223)),
-		invdet *   ((this->m12 * A2313) - (this->m13 * A1313) + (this->m14 * A1213)),
-		invdet * - ((this->m12 * A2312) - (this->m13 * A1312) + (this->m14 * A1212)),
-		invdet * - ((this->m21 * A2323) - (this->m23 * A0323) + (this->m24 * A0223)),
-		invdet *   ((this->m11 * A2323) - (this->m13 * A0323) + (this->m14 * A0223)),
-		invdet * - ((this->m11 * A2313) - (this->m13 * A0313) + (this->m14 * A0213)),
-		invdet *   ((this->m11 * A2312) - (this->m13 * A0312) + (this->m14 * A0212)),
-		invdet *   ((this->m21 * A1323) - (this->m22 * A0323) + (this->m24 * A0123)),
-		invdet * - ((this->m11 * A1323) - (this->m12 * A0323) + (this->m14 * A0123)),
-		invdet *   ((this->m11 * A1313) - (this->m12 * A0313) + (this->m14 * A0113)),
-		invdet * - ((this->m11 * A1312) - (this->m12 * A0312) + (this->m14 * A0112)),
-		invdet * - ((this->m21 * A1223) - (this->m22 * A0223) + (this->m23 * A0123)),
-		invdet *   ((this->m11 * A1223) - (this->m12 * A0223) + (this->m13 * A0123)),
-		invdet * - ((this->m11 * A1213) - (this->m12 * A0213) + (this->m13 * A0113)),
-		invdet *   ((this->m11 * A1212) - (this->m12 * A0212) + (this->m13 * A0112))
+		inv_det *   ((this->m22 * A2323) - (this->m23 * A1323) + (this->m24 * A1223)),
+		inv_det * - ((this->m12 * A2323) - (this->m13 * A1323) + (this->m14 * A1223)),
+		inv_det *   ((this->m12 * A2313) - (this->m13 * A1313) + (this->m14 * A1213)),
+		inv_det * - ((this->m12 * A2312) - (this->m13 * A1312) + (this->m14 * A1212)),
+		inv_det * - ((this->m21 * A2323) - (this->m23 * A0323) + (this->m24 * A0223)),
+		inv_det *   ((this->m11 * A2323) - (this->m13 * A0323) + (this->m14 * A0223)),
+		inv_det * - ((this->m11 * A2313) - (this->m13 * A0313) + (this->m14 * A0213)),
+		inv_det *   ((this->m11 * A2312) - (this->m13 * A0312) + (this->m14 * A0212)),
+		inv_det *   ((this->m21 * A1323) - (this->m22 * A0323) + (this->m24 * A0123)),
+		inv_det * - ((this->m11 * A1323) - (this->m12 * A0323) + (this->m14 * A0123)),
+		inv_det *   ((this->m11 * A1313) - (this->m12 * A0313) + (this->m14 * A0113)),
+		inv_det * - ((this->m11 * A1312) - (this->m12 * A0312) + (this->m14 * A0112)),
+		inv_det * - ((this->m21 * A1223) - (this->m22 * A0223) + (this->m23 * A0123)),
+		inv_det *   ((this->m11 * A1223) - (this->m12 * A0223) + (this->m13 * A0123)),
+		inv_det * - ((this->m11 * A1213) - (this->m12 * A0213) + (this->m13 * A0113)),
+		inv_det *   ((this->m11 * A1212) - (this->m12 * A0212) + (this->m13 * A0112))
 	);
 }
 
@@ -342,9 +350,16 @@ Mat4x4& Mat4x4::operator *= (const Mat4x4& other)
 	return *this;
 }
 
-float* Mat4x4::operator [] (int idx)
+const Mat4x4& Mat4x4::zero()
 {
-	return elements[idx];
+	static const Mat4x4 ZERO = Mat4x4(
+		0, 0, 0, 0,
+		0, 0, 0, 0,
+		0, 0, 0, 0,
+		0, 0, 0, 0
+	);
+
+	return ZERO;
 }
 
 const Mat4x4& Mat4x4::identity()

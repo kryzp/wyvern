@@ -1,10 +1,8 @@
-#ifndef STACK_VECTOR_H
-#define STACK_VECTOR_H
+#ifndef STACK_VECTOR_H_
+#define STACK_VECTOR_H_
 
 #include <initializer_list>
-
 #include <wvn/common.h>
-#include <wvn/assert.h>
 
 namespace wvn
 {
@@ -146,8 +144,8 @@ namespace wvn
 	{
 		clear();
 
-		mem::set(m_buf, 0, Capacity * sizeof(T));
-		m_size = 0;
+		mem::set(this->m_buf, 0, Capacity * sizeof(T));
+		this->m_size = 0;
 	}
 
 	template <typename T, u64 Capacity>
@@ -208,7 +206,9 @@ namespace wvn
 	template <typename... Args>
 	T& StackVector<T, Capacity>::emplace_front(Args&&... args)
 	{
+		mem::move(m_buf + 1, m_buf, sizeof(T) * m_size);
 		new (m_buf) T(std::forward<Args>(args)...);
+		m_size++;
 		return m_buf[0];
 	}
 
@@ -316,4 +316,4 @@ namespace wvn
 	}
 }
 
-#endif // STACK_VECTOR_H
+#endif // STACK_VECTOR_H_

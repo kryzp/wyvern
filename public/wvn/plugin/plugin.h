@@ -1,5 +1,5 @@
-#ifndef PLUGIN_H
-#define PLUGIN_H
+#ifndef PLUGIN_H_
+#define PLUGIN_H_
 
 namespace wvn::plug
 {
@@ -9,9 +9,9 @@ namespace wvn::plug
 	class Plugin
 	{
 	public:
-		virtual void install() = 0;
-		virtual void uninstall() = 0;
+		virtual void implement() = 0;
+		virtual void remove() = 0;
 	};
 }
 
-#endif // PLUGIN_H
+#endif // PLUGIN_H_

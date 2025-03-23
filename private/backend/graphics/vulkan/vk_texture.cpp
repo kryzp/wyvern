@@ -14,6 +14,7 @@ TextureMetaData VulkanTexture::meta_data() const { return {
 
 VulkanTexture::VulkanTexture(VulkanBackend* backend)
 	: m_backend(backend)
+	, m_parent(nullptr)
 	, m_image(VK_NULL_HANDLE)
 	, m_image_memory(VK_NULL_HANDLE)
 	, m_image_layout()
@@ -23,7 +24,7 @@ VulkanTexture::VulkanTexture(VulkanBackend* backend)
 	, m_type()
 	, m_width(0)
 	, m_height(0)
-	, m_mip_levels(0)
+	, m_mipmap_count(1)
 	, m_num_samples(VK_SAMPLE_COUNT_1_BIT)
 	, m_transient(false)
 {
@@ -53,28 +54,53 @@ void VulkanTexture::clean_up()
 		vkDestroyImageView(m_backend->device, m_view, nullptr);
 		m_view = VK_NULL_HANDLE;
 	}
+
+	m_image_layout = VK_IMAGE_LAYOUT_UNDEFINED;
+	m_format = TEX_FORMAT_NONE;
+	m_tiling = TEX_TILE_NONE;
+	m_type = TEX_TYPE_NONE;
+	m_width = 0;
+	m_height = 0;
+	m_mipmap_count = 0;
+	m_num_samples = VK_SAMPLE_COUNT_1_BIT;
+	m_transient = false;
 }
 
-void VulkanTexture::create(const Image& image, TextureType type, u32 mip_levels, VkSampleCountFlagBits num_samples, bool transient)
+void VulkanTexture::from_image(const Image& image, TextureType type, u32 mip_levels, VkSampleCountFlagBits num_samples)
 {
-	create(image.width(), image.height(), TEX_FMT_R8G8B8A8_SRGB, TEX_TILE_OPTIMAL, type, mip_levels, num_samples, transient);
+	init_size(image.width(), image.height());;
+	init_metadata(TEX_FORMAT_R8G8B8A8_SRGB, TEX_TILE_OPTIMAL, type);
+	init_mip_levels(mip_levels);
+	init_sample_count(num_samples);
+	init_transient(false);
 }
 
-// todo: the parameters here are kind of annoying. Also why is it that if mip_levels != 1, you have to call generate_mipmaps(), but if its 1 you just leave it? it feels so weird.
-void VulkanTexture::create(u32 width, u32 height, TextureFormat format, TextureTiling tiling, TextureType type, u32 mip_levels, VkSampleCountFlagBits num_samples, bool transient)
+void VulkanTexture::init_size(u32 width, u32 height)
 {
-	this->m_width = width;
-	this->m_height = height;
+	m_width = width;
+	m_height = height;
+}
 
-	this->m_format = format;
-	this->m_tiling = tiling;
-	this->m_type = type;
+void VulkanTexture::init_metadata(TextureFormat format, TextureTiling tiling, TextureType type)
+{
+	m_format = format;
+	m_tiling = tiling;
+	m_type = type;
+}
 
-	this->m_mip_levels = mip_levels;
-	this->m_num_samples = num_samples;
-	this->m_transient = transient;
+void VulkanTexture::init_mip_levels(u32 mip_levels)
+{
+	m_mipmap_count = mip_levels;
+}
 
-	create_internal_resources();
+void VulkanTexture::init_sample_count(VkSampleCountFlagBits num_samples)
+{
+	m_num_samples = num_samples;
+}
+
+void VulkanTexture::init_transient(bool transient)
+{
+	m_transient = transient;
 }
 
 void VulkanTexture::create_internal_resources()
@@ -88,8 +114,8 @@ void VulkanTexture::create_internal_resources()
 	create_info.imageType = vktype;
 	create_info.extent.width = m_width;
 	create_info.extent.height = m_height;
-	create_info.extent.depth = p_depth;
-	create_info.mipLevels = m_mip_levels;
+	create_info.extent.depth = m_depth;
+	create_info.mipLevels = m_mipmap_count;
 	create_info.arrayLayers = get_face_count();
 	create_info.format = vkfmt;
 	create_info.tiling = vktile;
@@ -110,7 +136,7 @@ void VulkanTexture::create_internal_resources()
 	}
 
 	if (VkResult result = vkCreateImage(m_backend->device, &create_info, nullptr, &m_image); result != VK_SUCCESS) {
-		WVN_ERROR("[VULKAN:TEXTURE|DEBUG] Failed to create command pool: %d", result);
+		wvn_ERROR("[VULKAN:TEXTURE|DEBUG] Failed to create command pool: %d", result);
 	}
 
 	VkMemoryRequirements memory_requirements = {};
@@ -122,7 +148,7 @@ void VulkanTexture::create_internal_resources()
 	alloc_info.memoryTypeIndex = vkutil::find_memory_type(m_backend->physical_data.device, memory_requirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
 	if (VkResult result = vkAllocateMemory(m_backend->device, &alloc_info, nullptr, &m_image_memory); result != VK_SUCCESS) {
-		WVN_ERROR("[VULKAN:TEXTURE|DEBUG] Failed to allocate memory for image: %d", result);
+		wvn_ERROR("[VULKAN:TEXTURE|DEBUG] Failed to allocate memory for image: %d", result);
 	}
 
 	vkBindImageMemory(m_backend->device, m_image, m_image_memory, 0);
@@ -135,47 +161,53 @@ VkImageView VulkanTexture::generate_view() const
 	VkFormat vkfmt = vkutil::get_vk_texture_format(m_format);
 	VkImageViewType vkviewtype = vkutil::get_vk_image_view_type(m_type);
 
-	VkImageViewCreateInfo view_info = {};
-	view_info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-	view_info.image = m_image;
-	view_info.viewType = vkviewtype;
-	view_info.format = vkfmt;
+	VkImageViewCreateInfo view_create_info = {};
+	view_create_info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+	view_create_info.image = m_image;
+	view_create_info.viewType = vkviewtype;
+	view_create_info.format = vkfmt;
 
-	view_info.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-	view_info.subresourceRange.baseMipLevel = 0;
-	view_info.subresourceRange.levelCount = m_mip_levels;
-	view_info.subresourceRange.baseArrayLayer = 0;
-	view_info.subresourceRange.layerCount = get_layer_count();
+	view_create_info.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	view_create_info.subresourceRange.baseMipLevel = 0;
+	view_create_info.subresourceRange.levelCount = m_mipmap_count;
+	view_create_info.subresourceRange.baseArrayLayer = 0;
+	view_create_info.subresourceRange.layerCount = get_layer_count();
 
 	if (vkutil::has_stencil_component(vkfmt)) {
-		view_info.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
+		// depth AND stencil is not allowed for sampling!
+		// so, use depth instead.
+		view_create_info.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
 	}
 
-	view_info.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
-	view_info.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
-	view_info.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
-	view_info.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+	VkImageViewUsageCreateInfo flag_restriction;
+	flag_restriction.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_USAGE_CREATE_INFO;
+
+	view_create_info.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+	view_create_info.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+	view_create_info.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+	view_create_info.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
 
 	VkImageView ret = {};
 
-	if (VkResult result = vkCreateImageView(m_backend->device, &view_info, nullptr, &ret); result != VK_SUCCESS) {
-		WVN_ERROR("[VULKAN|DEBUG:TEXTURE] Failed to create texture image view: %d", result);
+	if (VkResult result = vkCreateImageView(m_backend->device, &view_create_info, nullptr, &ret); result != VK_SUCCESS) {
+		wvn_ERROR("[VULKAN:TEXTURE|DEBUG] Failed to create texture image view: %d", result);
 	}
 
 	return ret;
 }
 
-// requires texture to be in TRANSFER_DST_OPTIMAL layout
 // also transitions the texture into SHADER_READ_ONLY layout
-void VulkanTexture::generate_mipmaps()
+void VulkanTexture::generate_mipmaps() const
 {
+	wvn_ASSERT(m_image_layout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, "[VULKAN:TEXTURE|DEBUG] Texture must be in TRANSFER_DST_OPTIMAL layout to generate mipmaps.");
+
 	VkFormat vkfmt = vkutil::get_vk_texture_format(m_format);
 
 	VkFormatProperties format_properties = {};
 	vkGetPhysicalDeviceFormatProperties(m_backend->physical_data.device, vkfmt, &format_properties);
 
 	if (!(format_properties.optimalTilingFeatures & VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT)) {
-		WVN_ERROR("[VULKAN|DEBUG:TEXTURE] Texture image format doesn't support linear blitting.");
+		wvn_ERROR("[VULKAN:TEXTURE|DEBUG] Texture image format doesn't support linear blitting.");
 		return;
 	}
 
@@ -191,7 +223,7 @@ void VulkanTexture::generate_mipmaps()
 		barrier.subresourceRange.layerCount = get_layer_count();
 		barrier.subresourceRange.levelCount = 1;
 
-		for (int i = 1; i < m_mip_levels; i++)
+		for (int i = 1; i < m_mipmap_count; i++)
 		{
 			barrier.subresourceRange.baseMipLevel = i - 1;
 
@@ -256,7 +288,7 @@ void VulkanTexture::generate_mipmaps()
 			);
 		}
 
-		barrier.subresourceRange.baseMipLevel = m_mip_levels - 1;
+		barrier.subresourceRange.baseMipLevel = m_mipmap_count - 1;
 		barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
 		barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 		barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
@@ -287,7 +319,7 @@ void VulkanTexture::transition_layout(VkImageLayout new_layout)
 		barrier.image = m_image;
 		barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 		barrier.subresourceRange.baseMipLevel = 0;
-		barrier.subresourceRange.levelCount = m_mip_levels;
+		barrier.subresourceRange.levelCount = m_mipmap_count;
 		barrier.subresourceRange.baseArrayLayer = 0;
 		barrier.subresourceRange.layerCount = get_layer_count();
 		barrier.srcAccessMask = 0;
@@ -324,9 +356,19 @@ void VulkanTexture::transition_layout(VkImageLayout new_layout)
 			src_stage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
 			dst_stage = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
 		}
+		/*
+		else if (m_image_layout == VK_IMAGE_LAYOUT_UNDEFINED && new_layout == VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL)
+		{
+			barrier.srcAccessMask = 0;
+			barrier.dstAccessMask = VK_IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL;
+
+			src_stage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+			dst_stage = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+		}
+		*/
 		else
 		{
-			WVN_ERROR("[VULKAN:TEXTURE|DEBUG] Unsupported layout transition for image.");
+			wvn_ERROR("[VULKAN:TEXTURE|DEBUG] Unsupported layout transition for image.");
 		}
 
 		vkCmdPipelineBarrier(
@@ -343,9 +385,24 @@ void VulkanTexture::transition_layout(VkImageLayout new_layout)
 	vkutil::end_single_time_commands(m_backend->current_frame().command_pool, cmd_buf, m_backend->device, m_backend->queues.graphics);
 }
 
+void VulkanTexture::set_parent(RenderTarget* parent)
+{
+	m_parent = parent;
+}
+
+const RenderTarget* VulkanTexture::get_parent() const
+{
+	return m_parent;
+}
+
+bool VulkanTexture::has_parent() const
+{
+	return m_parent != nullptr;
+}
+
 u32 VulkanTexture::get_layer_count() const
 {
-	return (m_type == TEX_TYPE_1D_ARRAY || m_type == TEX_TYPE_2D_ARRAY) ? p_depth : get_face_count();
+	return (m_type == TEX_TYPE_1D_ARRAY || m_type == TEX_TYPE_2D_ARRAY) ? m_depth : get_face_count();
 }
 
 u32 VulkanTexture::get_face_count() const
@@ -357,6 +414,6 @@ VkImage VulkanTexture::image() const { return m_image; }
 VkImageView VulkanTexture::image_view() const { return m_view; }
 u32 VulkanTexture::width() const { return m_width; }
 u32 VulkanTexture::height() const { return m_height; }
-u32 VulkanTexture::mip_levels() const { return m_mip_levels; }
+u32 VulkanTexture::mip_levels() const { return m_mipmap_count; }
 VkSampleCountFlagBits VulkanTexture::num_samples() const { return m_num_samples; }
 bool VulkanTexture::transient() const { return m_transient; }

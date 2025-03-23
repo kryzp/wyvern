@@ -1,24 +1,23 @@
 #include <wvn/plugin/plugin_loader.h>
 #include <wvn/plugin/plugin.h>
 
-#if WVN_USE_SDL2
-#include <wvn/plugin/system/sdl2_plugin.h>
-#endif
+#if wvn_USE_SDL3
+#include <wvn/plugin/system/sdl3_plugin.h>
+#endif // wvn_USE_SDL3
 
-#if WVN_USE_VULKAN
+#if wvn_USE_VULKAN
 #include <wvn/plugin/graphics/vulkan_plugin.h>
-#endif
+#endif // wvn_USE_VULKAN
 
-#if WVN_USE_OPENAL
+#if wvn_USE_OPENAL
 #include <wvn/plugin/audio/openal_plugin.h>
-#endif
+#endif // wvn_USE_OPENAL
 
 using namespace wvn;
 using namespace wvn::plug;
 
 /**
- * Note:
- * Plugin order *matters* here!
+ * Plugin order matters here!
  * System plugins are loaded first, then rendering, then finally audio.
  */
 
@@ -28,23 +27,23 @@ Vector<Plugin*> PluginLoader::load_plugins()
 	{
 		// system plugins
 		{
-#if WVN_USE_SDL2
-			plugins.push_back(new SDL2Plugin());
-#endif
+#if wvn_USE_SDL3
+			plugins.push_back(new SDL3Plugin());
+#endif // wvn_USE_SDL3
 		}
 
 		// renderer plugins
 		{
-#if WVN_USE_VULKAN
+#if wvn_USE_VULKAN
 			plugins.push_back(new VulkanPlugin());
-#endif
+#endif // wvn_USE_VULKAN
 		}
 
 		// audio plugins
 		{
-#if WVN_USE_OPENAL
+#if wvn_USE_OPENAL
 			plugins.push_back(new OpenALPlugin());
-#endif
+#endif // wvn_USE_OPENAL
 		}
 	}
 	return plugins;

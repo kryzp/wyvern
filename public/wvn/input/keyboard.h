@@ -1,5 +1,5 @@
-#ifndef KEYBOARD_H
-#define KEYBOARD_H
+#ifndef KEYBOARD_H_
+#define KEYBOARD_H_
 
 namespace wvn::inp
 {
@@ -220,8 +220,8 @@ namespace wvn::inp
 		KEY_RIGHT_SHIFT 			= 229,
 		KEY_RIGHT_ALT 				= 230,
 		KEY_RIGHT_SUPER 			= 231,
-		KEY_MAX
+		KEY_MAX_ENUM
 	};
 }
 
-#endif // KEYBOARD_H
+#endif // KEYBOARD_H_

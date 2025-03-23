@@ -50,18 +50,18 @@ void Timer::resume()
 	m_paused_ticks = 0;
 }
 
-u64 Timer::reset()
+double Timer::reset()
 {
-	u64 sec = seconds();
+	u64 mil = milliseconds();
 
 	if (m_started) {
 		start();
 	}
 
-	return sec;
+	return mil;
 }
 
-u64 Timer::milliseconds() const
+double Timer::milliseconds() const
 {
 	if (m_started)
 	{
@@ -75,9 +75,9 @@ u64 Timer::milliseconds() const
 	return 0;
 }
 
-u64 Timer::seconds() const
+double Timer::seconds() const
 {
-	return milliseconds() / 1000.0f;
+	return milliseconds() / 1000.0;
 }
 
 bool Timer::started() const

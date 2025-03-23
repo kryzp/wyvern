@@ -22,7 +22,7 @@ FileStream& FileStream::open(const char* filename, const char* mode)
 	return *this;
 }
 
-bool FileStream::get_line(String& str, s32& seek_cache)
+bool FileStream::get_line(String& str, s32& pointer)
 {
 	str.clear();
 
@@ -33,12 +33,12 @@ bool FileStream::get_line(String& str, s32& seek_cache)
 		read(&c, 1);
 		str.push_back(c);
 
-		seek_cache++;
+		pointer++;
 
-		if (seek_cache > size())
+		if (pointer > size())
 			return false;
 
-		seek(seek_cache);
+		seek(pointer);
 	}
 	while (c != '\n');
 

@@ -3,7 +3,7 @@
 using namespace wvn;
 using namespace wvn::dev;
 
-WVN_IMPL_SINGLETON(Console);
+wvn_IMPL_SINGLETON(Console);
 
 Console::Console()
 {

@@ -1,5 +1,5 @@
-#ifndef PLUGIN_LOADER_H
-#define PLUGIN_LOADER_H
+#ifndef PLUGIN_LOADER_H_
+#define PLUGIN_LOADER_H_
 
 #include <wvn/container/vector.h>
 
@@ -18,4 +18,4 @@ namespace wvn::plug
 	};
 }
 
-#endif // PLUGIN_LOADER_H
+#endif // PLUGIN_LOADER_H_

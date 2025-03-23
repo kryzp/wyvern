@@ -1,5 +1,5 @@
-#ifndef VK_BACKEND_H
-#define VK_BACKEND_H
+#ifndef VK_BACKEND_H_
+#define VK_BACKEND_H_
 
 #include <vulkan/vulkan.h>
 
@@ -10,64 +10,33 @@
 
 #include <wvn/root.h>
 #include <wvn/common.h>
+#include <wvn/const.h>
 
 #include <wvn/graphics/renderer_backend.h>
 
 #include <backend/graphics/vulkan/vk_render_pass_builder.h>
+
 #include <backend/graphics/vulkan/vk_descriptor_pool_mgr.h>
+#include <backend/graphics/vulkan/vk_descriptor_builder.h>
+#include <backend/graphics/vulkan/vk_descriptor_cache.h>
+
+#include <backend/graphics/vulkan/vk_ubo_manager.h>
 
 #include <backend/graphics/vulkan/vk_buffer.h>
 #include <backend/graphics/vulkan/vk_texture.h>
 #include <backend/graphics/vulkan/vk_shader.h>
+#include <backend/graphics/vulkan/vk_render_target.h>
+#include <backend/graphics/vulkan/vk_backbuffer.h>
 
 #include <backend/graphics/vulkan/vk_buffer_mgr.h>
 #include <backend/graphics/vulkan/vk_texture_mgr.h>
 #include <backend/graphics/vulkan/vk_shader_mgr.h>
+#include <backend/graphics/vulkan/vk_render_target_mgr.h>
 
 #include <wvn/maths/mat4x4.h>
 
 namespace wvn::gfx
 {
-	struct QueueFamilyIdx
-	{
-		Optional<u32> graphics_family;
-		Optional<u32> present_family;
-		Optional<u32> compute_family;
-		Optional<u32> transfer_family;
-
-		constexpr bool is_complete() const
-		{
-			return (
-				graphics_family &&
-				present_family &&
-				compute_family &&
-				transfer_family
-			);
-		}
-
-		constexpr bool all_unique() const
-		{
-			const u32 g = graphics_family.value();
-			const u32 p = present_family.value();
-			const u32 c = compute_family.value();
-			const u32 t = transfer_family.value();
-
-			return (
-				(g != p) && (g != t) && (t != p) && (t != c) && (g != c) && (p != c)
-			);
-		}
-
-		const Array<u32, 4> package() const
-		{
-			return {
-				graphics_family.value_or(-1),
-				present_family.value_or(-1),
-				compute_family.value_or(-1),
-				transfer_family.value_or(-1)
-			};
-		}
-	};
-
 	struct QueueData
 	{
 		VkQueue graphics;
@@ -83,138 +52,144 @@ namespace wvn::gfx
 		VkPhysicalDeviceFeatures features;
 	};
 
-	struct SwapChainSupportDetails
-	{
-		VkSurfaceCapabilitiesKHR capabilities;
-		Vector<VkSurfaceFormatKHR> surface_formats;
-		Vector<VkPresentModeKHR> present_modes;
-	};
-
 	class VulkanBackend : public RendererBackend
 	{
 		struct FrameData
 		{
 			VkFence in_flight_fence;
-			VkSemaphore render_finished_semaphore;
-			VkSemaphore image_available_semaphore;
 			VkCommandPool command_pool;
 			VkCommandBuffer command_buffer;
-			VulkanBuffer* uniform_buffer;
 		};
 
 	public:
-		static constexpr u32 MAX_FRAMES_IN_FLIGHT = 2;
-		static constexpr u32 MAX_UBOS = 128;
-
 		VulkanBackend();
 		~VulkanBackend() override;
 
 		RendererBackendProperties properties() override;
 
 		void begin_render() override;
-		void render(const RenderPass& pass) override;
+		void render(const RenderOp& op) override;
 		void end_render() override;
 
+        Backbuffer* create_backbuffer() override;
+
 		void swap_buffers() override;
-		void set_clear_colour(const Colour& colour) override;
 
-		void set_depth_params(bool depth_test, bool depth_write) override;
-
-		void wait_for_sync();
+		void set_render_target(RenderTarget* target) override;
 
 		void on_window_resize(int width, int height) override;
+
+		void toggle_blending(bool enabled) override;
+		void set_blend_write_mask(bool r, bool g, bool b, bool a) override;
+		void set_blend_colour(const Blend& blend) override;
+		void set_blend_alpha(const Blend& blend) override;
+		void set_blend_constants(float r, float g, float b, float a) override;
+		void get_blend_constants(float* constants) override;
+		void set_blend_op(bool enabled, LogicOp op) override;
+
+		void set_depth_params(bool depth_test, bool depth_write) override;
+		void set_depth_op(CompareOp op) override;
+		void set_depth_bounds_test(bool enabled) override;
+		void set_depth_bounds(float min, float max) override;
+		void set_depth_stencil_test(bool enabled) override;
+
+		void set_viewport(const RectF& rect) override;
+		void set_scissor(const RectI& rect) override;
+
+		void set_sample_shading(bool enabled, float min_sample_shading) override;
+		void set_cull_mode(CullMode cull) override;
 
 		void set_texture(u32 idx, const Texture* texture) override;
 		void set_sampler(u32 idx, TextureSampler* sampler) override;
 
-		void bind_shader(Shader* shader) override;
+		void bind_shader(const ShaderProgram* shader) override;
+		void bind_shader_params(ShaderProgramType shader_type, ShaderParameters& params) override;
+
+		void set_push_constants(ShaderParameters& params) override;
+		void reset_push_constants() override;
 
 		FrameData& current_frame();
-		u64 frame() const;
+		u64 get_current_frame_idx() const;
 
+		void sync_stall() const;
+
+		void clear_descriptor_set_and_pool();
+
+        VkInstance vulkan_instance;
 		VkDevice device;
 		PhysicalDeviceData physical_data;
 		QueueData queues;
-		FrameData frames[MAX_FRAMES_IN_FLIGHT];
+		FrameData frames[vkutil::FRAMES_IN_FLIGHT];
+		VkSampleCountFlagBits msaa_samples;
+		VkFormat swap_chain_image_format;
 
 	private:
 		void enumerate_physical_devices();
 		void create_logical_device(const QueueFamilyIdx& phys_idx);
-		void create_swap_chain(const QueueFamilyIdx& phys_idx);
-		void create_render_pass();
-		void create_command_pools(const QueueFamilyIdx& phys_idx);
+		void create_command_pools(u32 graphics_family_idx);
 		void create_command_buffers();
-		void create_sync_objects();
-		void create_descriptor_set_layout();
-		void create_pipeline_layout();
-		void create_uniform_buffers();
-		void create_depth_resources();
-		void create_colour_resources();
-		void create_swap_chain_image_views();
-		void clean_up_swap_chain();
-		void rebuild_swap_chain();
-		void create_swap_chain_framebuffers();
-		void acquire_next_image();
 		void create_pipeline_process_cache();
 		VkSampleCountFlagBits get_max_usable_sample_count() const;
 
 		void clear_pipeline_cache();
-		void clear_descriptor_set_cache();
 
 		VkPipeline get_graphics_pipeline();
+		VkPipelineLayout get_graphics_pipeline_layout();
+
+		void reset_descriptor_builder();
+
+		VulkanDescriptorBuilder get_descriptor_builder();
 		VkDescriptorSet get_descriptor_set();
 
-		u32 assign_physical_device_usability(VkPhysicalDevice physical_device, VkPhysicalDeviceProperties properties, VkPhysicalDeviceFeatures features, bool* essentials_completed);
-		QueueFamilyIdx find_queue_families(VkPhysicalDevice physical_device);
-		bool check_device_extension_support(VkPhysicalDevice physical_device);
-		SwapChainSupportDetails query_swap_chain_support(VkPhysicalDevice physical_device);
-
 		// core
-		VkInstance m_instance;
-		VkSurfaceKHR m_surface;
-		u64 m_current_frame;
-		bool m_is_framebuffer_resized;
+		u64 m_current_frame_idx;
 
 		// managers
 		VulkanBufferMgr* m_buffer_mgr;
 		VulkanTextureMgr* m_texture_mgr;
 		VulkanShaderMgr* m_shader_mgr;
+		VulkanRenderTargetMgr* m_render_target_mgr;
+
+		// pipeline
+		HashMap<u64, VkPipeline> m_pipeline_cache;
+		HashMap<u64, VkPipelineLayout> m_pipeline_layout_cache;
+		VkPipelineCache m_pipeline_process_cache;
 
 		// render pass
-		VkRenderPass m_render_pass;
-		VulkanRenderPassBuilder m_render_pass_builder;
-		VkPipelineLayout m_pipeline_layout;
-		HashMap<u32, VkPipeline> m_pipeline_cache;
-		HashMap<u32, VkDescriptorSet> m_descriptor_set_cache;
-		VkPipelineCache m_pipeline_process_cache;
-		VkDescriptorSetLayout m_descriptor_set_layout;
+		VulkanRenderPassBuilder* m_current_render_pass_builder;
+		Array<VkDescriptorImageInfo, wvn_MAX_BOUND_TEXTURES> m_image_infos;
+		Array<VkPipelineShaderStageCreateInfo, SHADER_TYPE_GRAPHICS_COUNT> m_shader_stages;
+
+		// descriptors
 		VulkanDescriptorPoolMgr m_descriptor_pool_mgr;
-		Array<VkWriteDescriptorSet, 1 + WVN_MAX_BOUND_TEXTURES> m_descriptor_writes;
-		Array<VkDescriptorImageInfo, WVN_MAX_BOUND_TEXTURES> m_image_infos;
-		Array<VkPipelineShaderStageCreateInfo, SHADER_TYPE_MAX> m_shader_stages;
-		u32 m_current_ubo;
+		VulkanDescriptorCache m_descriptor_cache;
+		VulkanDescriptorBuilder m_descriptor_builder;
+		bool m_descriptor_builder_dirty;
 
 		// swap chain
-		VkSwapchainKHR m_swap_chain;
-		Vector<VkImage> m_swap_chain_images;
-		Vector<VkImageView> m_swap_chain_image_views;
-		VkFormat m_swap_chain_image_format;
-		VkExtent2D m_swap_chain_extent;
-		Vector<VkFramebuffer> m_swap_chain_framebuffers;
-		u32 m_curr_image_idx;
+        VulkanBackbuffer* m_backbuffer;
+        VkViewport m_viewport;
+		VkRect2D m_scissor;
 
-		// depth
-		VulkanTexture m_depth;
+		// shader parameters
+		VulkanUBOManager m_ubo_mgr;
+		//Array<const ShaderParameters*, SHADER_TYPE_GRAPHICS_COUNT> m_current_shader_parameters;
+		ShaderParameters::PackedConstants m_push_constants;
+
+		// rendering configs
 		VkPipelineDepthStencilStateCreateInfo m_depth_stencil_create_info;
+		VkPipelineColorBlendAttachmentState m_colour_blend_attachment_state;
+		float m_blend_constants[4];
+		bool m_sample_shading_enabled;
+		float m_min_sample_shading;
+		bool m_blend_state_logic_op_enabled;
+		VkLogicOp m_blend_state_logic_op;
+		VkCullModeFlagBits m_cull_mode;
 
-		// multisampling
-		VulkanTexture m_colour;
-		VkSampleCountFlagBits m_msaa_samples;
-
-#if WVN_DEBUG
+#if wvn_DEBUG
 		VkDebugUtilsMessengerEXT m_debug_messenger;
-#endif
+#endif // wvn_DEBUG
 	};
 }
 
-#endif // VK_BACKEND_H
+#endif // VK_BACKEND_H_

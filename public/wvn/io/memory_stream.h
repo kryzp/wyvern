@@ -1,5 +1,5 @@
-#ifndef MEMORY_STREAM_H
-#define MEMORY_STREAM_H
+#ifndef MEMORY_STREAM_H_
+#define MEMORY_STREAM_H_
 
 #include <wvn/io/stream.h>
 
@@ -28,4 +28,4 @@ namespace wvn::io
 	};
 }
 
-#endif // MEMORY_STREAM_H
+#endif // MEMORY_STREAM_H_

@@ -1,5 +1,5 @@
-#ifndef CLASS_DB_H
-#define CLASS_DB_H
+#ifndef CLASS_DB_H_
+#define CLASS_DB_H_
 
 #include <wvn/container/string.h>
 #include <wvn/container/vector.h>
@@ -21,7 +21,7 @@ namespace wvn
 	};
 }
 
-#define WVNCLASS_BASE(_class) 						        \
+#define wvnCLASS_BASE(_class) 						        \
 private:											        \
 	friend class ::wvn::ClassDB;					        \
 public:												        \
@@ -44,7 +44,7 @@ public:												        \
 	} 												        \
 private:
 
-#define WVNCLASS(_class, _inherits)										                \
+#define wvnCLASS(_class, _inherits)										                \
 private:																                \
 	friend class ::wvn::ClassDB;          								                \
 public:                               									                \
@@ -75,4 +75,4 @@ public:                               									                \
 	} 														                	        \
 private:
 
-#endif // CLASS_DB_H
+#endif // CLASS_DB_H_

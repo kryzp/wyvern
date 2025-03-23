@@ -1,8 +1,10 @@
-#ifndef ANY_H
-#define ANY_H
+#ifndef ANY_H_
+#define ANY_H_
 
 namespace wvn
 {
+	// todo
+
 	/**
 	 * Wrapper around a raw pointer to any type possible.
 	 */
@@ -42,7 +44,8 @@ namespace wvn
 
 	bool Any::has_value()
 	{
+		return false;
 	}
 }
 
-#endif // ANY_H
+#endif // ANY_H_

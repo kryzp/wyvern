@@ -4,7 +4,7 @@
 using namespace wvn;
 using namespace wvn::net;
 
-WVN_IMPL_SINGLETON(NetworkMgr);
+wvn_IMPL_SINGLETON(NetworkMgr);
 
 NetworkMgr::NetworkMgr()
 {

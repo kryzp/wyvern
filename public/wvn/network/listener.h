@@ -1,5 +1,5 @@
-#ifndef LISTENER_H
-#define LISTENER_H
+#ifndef LISTENER_H_
+#define LISTENER_H_
 
 #include <wvn/common.h>
 #include <wvn/network/network_mgr.h>
@@ -31,4 +31,4 @@ namespace wvn::net
 	};
 }
 
-#endif // LISTENER_H
+#endif // LISTENER_H_

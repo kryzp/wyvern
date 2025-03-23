@@ -1,5 +1,5 @@
-#ifndef SOUND_H
-#define SOUND_H
+#ifndef SOUND_H_
+#define SOUND_H_
 
 namespace wvn::sfx
 {
@@ -14,4 +14,4 @@ namespace wvn::sfx
 	};
 }
 
-#endif // SOUND_H
+#endif // SOUND_H_

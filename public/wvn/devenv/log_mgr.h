@@ -1,5 +1,5 @@
-#ifndef LOG_MGR_H
-#define LOG_MGR_H
+#ifndef LOG_MGR_H_
+#define LOG_MGR_H_
 
 #include <wvn/singleton.h>
 
@@ -12,7 +12,7 @@ namespace wvn::dev
 	 */
 	class LogMgr : public Singleton<LogMgr>
 	{
-		WVN_DEF_SINGLETON(LogMgr);
+		wvn_DEF_SINGLETON(LogMgr);
 
 	public:
 		LogMgr();
@@ -22,4 +22,4 @@ namespace wvn::dev
 	};
 }
 
-#endif // LOG_MGR_H
+#endif // LOG_MGR_H_

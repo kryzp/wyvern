@@ -1,10 +1,27 @@
 #include <wvn/common.h>
+#include <wvn/container/string.h>
 
 #include <string.h>
 #include <stdlib.h>
 #include <cctype>
 
 using namespace wvn;
+
+template <>
+u64 hash::calc(u64 start, const char* str)
+{
+	u64 hash = start + 7521;
+	for (int i = 0; str[i] != '\0'; i++) {
+		hash = ((hash << 5) + hash) + str[i];
+	}
+	return hash;
+}
+
+template <>
+u64 hash::calc(u64 start, const String* str)
+{
+	return calc(start, str->c_str());
+}
 
 void* mem::set(void* ptr, byte val, u64 size)
 {

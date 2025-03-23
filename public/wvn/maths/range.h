@@ -1,5 +1,5 @@
-#ifndef RANGE_H
-#define RANGE_H
+#ifndef RANGE_H_
+#define RANGE_H_
 
 #include <wvn/root.h>
 
@@ -34,4 +34,4 @@ namespace wvn
 	};
 }
 
-#endif // RANGE_H
+#endif // RANGE_H_

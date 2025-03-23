@@ -4,7 +4,7 @@
 using namespace wvn;
 using namespace wvn::anim;
 
-WVN_IMPL_SINGLETON(AnimationMgr);
+wvn_IMPL_SINGLETON(AnimationMgr);
 
 AnimationMgr::AnimationMgr()
 {

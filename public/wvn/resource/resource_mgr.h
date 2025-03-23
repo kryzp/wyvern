@@ -1,5 +1,5 @@
-#ifndef RESOURCE_MGR_H
-#define RESOURCE_MGR_H
+#ifndef RESOURCE_MGR_H_
+#define RESOURCE_MGR_H_
 
 #include <wvn/singleton.h>
 
@@ -11,7 +11,7 @@ namespace wvn::res
 	 */
 	class ResourceMgr : public Singleton<ResourceMgr>
 	{
-		WVN_DEF_SINGLETON(ResourceMgr);
+		wvn_DEF_SINGLETON(ResourceMgr);
 
 	public:
 		ResourceMgr();
@@ -19,4 +19,4 @@ namespace wvn::res
 	};
 }
 
-#endif // RESOURCE_MGR_H
+#endif // RESOURCE_MGR_H_

@@ -1,5 +1,5 @@
-#ifndef POLYGON_H
-#define POLYGON_H
+#ifndef POLYGON_H_
+#define POLYGON_H_
 
 #include <wvn/container/vector.h>
 #include <wvn/container/function.h>
@@ -41,4 +41,4 @@ namespace wvn
 	};
 }
 
-#endif // POLYGON_H
+#endif // POLYGON_H_

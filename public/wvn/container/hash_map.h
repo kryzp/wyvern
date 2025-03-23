@@ -1,11 +1,8 @@
-#ifndef HASH_MAP_H
-#define HASH_MAP_H
+#ifndef HASH_MAP_H_
+#define HASH_MAP_H_
 
 #include <wvn/common.h>
 #include <wvn/container/pair.h>
-
-// std::hash
-#include <functional>
 
 namespace wvn
 {
@@ -17,6 +14,8 @@ namespace wvn
 	class HashMap
 	{
 	public:
+		constexpr static unsigned MIN_CAPACITY = 16;
+
 		using KeyValuePair = Pair<TKey, TValue>;
 
 		struct Element
@@ -186,7 +185,7 @@ namespace wvn
 		realloc();
 
 		if (!other.m_elements) {
-			return;
+			return *this;
 		}
 
 		for (int i = 0; i < other.m_capacity; i++)
@@ -245,7 +244,9 @@ namespace wvn
 	void HashMap<TKey, TValue>::insert(const KeyValuePair& pair)
 	{
 		_insert(pair);
+
 		realign_ptrs();
+
 		m_element_count++;
 	}
 
@@ -303,7 +304,6 @@ namespace wvn
 
 			b = b->next;
 		}
-
 	}
 
 	template <typename TKey, typename TValue>
@@ -317,8 +317,8 @@ namespace wvn
 	{
 		int old_size = m_capacity;
 
-		if (m_capacity < 8) {
-			m_capacity = 8;
+		if (m_capacity < MIN_CAPACITY) {
+			m_capacity = MIN_CAPACITY;
 		}
 
 		while (m_element_count >= m_capacity) {
@@ -352,6 +352,10 @@ namespace wvn
 		Element* f = first();
 		Element* l = last();
 
+		if (f == nullptr && l == nullptr) {
+			return;
+		}
+
 		for (int i = 0; i < m_capacity; i++)
 		{
 			Element* bkt = m_elements[i];
@@ -368,7 +372,18 @@ namespace wvn
 
 					if (m_elements[check_idx])
 					{
-						bkt->next = m_elements[check_idx];
+						Element* last_elem = m_elements[i];
+						while (last_elem->next) {
+							for (int k = 0; k < m_capacity; k++) {
+								if (last_elem->next == m_elements[k]) {
+									goto next_align_found;
+								}
+							}
+							last_elem = last_elem->next;
+						}
+
+next_align_found:
+						last_elem->next = m_elements[check_idx];
 						break;
 					}
 				}
@@ -410,7 +425,7 @@ namespace wvn
 			b = b->next;
 		}
 
-		WVN_ERROR("[HASHMAP|DEBUG] Could not find bucket matching key.");
+		wvn_ERROR("[HASHMAP|DEBUG] Could not find bucket matching key.");
 		return m_elements[0]->data.second;
 	}
 
@@ -428,7 +443,7 @@ namespace wvn
 			b = b->next;
 		}
 
-		WVN_ERROR("[HASHMAP|DEBUG] Could not find element matching key.");
+		wvn_ERROR("[HASHMAP|DEBUG] Could not find element matching key.");
 		return m_elements[0]->data.second;
 	}
 
@@ -476,7 +491,7 @@ namespace wvn
 	template <typename TKey, typename TValue>
 	int HashMap<TKey, TValue>::index_of(const TKey& key) const
 	{
-		return std::hash<TKey>{}(key) % m_capacity;
+		return hash::calc(&key) % m_capacity;
 	}
 
 	template <typename TKey, typename TValue>
@@ -576,4 +591,4 @@ namespace wvn
 	}
 };
 
-#endif // HASH_MAP_H
+#endif // HASH_MAP_H_

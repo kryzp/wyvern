@@ -1,29 +1,30 @@
-#ifndef TYPES_H
-#define TYPES_H
+#ifndef TYPES_H_
+#define TYPES_H_
 
 #include <inttypes.h>
 #include <memory>
 
-// not used in here but makes sense for types.h as this is just custom rtti pretty much
+#include <wvn/time.h>
+
+// not implemented yet but makes sense for common.h when i implement it
 //#include <wvn/class_db.h>
 
-#ifdef WVN_DEBUG
+#ifdef wvn_DEBUG
 
 #include <stdio.h>
 
-#define WVN_ASSERT(_exp, _msg, ...) do{if(!(_exp)){::printf((_msg "\n"), ##__VA_ARGS__);*((volatile int*)0)=0;}}while(0)
-#define WVN_ERROR(_msg, ...) do{::printf((_msg "\n"), ##__VA_ARGS__);*((volatile int*)0)=0;}while(0)
+#define wvn_ASSERT(_exp, _msg, ...) do{if(!(_exp)){::printf((_msg "\n"), ##__VA_ARGS__);*((volatile int*)0)=0;}}while(0)
+#define wvn_ERROR(_msg, ...) do{::printf((_msg "\n"), ##__VA_ARGS__);*((volatile int*)0)=0;}while(0)
 
-#else // WVN_DEBUG
+#else // wvn_DEBUG
 
-#define WVN_ASSERT(_exp, _msg)
-#define WVN_ERROR(_msg)
+#define wvn_ASSERT(_exp, _msg)
+#define wvn_ERROR(_msg)
 
-#endif // WVN_DEBUG
+#endif // wvn_DEBUG
 
-#define SWAP(_x, _y) (::__wvnutils_swap((_x), (_y)))
-#define SID(_str) (::__wvnutils_hash((_str)))
-#define ARRAY_LENGTH(_arr) (sizeof((_arr)) / sizeof((*_arr)))
+#define wvn_SWAP(_x, _y) (::__wvnutils_swap((_x), (_y)))
+#define wvn_ARRAY_LENGTH(_arr) (sizeof((_arr)) / sizeof((*_arr)))
 
 #define BYTES    (x) (x)
 #define KILOBYTES(x) (BYTES(x)     * 1024LL)
@@ -70,15 +71,6 @@ inline void __wvnutils_swap(T& x, T& y)
 	y = tmp;
 }
 
-constexpr u64 __wvnutils_hash(const char* str)
-{
-	u64 hash = 7521;
-	for (int i = 0; str[i] != '\0'; i++) {
-		hash = ((hash << 5) + hash) + str[i];
-	}
-	return hash;
-}
-
 template <typename T> using Unique = std::unique_ptr<T>;
 
 template <typename T, typename... TArgs>
@@ -93,18 +85,21 @@ template <typename T> using Weak = std::weak_ptr<T>;
 
 namespace wvn
 {
+	template <u64 Size> class Str;
+	using String = Str<512>;
+
 	namespace hash
 	{
 		// fowler noll vo hash function
 		template <typename T>
-		u32 combine(u32 sofar, const T& data)
+		u64 calc(u64 start, const T* data)
 		{
-			const u32 prime = 0x01000193;
-			const u32 offset = 0x811C9DC5;
-			const char* input = (const char*)(&data);
+			const u64 prime = 0x01000193;
+			const u64 offset = 0x811C9DC5;
+			const byte* input = (const byte*)data;
 
-			u32 output = sofar;
-			for (u64 i = 0; i < sizeof(T); ++i)
+			u64 output = start;
+			for (u64 i = 0; i < sizeof(T); i++)
 			{
 				output ^= input[i];
 				output *= prime;
@@ -113,12 +108,20 @@ namespace wvn
 			return output ^ offset;
 		}
 
-		// fowler noll vo hash function
 		template <typename T>
-		void combine(u32* inout, const T& data)
+		void combine(u64* inout, const T* data)
 		{
-            (*inout) = combine(*inout, data);
+			(*inout) = calc(*inout, data);
 		}
+
+		template <typename T>
+		u64 calc(const T* data)
+		{
+			return calc(0, data);
+		}
+
+		template <> u64 calc(u64 start, const char* str);
+		template <> u64 calc(u64 start, const String* str);
 	}
 
 	namespace mem
@@ -151,4 +154,4 @@ namespace wvn
 	}
 }
 
-#endif // TYPES_H
+#endif // TYPES_H_

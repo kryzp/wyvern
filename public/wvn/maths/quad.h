@@ -1,5 +1,5 @@
-#ifndef QUAD_H
-#define QUAD_H
+#ifndef QUAD_H_
+#define QUAD_H_
 
 #include <wvn/maths/vec2.h>
 #include <wvn/maths/rect.h>
@@ -24,4 +24,4 @@ namespace wvn
 	};
 }
 
-#endif // QUAD_H
+#endif // QUAD_H_

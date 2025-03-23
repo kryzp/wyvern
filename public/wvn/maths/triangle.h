@@ -1,5 +1,5 @@
-#ifndef TRIANGLE_H
-#define TRIANGLE_H
+#ifndef TRIANGLE_H_
+#define TRIANGLE_H_
 
 #include <wvn/maths/vec3.h>
 
@@ -18,4 +18,4 @@ namespace wvn
 	};
 }
 
-#endif // TRIANGLE_H
+#endif // TRIANGLE_H_

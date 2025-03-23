@@ -36,20 +36,20 @@ Colour::Colour(u8 r, u8 g, u8 b, u8 a)
 }
 
 Colour::Colour(u32 packed)
-	: r(static_cast<u8>(packed >> 24))
+	: a(static_cast<u8>(packed >> 0 ))
+	, r(static_cast<u8>(packed >> 8 ))
 	, g(static_cast<u8>(packed >> 16))
-	, b(static_cast<u8>(packed >> 8 ))
-	, a(static_cast<u8>(packed >> 0 ))
+	, b(static_cast<u8>(packed >> 24))
 {
 }
 
 u32 Colour::packed() const
 {
 	return (
-		r << 24 |
+		a << 0  |
+		r << 8  |
 		g << 16 |
-		b << 8  |
-		a << 0
+		b << 24
 	);
 }
 

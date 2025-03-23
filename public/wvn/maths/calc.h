@@ -1,5 +1,5 @@
-#ifndef CALC_H
-#define CALC_H
+#ifndef CALC_H_
+#define CALC_H_
 
 #include <limits>
 #include <cmath>
@@ -18,6 +18,7 @@ namespace wvn
 		constexpr static T TAU     = 6.28318530718;
 		constexpr static T RAD2DEG = 57.2957795131;
 		constexpr static T DEG2RAD = 0.01745329251;
+		constexpr static T SQRT2   = 1.4142135624;
 
 		static T abs(T x);
 		static T mod(T x, T y);
@@ -29,10 +30,9 @@ namespace wvn
 		static T sign(T x);
 		static T snap(T x, T interval);
 
-		static T log(T x, T b);
 		static T log2(T x);
 		static T log10(T x);
-		static T ln(T x);
+		static T log(T x);
 
 		static T max(T x, T y);
 		static T min(T x, T y);
@@ -48,8 +48,7 @@ namespace wvn
 		static T approach(T from, T to, T amount);
 		static T lerp(T from, T to, T t);
 		static T smooth(T from, T to, T amount, T time);
-		static T spring(T from, T to, T bounciness, T tension, T& intermediate);
-		static T spring_t(T from, T to, T bounciness, T tension, T time);
+		static T spring(T bounciness, T tension, T t);
 
 		static T sin(T x);
 		static T cos(T x);
@@ -75,6 +74,8 @@ namespace wvn
 	using CalcU = Calc<unsigned>;
 	using CalcF = Calc<float>;
 	using CalcD = Calc<double>;
+	using CalcF32 = Calc<float>;
+	using CalcF64 = Calc<double>;
 
 	template <typename T>
 	T Calc<T>::abs(T x)
@@ -109,7 +110,7 @@ namespace wvn
 	template <typename T>
 	T Calc<T>::sigmoid(T x)
 	{
-		return 1.0 - (1.0 / (1.0 + std::exp(x)));
+		return 1.0 - (2.0 / (1.0 + std::exp(x)));
 	}
 
 	template <typename T>
@@ -129,12 +130,6 @@ namespace wvn
 	}
 
 	template <typename T>
-	T Calc<T>::log(T x, T b)
-	{
-		return std::log(x) / std::log(b);
-	}
-
-	template <typename T>
 	T Calc<T>::log2(T x)
 	{
 		return std::log2(x);
@@ -147,7 +142,7 @@ namespace wvn
 	}
 
 	template <typename T>
-	T Calc<T>::ln(T x)
+	T Calc<T>::log(T x)
 	{
 		return std::log(x);
 	}
@@ -219,22 +214,10 @@ namespace wvn
 	}
 
 	template <typename T>
-	T Calc<T>::spring(T from, T to, T bounciness, T tension, T& intermediate)
+	T Calc<T>::spring(T bounciness, T tension, T t)
 	{
-		intermediate = lerp(intermediate, (to - from) * tension, 1.0 / bounciness);
-		return from + intermediate;
-	}
-
-	/*
-	 * I'm actually really proud of this because I got down
-	 * and actually managed to solve the differential
-	 * equation properly over the course of 3 pages! :D
-	 */
-	template <typename T>
-	T Calc<T>::spring_t(T from, T to, T bounciness, T tension, T time)
-	{
-		T beta = std::sqrt((4.0 * bounciness * tension) - 1.0);
-		return to - (to / beta * std::exp(-time / (2.0 * bounciness)) * (std::sin(beta * time / (2.0 * bounciness)) + (beta * std::cos(beta * time / (2.0 * bounciness)))));
+		T beta = std::sqrt(((2.0 * bounciness) * (2.0 * tension)) - 1.0);
+		return 1.0 - (1.0 / beta * std::exp(-t / (2.0 * bounciness)) * (std::sin(beta * t / (2.0 * bounciness)) + (beta * std::cos(beta * t / (2.0 * bounciness)))));
 	}
 
 	template <typename T>
@@ -328,4 +311,4 @@ namespace wvn
 	}
 }
 
-#endif // CALC_H
+#endif // CALC_H_

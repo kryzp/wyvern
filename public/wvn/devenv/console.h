@@ -1,5 +1,5 @@
-#ifndef CONSOLE_H
-#define CONSOLE_H
+#ifndef CONSOLE_H_
+#define CONSOLE_H_
 
 #include <wvn/singleton.h>
 
@@ -10,7 +10,7 @@ namespace wvn::dev
 	 */
 	class Console : public Singleton<Console>
 	{
-		WVN_DEF_SINGLETON(Console);
+		wvn_DEF_SINGLETON(Console);
 
 	public:
 		Console();
@@ -18,4 +18,4 @@ namespace wvn::dev
 	};
 }
 
-#endif // CONSOLE_H
+#endif // CONSOLE_H_

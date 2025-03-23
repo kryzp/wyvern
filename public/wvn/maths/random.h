@@ -1,5 +1,5 @@
-#ifndef RANDOM_H
-#define RANDOM_H
+#ifndef RANDOM_H_
+#define RANDOM_H_
 
 #include <wvn/common.h>
 
@@ -83,4 +83,4 @@ namespace wvn
 	}
 }
 
-#endif // RANDOM_H
+#endif // RANDOM_H_

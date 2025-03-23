@@ -1,5 +1,5 @@
-#ifndef RECT_H
-#define RECT_H
+#ifndef RECT_H_
+#define RECT_H_
 
 #include <wvn/maths/vec2.h>
 
@@ -14,7 +14,7 @@ namespace wvn
 		T h;
 
 		Rect();
-		Rect(T value);
+		Rect(T wh);
 		Rect(T w, T h);
 		Rect(T x, T y, T w, T h);
 
@@ -65,6 +65,7 @@ namespace wvn
 
 	using RectF = Rect<float>;
 	using RectI = Rect<int>;
+	using RectU = Rect<unsigned>;
 
 	template <typename T>
 	Rect<T>::Rect()
@@ -76,11 +77,11 @@ namespace wvn
 	}
 
 	template <typename T>
-	Rect<T>::Rect(T value)
-		: x(value)
-		, y(value)
-		, w(value)
-		, h(value)
+	Rect<T>::Rect(T wh)
+		: x(0)
+		, y(0)
+		, w(wh)
+		, h(wh)
 	{
 	}
 
@@ -166,4 +167,4 @@ namespace wvn
 	template <typename T> const Rect<T>& Rect<T>::one()  { static const Rect ONE  = Rect(0, 0, 1, 1); return ONE;  }
 }
 
-#endif // RECT_H
+#endif // RECT_H_

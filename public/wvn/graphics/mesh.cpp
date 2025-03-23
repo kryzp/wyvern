@@ -4,19 +4,31 @@ using namespace wvn;
 using namespace wvn::gfx;
 
 Mesh::Mesh()
-	: m_vertices()
-	, m_indices()
+	: m_meshes()
 {
 }
 
 Mesh::~Mesh()
 {
+	for (auto& sub : m_meshes)
+		delete sub;
+	m_meshes.clear();
 }
 
-GPUBuffer* Mesh::vertex_buffer() { return m_vertex_buffer; }
-GPUBuffer* Mesh::index_buffer() { return m_index_buffer; }
-Vector<Vertex>& Mesh::vertices() { return m_vertices; }
-const Vector<Vertex>& Mesh::vertices() const { return m_vertices; }
-Vector<u16>& Mesh::indices() { return m_indices; }
-const Vector<u16>& Mesh::indices() const { return m_indices; }
-u64 Mesh::index_count() const { return m_indices.size(); }
+SubMesh* Mesh::create_submesh()
+{
+	SubMesh* sub = new SubMesh();
+	sub->m_parent = this;
+	m_meshes.push_back(sub);
+	return sub;
+}
+
+u64 Mesh::submesh_count() const
+{
+	return m_meshes.size();
+}
+
+SubMesh* Mesh::submesh(int idx) const
+{
+	return m_meshes[idx];
+}

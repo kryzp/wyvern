@@ -18,35 +18,19 @@ add_library(${PROJECT_NAME}
 	public/wvn/devenv/console.cpp
 	public/wvn/devenv/profiler.cpp
 
-	public/wvn/actor/actor.cpp
-	public/wvn/actor/actor_handle.cpp
-	public/wvn/actor/actor_mgr.cpp
-	public/wvn/actor/event.cpp
-	public/wvn/actor/event_mgr.cpp
+	public/wvn/entity/entity.cpp
+	public/wvn/entity/entity_handle.cpp
+	public/wvn/entity/entity_mgr.cpp
+	public/wvn/entity/event.cpp
+	public/wvn/entity/event_mgr.cpp
 
 	public/wvn/audio/audio_mgr.cpp
 	public/wvn/audio/sound.cpp
 
-	public/wvn/input/input_mgr.cpp
+	public/wvn/input/input.cpp
 	public/wvn/input/v_key.cpp
 
 	public/wvn/animation/animation_mgr.cpp
-
-	public/wvn/graphics/rendering_mgr.cpp
-	public/wvn/graphics/mesh.cpp
-	public/wvn/graphics/mesh_mgr.cpp
-	public/wvn/graphics/texture.cpp
-	public/wvn/graphics/texture_mgr.cpp
-	public/wvn/graphics/shader.cpp
-	public/wvn/graphics/shader_mgr.cpp
-	public/wvn/graphics/render_target.cpp
-	public/wvn/graphics/font.cpp
-	public/wvn/graphics/image.cpp
-	public/wvn/graphics/material.cpp
-	public/wvn/graphics/gpu_buffer.cpp
-	public/wvn/graphics/gpu_buffer_mgr.cpp
-	public/wvn/graphics/viewport.cpp
-	public/wvn/graphics/model.cpp
 
 	public/wvn/network/network_mgr.cpp
 	public/wvn/network/ip_address.cpp
@@ -68,9 +52,8 @@ add_library(${PROJECT_NAME}
 	public/wvn/maths/colour.cpp
 	public/wvn/maths/complex.cpp
 	public/wvn/maths/line.cpp
-	public/wvn/maths/mat2x3.cpp
-	public/wvn/maths/mat3x3.cpp
-	public/wvn/maths/mat3x4.cpp
+	public/wvn/maths/basis_3d.cpp
+	public/wvn/maths/affine_3d.cpp
 	public/wvn/maths/mat4x4.cpp
 	public/wvn/maths/polygon.cpp
 	public/wvn/maths/quad.cpp
@@ -78,25 +61,53 @@ add_library(${PROJECT_NAME}
 	public/wvn/maths/timer.cpp
 	public/wvn/maths/triangle.cpp
 	public/wvn/maths/transform_3d.cpp
+	public/wvn/maths/sphere.cpp
+
+	public/wvn/graphics/rendering_mgr.cpp
+	public/wvn/graphics/sub_mesh.cpp
+	public/wvn/graphics/mesh.cpp
+	public/wvn/graphics/mesh_mgr.cpp
+	public/wvn/graphics/texture.cpp
+	public/wvn/graphics/texture_mgr.cpp
+	public/wvn/graphics/shader.cpp
+	public/wvn/graphics/shader_mgr.cpp
+	public/wvn/graphics/render_target.cpp
+	public/wvn/graphics/render_target_mgr.cpp
+	public/wvn/graphics/font.cpp
+	public/wvn/graphics/image.cpp
+	public/wvn/graphics/material.cpp
+	public/wvn/graphics/material_system.cpp
+	public/wvn/graphics/gpu_buffer.cpp
+	public/wvn/graphics/gpu_buffer_mgr.cpp
+	public/wvn/graphics/viewport.cpp
+	public/wvn/graphics/technique.cpp
+	public/wvn/graphics/renderable_object.cpp
+	public/wvn/graphics/light.cpp
 
 	public/wvn/plugin/plugin_loader.cpp
-	public/wvn/plugin/system/sdl2_plugin.cpp
+	public/wvn/plugin/system/sdl3_plugin.cpp
 	public/wvn/plugin/graphics/vulkan_plugin.cpp
 	public/wvn/plugin/audio/openal_plugin.cpp
 
-	private/backend/system/sdl2/sdl2_backend.cpp
+	private/backend/system/sdl3/sdl3_backend.cpp
 
 	private/backend/graphics/vulkan/vk_backend.cpp
+	private/backend/graphics/vulkan/vk_descriptor_builder.cpp
+	private/backend/graphics/vulkan/vk_descriptor_cache.cpp
 	private/backend/graphics/vulkan/vk_descriptor_pool_mgr.cpp
 	private/backend/graphics/vulkan/vk_render_pass_builder.cpp
+	private/backend/graphics/vulkan/vk_backbuffer.cpp
+	private/backend/graphics/vulkan/vk_render_target.cpp
+	private/backend/graphics/vulkan/vk_render_target_mgr.cpp
 	private/backend/graphics/vulkan/vk_buffer.cpp
 	private/backend/graphics/vulkan/vk_buffer_mgr.cpp
 	private/backend/graphics/vulkan/vk_util.cpp
 	private/backend/graphics/vulkan/vk_texture.cpp
-	private/backend/graphics/vulkan/vk_texture_mgr.cpp
 	private/backend/graphics/vulkan/vk_texture_sampler.cpp
-	private/backend/graphics/vulkan/vk_shader_mgr.cpp
+	private/backend/graphics/vulkan/vk_texture_mgr.cpp
 	private/backend/graphics/vulkan/vk_shader.cpp
+	private/backend/graphics/vulkan/vk_shader_mgr.cpp
+	private/backend/graphics/vulkan/vk_ubo_manager.cpp
 
 	private/backend/audio/openal/openal_backend.cpp
 )

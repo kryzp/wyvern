@@ -1,5 +1,5 @@
-#ifndef EASE_H
-#define EASE_H
+#ifndef EASE_H_
+#define EASE_H_
 
 #include <wvn/maths/calc.h>
 
@@ -44,7 +44,7 @@ namespace wvn
 
 	using EaseF   = Ease<float>;
 	using EaseD   = Ease<double>;
-	using EaseF32 = Ease<double>;
+	using EaseF32 = Ease<float>;
 	using EaseF64 = Ease<double>;
 	
 	template <typename T>
@@ -182,4 +182,4 @@ namespace wvn
 	}
 }
 
-#endif // EASE_H
+#endif // EASE_H_

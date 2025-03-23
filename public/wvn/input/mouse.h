@@ -1,5 +1,5 @@
-#ifndef MOUSE_H
-#define MOUSE_H
+#ifndef MOUSE_H_
+#define MOUSE_H_
 
 namespace wvn::inp
 {
@@ -11,8 +11,8 @@ namespace wvn::inp
 		MB_RIGHT 		= 3,
 		MB_SIDE_BOTTOM 	= 4,
 		MB_SIDE_TOP 	= 5,
-		MB_MAX
+		MB_MAX_ENUM
 	};
 }
 
-#endif // MOUSE_H
+#endif // MOUSE_H_

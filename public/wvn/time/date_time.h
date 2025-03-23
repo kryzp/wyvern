@@ -1,5 +1,5 @@
-#ifndef DATE_TIME_H
-#define DATE_TIME_H
+#ifndef DATE_TIME_H_
+#define DATE_TIME_H_
 
 namespace wvn::time
 {
@@ -11,4 +11,4 @@ namespace wvn::time
 	};
 }
 
-#endif // DATE_TIME_H
+#endif // DATE_TIME_H_

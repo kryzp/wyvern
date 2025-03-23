@@ -1,7 +1,11 @@
-#ifndef MATERIAL_H
-#define MATERIAL_H
+#ifndef MATERIAL_H_
+#define MATERIAL_H_
 
-#include <wvn/container/vector.h>
+#include <wvn/const.h>
+
+#include <wvn/container/array.h>
+#include <wvn/container/string.h>
+
 #include <wvn/graphics/technique.h>
 #include <wvn/graphics/texture.h>
 #include <wvn/graphics/shader.h>
@@ -9,35 +13,33 @@
 namespace wvn::gfx
 {
 	/**
+	 * Compact representation of a material.
+	 */
+	struct MaterialData
+	{
+		Array<SampledTexture, wvn_MAX_BOUND_TEXTURES> textures;
+		ShaderParameters parameters;
+		String technique;
+	};
+
+	/**
 	 * Material that packages together the required shaders, textures, and other
 	 * information required for drawing a material.
 	 */
 	class Material
 	{
 	public:
-		using Techniques = Vector<Technique>;
-
 		Material();
-		Material(Texture* tex, TextureSampler* smp);
 		virtual ~Material();
 
-		void add_technique(const Technique& tech);
-		Techniques& techniques();
-		const Techniques& techniques() const;
+		u64 hash() const;
 
-		void texture(Texture* tex);
-		Texture* texture();
-		const Texture* texture() const;
+		void set_texture(int idx, const Texture* texture, TextureSampler* sampler);
 
-		void sampler(TextureSampler* smp);
-		TextureSampler* sampler();
-		const TextureSampler* sampler() const;
-
-	private:
-		Techniques m_techniques;
-		TextureSampler* m_sampler;
-		Texture* m_texture;
+		Technique technique;
+		ShaderParameters parameters;
+		Array<SampledTexture, wvn_MAX_BOUND_TEXTURES> textures;
 	};
 }
 
-#endif // MATERIAL_H
+#endif // MATERIAL_H_

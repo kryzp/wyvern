@@ -1,14 +1,16 @@
-#ifndef ENDIAN_H
-#define ENDIAN_H
+#ifndef ENDIAN_H_
+#define ENDIAN_H_
 
 namespace wvn::io
 {
 	enum Endianness
 	{
 		ENDIANNESS_NONE = 0,
+
 		ENDIANNESS_LITTLE,
 		ENDIANNESS_BIG,
-		ENDIANNESS_MAX
+
+		ENDIANNESS_MAX_ENUM
 	};
 
 	/**
@@ -24,4 +26,4 @@ namespace wvn::io
 	};
 }
 
-#endif // ENDIAN_H
+#endif // ENDIAN_H_

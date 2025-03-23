@@ -1,11 +1,11 @@
-#ifndef VEC3_H
-#define VEC3_H
+#ifndef VEC3_H_
+#define VEC3_H_
 
 #include <wvn/maths/calc.h>
 #include <wvn/maths/random.h>
 #include <wvn/maths/quat.h>
+#include <wvn/maths/basis_3d.h>
 #include <wvn/maths/vec2.h>
-#include <wvn/maths/mat3x4.h>
 
 namespace wvn
 {
@@ -29,7 +29,7 @@ namespace wvn
 		Vec3(T x, T y, T z);
 		explicit Vec3(const Vec2<T>& xy);
 
-		// enable implicit casting to other vectors
+		// enable implicit casting to other types of vectors
 		template <typename Y>
 		Vec3(const Vec3<Y>& other) noexcept
 			: x(other.x)
@@ -48,10 +48,9 @@ namespace wvn
 		static const Vec3& forward();
 		static const Vec3& backward();
 
-		static Vec3 from_angle(float theta, float phi, float radius);
+		static Vec3 from_angle(float radius, float azimuth, float elevation);
 		static T dot(const Vec3& a, const Vec3& b);
 		static Vec3 cross(const Vec3& a, const Vec3& b);
-		static Vec3 transform(const Vec3& vec, const Mat3x4& mat);
 		static Vec3 lerp(const Vec3& from, const Vec3& to, float amount);
 		static Vec3 spring(const Vec3& from, const Vec3& to, float bounciness, float tension, Vec3& intermediate);
 		static Vec3 approach(const Vec3& from, const Vec3& to, float amount);
@@ -89,10 +88,10 @@ namespace wvn
 	template <typename T> Vec3<T> operator * (const Vec3<T>& lhs, float rhs) { return Vec3<T>(lhs.x * rhs, lhs.y * rhs, lhs.z * rhs); }
 	template <typename T> Vec3<T> operator * (float lhs, const Vec3<T>& rhs) { return Vec3<T>(rhs.x * lhs, rhs.y * lhs, rhs.z * lhs); }
 
-	using Vec3F		= Vec3<float>;
-	using Vec3D		= Vec3<double>;
-	using Vec3I		= Vec3<int>;
-	using Vec3U		= Vec3<unsigned>;
+	using Vec3F = Vec3<float>;
+	using Vec3D = Vec3<double>;
+	using Vec3I = Vec3<int>;
+	using Vec3U = Vec3<unsigned>;
 	
 	template <typename T>
 	Vec3<T>::Vec3()
@@ -114,17 +113,17 @@ namespace wvn
 
 	template <typename T>
 	Vec3<T>::Vec3(const Vec2<T>& xy)
-		: x(xy.x), y(xy.y), z(0.0f)
+		: x(xy.x), y(xy.y), z(0.0)
 	{
 	}
 
 	template <typename T>
-	Vec3<T> Vec3<T>::from_angle(float theta, float phi, float radius)
+	Vec3<T> Vec3<T>::from_angle(float radius, float azimuth, float elevation)
 	{
 		return Vec3(
-			radius * Calc<T>::cos(theta) * Calc<T>::cos(phi),
-			radius * Calc<T>::sin(theta),
-			radius * Calc<T>::cos(theta) * Calc<T>::sin(phi)
+			radius * Calc<T>::cos(elevation) * Calc<T>::cos(azimuth),
+			radius * Calc<T>::sin(elevation),
+			radius * Calc<T>::cos(elevation) * Calc<T>::sin(azimuth)
 		);
 	}
 
@@ -141,16 +140,6 @@ namespace wvn
 			(a.y * b.z) - (a.z * b.y),
 			(a.z * b.x) - (a.x * b.z),
 			(a.x * b.y) - (a.y * b.x)
-		);
-	}
-
-	template <typename T>
-	Vec3<T> Vec3<T>::transform(const Vec3<T>& vec, const Mat3x4& mat)
-	{
-		return Vec3(
-			(vec.x * mat.m11) + (vec.y * mat.m21) + (vec.z * mat.m31) + mat.m14,
-			(vec.x * mat.m12) + (vec.y * mat.m22) + (vec.z * mat.m32) + mat.m24,
-			(vec.x * mat.m13) + (vec.y * mat.m23) + (vec.z * mat.m33) + mat.m34
 		);
 	}
 	
@@ -202,18 +191,7 @@ namespace wvn
 	template <typename T>
 	Vec3<T> Vec3<T>::rotate(float angle, const Vec3<T>& axis)
 	{
-		return Vec3<T>::transform(*this, Mat3x4::create_rotation(axis, angle));
-		/*
-		T cost = Calc<T>::cos(angle);
-		T sint = Calc<T>::sin(angle);
-		T icost = 1.0 - cost;
-
-		return Vec3(
-			(this->x * ((axis.x * axis.x * icost) +           cost))  + (this->y * ((axis.x * axis.y * icost) - (axis.z * sint))) + (this->z * ((axis.x * axis.z * icost) + (axis.y * sint))),
-			(this->x * ((axis.y * axis.x * icost) + (axis.z * sint))) + (this->y * ((axis.y * axis.y * icost) +           cost))  + (this->z * ((axis.y * axis.z * icost) - (axis.x * sint))),
-			(this->x * ((axis.z * axis.x * icost) - (axis.y * sint))) + (this->y * ((axis.z * axis.y * icost) + (axis.x * sint))) + (this->z * ((axis.z * axis.z * icost) +  cost          ))
-		);
-		*/
+		return Basis3D::transform(*this, Basis3D::create_rotation(axis, angle));
 	}
 
 	template <typename T>
@@ -291,8 +269,8 @@ namespace wvn
 	template <typename T> const Vec3<T>& Vec3<T>::right()		{ static const Vec3 RIGHT		= Vec3( 1,  0,  0); return RIGHT;		}
 	template <typename T> const Vec3<T>& Vec3<T>::up()			{ static const Vec3 UP			= Vec3( 0,  1,  0); return UP;			}
 	template <typename T> const Vec3<T>& Vec3<T>::down()		{ static const Vec3 DOWN		= Vec3( 0, -1,  0); return DOWN;		}
-	template <typename T> const Vec3<T>& Vec3<T>::forward()		{ static const Vec3 FORWARD		= Vec3( 0,  0,  1); return FORWARD;		}
-	template <typename T> const Vec3<T>& Vec3<T>::backward()	{ static const Vec3 BACKWARD	= Vec3( 0,  0, -1); return BACKWARD;	}
+	template <typename T> const Vec3<T>& Vec3<T>::forward()		{ static const Vec3 FORWARD		= Vec3( 0,  0, -1); return FORWARD;		}
+	template <typename T> const Vec3<T>& Vec3<T>::backward()	{ static const Vec3 BACKWARD	= Vec3( 0,  0,  1); return BACKWARD;	}
 }
 
-#endif // VEC3_H
+#endif // VEC3_H_

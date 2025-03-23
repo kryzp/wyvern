@@ -1,5 +1,5 @@
-#ifndef PROFILER_H
-#define PROFILER_H
+#ifndef PROFILER_H_
+#define PROFILER_H_
 
 #include <wvn/common.h>
 #include <wvn/root.h>
@@ -12,7 +12,7 @@ namespace wvn::dev
 	 */
 	class ProfileMgr : public Singleton<ProfileMgr>
 	{
-		WVN_DEF_SINGLETON(ProfileMgr);
+		wvn_DEF_SINGLETON(ProfileMgr);
 
 	public:
 		ProfileMgr();
@@ -49,6 +49,6 @@ namespace wvn::dev
 	};
 }
 
-#define WVN_PROFILE(name) ::wvn::dev::AutoProfiler __wvn_profiler_scope_##name(#name);
+#define wvn_PROFILE(name) ::wvn::dev::AutoProfiler __wvn_profiler_scope_##name(#name);
 
-#endif // PROFILER_H
+#endif // PROFILER_H_

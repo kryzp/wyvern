@@ -1,5 +1,5 @@
-#ifndef ARRAY_H
-#define ARRAY_H
+#ifndef ARRAY_H_
+#define ARRAY_H_
 
 #include <initializer_list>
 #include <wvn/common.h>
@@ -21,6 +21,7 @@ namespace wvn
 		~Array();
 
 		void fill(const T& value);
+		void clear();
 
 		constexpr u64 memory_size() const;
 		constexpr u64 size() const;
@@ -46,136 +47,144 @@ namespace wvn
 		T m_buf[Size];
 	};
 
-	template <typename T, u64 TSize>
-	Array<T, TSize>::Array()
+	template <typename T, u64 Size>
+	Array<T, Size>::Array()
 		: m_buf{}
 	{
 	}
 	
-	template <typename T, u64 TSize>
-	Array<T, TSize>::Array(std::initializer_list<T> data)
+	template <typename T, u64 Size>
+	Array<T, Size>::Array(std::initializer_list<T> data)
 	{
-		for (u64 i = 0; i < TSize; i++) {
+		for (u64 i = 0; i < Size; i++) {
 			m_buf[i] = data.begin()[i];
 		}
 	}
 	
-	template <typename T, u64 TSize>
-	Array<T, TSize>::Array(const Array& other)
+	template <typename T, u64 Size>
+	Array<T, Size>::Array(const Array& other)
 	{
-		for (u64 i = 0; i < TSize; i++) {
+		for (u64 i = 0; i < Size; i++) {
 			m_buf[i] = other.m_buf[i];
 		}
 	}
 	
-	template <typename T, u64 TSize>
-	Array<T, TSize>& Array<T, TSize>::operator = (const Array& other)
+	template <typename T, u64 Size>
+	Array<T, Size>& Array<T, Size>::operator = (const Array& other)
 	{
-		for (u64 i = 0; i < TSize; i++) {
+		for (u64 i = 0; i < Size; i++) {
 			m_buf[i] = other.m_buf[i];
 		}
+
+		return *this;
 	}
 	
-	template <typename T, u64 TSize>
-	Array<T, TSize>::~Array()
+	template <typename T, u64 Size>
+	Array<T, Size>::~Array()
 	{
 	}
 
-	template <typename T, u64 TSize>
-	void Array<T, TSize>::fill(const T& value)
+	template <typename T, u64 Size>
+	void Array<T, Size>::fill(const T& value)
 	{
-		for (int i = 0; i < TSize; i++) {
+		for (int i = 0; i < Size; i++) {
 			m_buf[i] = value;
 		}
 	}
 
-	template <typename T, u64 TSize>
-	constexpr u64 Array<T, TSize>::memory_size() const
+	template <typename T, u64 Size>
+	void Array<T, Size>::clear()
 	{
-		return sizeof(T) * TSize;
+		mem::set(m_buf, 0, memory_size());
 	}
 
-	template <typename T, u64 TSize>
-	constexpr u64 Array<T, TSize>::size() const
+	template <typename T, u64 Size>
+	constexpr u64 Array<T, Size>::memory_size() const
 	{
-		return TSize;
+		return sizeof(T) * Size;
 	}
 
-	template <typename T, u64 TSize>
-	T* Array<T, TSize>::data()
+	template <typename T, u64 Size>
+	constexpr u64 Array<T, Size>::size() const
+	{
+		return Size;
+	}
+
+	template <typename T, u64 Size>
+	T* Array<T, Size>::data()
 	{
 		return m_buf;
 	}
 
-	template <typename T, u64 TSize>
-	const T* Array<T, TSize>::data() const
+	template <typename T, u64 Size>
+	const T* Array<T, Size>::data() const
 	{
 		return m_buf;
 	}
 
-	template <typename T, u64 TSize>
-	T* Array<T, TSize>::begin()
+	template <typename T, u64 Size>
+	T* Array<T, Size>::begin()
 	{
-		return &m_buf[0];
+		return m_buf;
 	}
 
-	template <typename T, u64 TSize>
-	const T* Array<T, TSize>::begin() const
+	template <typename T, u64 Size>
+	const T* Array<T, Size>::begin() const
 	{
-		return &m_buf[0];
+		return m_buf;
 	}
 
-	template <typename T, u64 TSize>
-	T* Array<T, TSize>::end()
+	template <typename T, u64 Size>
+	T* Array<T, Size>::end()
 	{
-		return &m_buf[TSize];
+		return m_buf + Size;
 	}
 
-	template <typename T, u64 TSize>
-	const T* Array<T, TSize>::end() const
+	template <typename T, u64 Size>
+	const T* Array<T, Size>::end() const
 	{
-		return &m_buf[TSize];
+		return m_buf + Size;
 	}
 
-	template <typename T, u64 TSize>
-	const T* Array<T, TSize>::cbegin() const
+	template <typename T, u64 Size>
+	const T* Array<T, Size>::cbegin() const
 	{
-		return &m_buf[0];
+		return m_buf;
 	}
 
-	template <typename T, u64 TSize>
-	const T* Array<T, TSize>::cend() const
+	template <typename T, u64 Size>
+	const T* Array<T, Size>::cend() const
 	{
-		return &m_buf[TSize];
+		return m_buf + Size;
 	}
 
-	template <typename T, u64 TSize>
-	T& Array<T, TSize>::at(u64 idx)
+	template <typename T, u64 Size>
+	T& Array<T, Size>::at(u64 idx)
 	{
-		WVN_ASSERT(idx >= 0 && idx < TSize, "[DEBUG|ARRAY] Index must be within bounds.");
+		wvn_ASSERT(idx >= 0 && idx < Size, "[ARRAY|DEBUG] Index must be within bounds: %d", idx);
 		return m_buf[idx];
 	}
 
-	template <typename T, u64 TSize>
-	const T& Array<T, TSize>::at(u64 idx) const
+	template <typename T, u64 Size>
+	const T& Array<T, Size>::at(u64 idx) const
 	{
-		WVN_ASSERT(idx >= 0 && idx < TSize, "[DEBUG|ARRAY] Index must be within bounds.");
-		return m_buf[idx];
-	}
-	
-	template <typename T, u64 TSize>
-	T& Array<T, TSize>::operator [] (u64 idx)
-	{
-		WVN_ASSERT(idx >= 0 && idx < TSize, "[DEBUG|ARRAY] Index must be within bounds.");
+		wvn_ASSERT(idx >= 0 && idx < Size, "[ARRAY|DEBUG] Index must be within bounds: %llu", idx);
 		return m_buf[idx];
 	}
 	
-	template <typename T, u64 TSize>
-	const T& Array<T, TSize>::operator [] (u64 idx) const
+	template <typename T, u64 Size>
+	T& Array<T, Size>::operator [] (u64 idx)
 	{
-		WVN_ASSERT(idx >= 0 && idx < TSize, "[DEBUG|ARRAY] Index must be within bounds.");
+		wvn_ASSERT(idx >= 0 && idx < Size, "[ARRAY|DEBUG] Index must be within bounds: %llu", idx);
+		return m_buf[idx];
+	}
+	
+	template <typename T, u64 Size>
+	const T& Array<T, Size>::operator [] (u64 idx) const
+	{
+		wvn_ASSERT(idx >= 0 && idx < Size, "[ARRAY|DEBUG] Index must be within bounds: %llu", idx);
 		return m_buf[idx];
 	}
 }
 
-#endif // ARRAY_H
+#endif // ARRAY_H_

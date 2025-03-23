@@ -1,5 +1,5 @@
-#ifndef NETWORK_MGR_H
-#define NETWORK_MGR_H
+#ifndef NETWORK_MGR_H_
+#define NETWORK_MGR_H_
 
 #include <wvn/singleton.h>
 
@@ -7,15 +7,23 @@ namespace wvn::net
 {
 	enum NetworkProtocol
 	{
+		NET_PROTOCOL_NONE,
+
 		NET_PROTOCOL_TCP,
-		NET_PROTOCOL_UDP
+		NET_PROTOCOL_UDP,
+
+		NET_PROTOCOL_MAX_ENUM
 	};
 
 	enum NetworkCallback
 	{
+		NET_NONE,
+
 		NET_FINISHED,
 		NET_FAILED,
-		NET_NOT_READY
+		NET_NOT_READY,
+
+		NET_MAX_ENUM
 	};
 
 	/**
@@ -24,7 +32,7 @@ namespace wvn::net
 	 */
 	class NetworkMgr : public Singleton<NetworkMgr>
 	{
-		WVN_DEF_SINGLETON(NetworkMgr);
+		wvn_DEF_SINGLETON(NetworkMgr);
 
 	public:
 		NetworkMgr();
@@ -32,4 +40,4 @@ namespace wvn::net
 	};
 }
 
-#endif // NETWORK_MGR_H
+#endif // NETWORK_MGR_H_

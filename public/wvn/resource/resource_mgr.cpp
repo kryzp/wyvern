@@ -4,7 +4,7 @@
 using namespace wvn;
 using namespace wvn::res;
 
-WVN_IMPL_SINGLETON(ResourceMgr);
+wvn_IMPL_SINGLETON(ResourceMgr);
 
 ResourceMgr::ResourceMgr()
 {

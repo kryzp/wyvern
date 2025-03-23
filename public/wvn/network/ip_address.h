@@ -1,5 +1,5 @@
-#ifndef IP_ADDRESS_H
-#define IP_ADDRESS_H
+#ifndef IP_ADDRESS_H_
+#define IP_ADDRESS_H_
 
 #include <wvn/container/string.h>
 
@@ -18,4 +18,4 @@ namespace wvn::net
 	};
 }
 
-#endif // IP_ADDRESS_H
+#endif // IP_ADDRESS_H_

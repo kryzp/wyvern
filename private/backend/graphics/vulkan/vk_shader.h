@@ -1,5 +1,5 @@
-#ifndef VK_SHADER_H
-#define VK_SHADER_H
+#ifndef VK_SHADER_H_
+#define VK_SHADER_H_
 
 #include <wvn/graphics/shader.h>
 #include <wvn/container/vector.h>
@@ -9,11 +9,13 @@ namespace wvn::gfx
 {
 	class VulkanBackend;
 
-	class VulkanShader : public Shader
+	class VulkanShader : public ShaderProgram
 	{
 	public:
 		VulkanShader(VulkanBackend* backend);
 		~VulkanShader() override;
+
+		void clean_up() override;
 
 		void load_from_source(const char* source, u64 source_size) override;
 
@@ -22,9 +24,8 @@ namespace wvn::gfx
 
 	private:
 		VulkanBackend* m_backend;
-
 		VkShaderModule m_shader_module;
 	};
 }
 
-#endif // VK_SHADER_H
+#endif // VK_SHADER_H_

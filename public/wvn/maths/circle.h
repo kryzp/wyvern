@@ -1,5 +1,5 @@
-#ifndef CIRCLE_H
-#define CIRCLE_H
+#ifndef CIRCLE_H_
+#define CIRCLE_H_
 
 #include <wvn/maths/vec2.h>
 
@@ -32,4 +32,4 @@ namespace wvn
 	};
 }
 
-#endif // CIRCLE_H
+#endif // CIRCLE_H_

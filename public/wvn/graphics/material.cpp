@@ -4,16 +4,6 @@ using namespace wvn;
 using namespace wvn::gfx;
 
 Material::Material()
-	: m_texture(nullptr)
-	, m_sampler(nullptr)
-	, m_techniques()
-{
-}
-
-Material::Material(Texture* tex, TextureSampler* smp)
-	: m_texture(tex)
-	, m_sampler(smp)
-	, m_techniques()
 {
 }
 
@@ -21,47 +11,16 @@ Material::~Material()
 {
 }
 
-void Material::add_technique(const Technique& tech)
+u64 Material::hash() const
 {
-	m_techniques.push_back(tech);
+	u64 ret = 0;
+	hash::combine(&ret, &technique);
+	hash::combine(&ret, &textures);
+	return ret;
 }
 
-Material::Techniques& Material::techniques()
+void Material::set_texture(int idx, const Texture* texture, TextureSampler* sampler)
 {
-	return m_techniques;
-}
-
-const Material::Techniques& Material::techniques() const
-{
-	return m_techniques;
-}
-
-void Material::texture(Texture* tex)
-{
-	m_texture = tex;
-}
-
-Texture* Material::texture()
-{
-	return m_texture;
-}
-
-const Texture* Material::texture() const
-{
-	return m_texture;
-}
-
-void Material::sampler(TextureSampler* smp)
-{
-	m_sampler = smp;
-}
-
-TextureSampler* Material::sampler()
-{
-	return m_sampler;
-}
-
-const TextureSampler* Material::sampler() const
-{
-	return m_sampler;
+	textures[idx].texture = texture;
+	textures[idx].sampler = sampler;
 }

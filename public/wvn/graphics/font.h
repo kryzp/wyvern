@@ -1,5 +1,5 @@
-#ifndef FONT_H
-#define FONT_H
+#ifndef FONT_H_
+#define FONT_H_
 
 #include <wvn/container/string.h>
 #include <wvn/maths/rect.h>
@@ -8,12 +8,14 @@ namespace wvn::gfx
 {
 	class Texture;
 
+	// todo: implement!
+
 	enum FontType
 	{
 		FONT_TYPE_NONE = 0,
 		FONT_TYPE_TTF,
 		FONT_TYPE_OTF,
-		FONT_TYPE_MAX
+		FONT_TYPE_MAX_ENUM
 	};
 
 	/**
@@ -81,4 +83,4 @@ namespace wvn::gfx
 	};
 }
 
-#endif // FONT_H
+#endif // FONT_H_

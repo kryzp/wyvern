@@ -1,5 +1,5 @@
-#ifndef STREAM_H
-#define STREAM_H
+#ifndef STREAM_H_
+#define STREAM_H_
 
 #include <wvn/common.h>
 
@@ -29,4 +29,4 @@ namespace wvn::io
 	};
 }
 
-#endif // STREAM_H
+#endif // STREAM_H_

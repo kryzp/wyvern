@@ -115,8 +115,8 @@ bool Image::save_png(const char* file) const
 
 bool Image::save_png(io::Stream& stream) const
 {
-	WVN_ASSERT(m_pixels, "[GFX:IMAGE|DEBUG] Pixel data cannot be null.");
-	WVN_ASSERT(m_width > 0 && m_height > 0, "[GFX:IMAGE|DEBUG] Width and Height must be > 0.");
+	wvn_ASSERT(m_pixels, "[GFX:IMAGE|DEBUG] Pixel data cannot be null.");
+	wvn_ASSERT(m_width > 0 && m_height > 0, "[GFX:IMAGE|DEBUG] Width and Height must be > 0.");
 
 	stbi_write_force_png_filter = 0;
 	stbi_write_png_compression_level = 0;
@@ -124,7 +124,7 @@ bool Image::save_png(io::Stream& stream) const
 	if (stbi_write_png_to_func(_stbi_write, &stream, m_width, m_height, 4, m_pixels, m_width * 4) != 0) {
 		return true;
 	} else {
-		WVN_ERROR("[GFX:IMAGE|DEBUG] stbi_write_png_to_func(...) failed.");
+		wvn_ERROR("[GFX:IMAGE|DEBUG] stbi_write_png_to_func(...) failed.");
 	}
 
 	return false;
@@ -138,8 +138,8 @@ bool Image::save_jpg(const char* file, int quality) const
 
 bool Image::save_jpg(io::Stream& stream, int quality) const
 {
-	WVN_ASSERT(m_pixels, "[GFX:IMAGE|DEBUG] Pixel data cannot be null.");
-	WVN_ASSERT(m_width > 0 && m_height > 0, "[GFX:IMAGE|DEBUG] Width and Height must be > 0.");
+	wvn_ASSERT(m_pixels, "[GFX:IMAGE|DEBUG] Pixel data cannot be null.");
+	wvn_ASSERT(m_width > 0 && m_height > 0, "[GFX:IMAGE|DEBUG] Width and Height must be > 0.");
 
 	if (quality < 1) {
 		dev::LogMgr::get_singleton()->print("[GFX:IMAGE] JPG quality value should be between [1 -> 100].");
@@ -152,7 +152,7 @@ bool Image::save_jpg(io::Stream& stream, int quality) const
 	if (stbi_write_jpg_to_func(_stbi_write, &stream, m_width, m_height, 4, m_pixels, quality) != 0) {
 		return true;
 	} else {
-		WVN_ERROR("[GFX:IMAGE|DEBUG] stbi_write_jpg_to_func(...) failed.");
+		wvn_ERROR("[GFX:IMAGE|DEBUG] stbi_write_jpg_to_func(...) failed.");
 	}
 
 	return false;

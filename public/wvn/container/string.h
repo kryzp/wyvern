@@ -1,5 +1,5 @@
-#ifndef STRING_H
-#define STRING_H
+#ifndef STRING_H_
+#define STRING_H_
 
 #include <wvn/common.h>
 #include <wvn/container/vector.h>
@@ -19,7 +19,7 @@ namespace wvn
 
 		public:
 			Iterator() : m_char(nullptr) { }
-			Iterator(char* c) : m_char(c) { }
+			Iterator(char* ptr) : m_char(ptr) { }
 			~Iterator() = default;
 			char& operator * () const { return *m_char; }
 			char* operator -> () const { return &(*m_char); }
@@ -39,7 +39,7 @@ namespace wvn
 
 		public:
 			ConstIterator() : m_char(nullptr) { }
-			ConstIterator(const char* c) : m_char(c) { }
+			ConstIterator(const char* ptr) : m_char(ptr) { }
 			~ConstIterator() = default;
 			const char& operator * () const { return *m_char; }
 			const char* operator -> () const { return &(*m_char); }
@@ -59,7 +59,7 @@ namespace wvn
 
 		public:
 			ReverseIterator() : m_char(nullptr) { }
-			ReverseIterator(char* c) : m_char(c) { }
+			ReverseIterator(char* ptr) : m_char(ptr) { }
 			~ReverseIterator() = default;
 			char& operator * () const { return *m_char; }
 			char* operator -> () const { return &(*m_char); }
@@ -79,7 +79,7 @@ namespace wvn
 
 		public:
 			ReverseConstIterator() : m_char(nullptr) { }
-			ReverseConstIterator(const char* c) : m_char(c) { }
+			ReverseConstIterator(const char* ptr) : m_char(ptr) { }
 			~ReverseConstIterator() = default;
 			const char& operator * () const { return *m_char; }
 			const char* operator -> () const { return &(*m_char); }
@@ -174,7 +174,7 @@ namespace wvn
 		u64 m_length;
 	};
 
-	using String = Str<64>;
+	using String = Str<512>;
 
 	template <u64 Size>
 	Str<Size>::Str()
@@ -188,7 +188,7 @@ namespace wvn
 	Str<Size>::Str(const char* str)
 		: m_length(cstr::length(str))
 	{
-		WVN_ASSERT(m_length < (Size - 1), "[STRING|DEBUG] Length must not exceed maximum size."); // -1 for '\0'
+		wvn_ASSERT(m_length < (Size - 1), "[STRING|DEBUG] Length must not exceed maximum size."); // -1 for '\0'
 
 		m_buf = new char[Size];
 		cstr::copy(m_buf, str, m_length);
@@ -198,7 +198,7 @@ namespace wvn
 	template <u64 Size>
 	Str<Size>::Str(const Str& other)
 	{
-		WVN_ASSERT(other.m_length < (Size - 1), "[STRING|DEBUG] Length must not exceed maximum size.");
+		wvn_ASSERT(other.m_length < (Size - 1), "[STRING|DEBUG] Length must not exceed maximum size.");
 
 		m_buf = new char[Size];
 
@@ -211,7 +211,7 @@ namespace wvn
 	template <u64 Size>
 	Str<Size>::Str(Str&& other) noexcept
 	{
-		WVN_ASSERT(other.m_length < (Size - 1), "[STRING|DEBUG] Length must not exceed maximum size.");
+		wvn_ASSERT(other.m_length < (Size - 1), "[STRING|DEBUG] Length must not exceed maximum size.");
 
 		m_buf = new char[Size];
 
@@ -225,7 +225,7 @@ namespace wvn
 	template <u64 Size>
 	Str<Size>& Str<Size>::operator = (const Str& other)
 	{
-		WVN_ASSERT(other.m_length < (Size - 1), "[STRING|DEBUG] Length must not exceed maximum size.");
+		wvn_ASSERT(other.m_length < (Size - 1), "[STRING|DEBUG] Length must not exceed maximum size.");
 
 		if (!m_buf)
 			m_buf = new char[Size];
@@ -243,7 +243,7 @@ namespace wvn
 	template <u64 Size>
 	Str<Size>& Str<Size>::operator = (Str&& other) noexcept
 	{
-		WVN_ASSERT(other.m_length < (Size - 1), "[STRING|DEBUG] Length must not exceed maximum size");
+		wvn_ASSERT(other.m_length < (Size - 1), "[STRING|DEBUG] Length must not exceed maximum size");
 
 		if (!m_buf)
 			m_buf = new char[Size];
@@ -280,7 +280,7 @@ namespace wvn
 	template <u64 Size>
 	Str<Size>& Str<Size>::append(const Str<Size>& str)
 	{
-		WVN_ASSERT((m_length + str.m_length) < (Size - 1), "[STRING|DEBUG] Final length must not exceed maximum size.");
+		wvn_ASSERT((m_length + str.m_length) < (Size - 1), "[STRING|DEBUG] Final length must not exceed maximum size.");
 
 		m_length += str.length();
 		cstr::concat(m_buf, str.m_buf, str.length());
@@ -503,7 +503,7 @@ namespace wvn
 	template <u64 Size>
 	int Str<Size>::index_of(const Str& str) const
 	{
-		WVN_ASSERT(m_length >= str.m_length, "[STRING|DEBUG] String to check for must not be larger than the string getting checked.");
+		wvn_ASSERT(m_length >= str.m_length, "[STRING|DEBUG] String to check for must not be larger than the string getting checked.");
 
 		for (unsigned i = 0; i <= m_length - str.m_length; i++)
 		{
@@ -524,7 +524,7 @@ namespace wvn
 	template <u64 Size>
 	int Str<Size>::last_index_of(const Str<Size>& str) const
 	{
-		WVN_ASSERT(m_length >= str.m_length, "[STRING|DEBUG] String to check for must not be larger than the string getting checked.");
+		wvn_ASSERT(m_length >= str.m_length, "[STRING|DEBUG] String to check for must not be larger than the string getting checked.");
 
 		for (unsigned i = m_length - str.m_length; i > 0; i--)
 		{
@@ -575,28 +575,28 @@ namespace wvn
 	template <u64 Size>
 	char* Str<Size>::at(u64 idx)
 	{
-		WVN_ASSERT(idx < m_length, "[STRING|DEBUG] Index must not be more than the length of the string.");
+		wvn_ASSERT(idx < m_length, "[STRING|DEBUG] Index must not be more than the length of the string.");
 		return m_buf[idx];
 	}
 
 	template <u64 Size>
 	const char* Str<Size>::at(u64 idx) const
 	{
-		WVN_ASSERT(idx < m_length, "[STRING|DEBUG] Index must not be more than the length of the string.");
+		wvn_ASSERT(idx < m_length, "[STRING|DEBUG] Index must not be more than the length of the string.");
 		return m_buf[idx];
 	}
 
 	template <u64 Size>
 	char& Str<Size>::operator [] (u64 idx)
 	{
-		WVN_ASSERT(idx < m_length, "[STRING|DEBUG] Index must not be more than the length of the string.");
+		wvn_ASSERT(idx < m_length, "[STRING|DEBUG] Index must not be more than the length of the string.");
 		return m_buf[idx];
 	}
 
 	template <u64 Size>
 	const char& Str<Size>::operator [] (u64 idx) const
 	{
-		WVN_ASSERT(idx < m_length, "[STRING|DEBUG] Index must not be more than the length of the string.");
+		wvn_ASSERT(idx < m_length, "[STRING|DEBUG] Index must not be more than the length of the string.");
 		return m_buf[idx];
 	}
 
@@ -642,17 +642,4 @@ namespace wvn
 	}
 }
 
-namespace std
-{
-	// std::hash overload
-	template <>
-	struct hash<wvn::String>
-	{
-		std::size_t operator () (const wvn::String& k) const
-		{
-			return SID(k.c_str());
-		}
-	};
-}
-
-#endif // STRING_H
+#endif // STRING_H_

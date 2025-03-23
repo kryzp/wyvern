@@ -1,13 +1,13 @@
-#ifndef COLOUR_H
-#define COLOUR_H
+#ifndef COLOUR_H_
+#define COLOUR_H_
 
 #include <wvn/common.h>
 
 namespace wvn
 {
 	/**
-	 * Generally used just when finally rendering to the screen as often
-	 * graphics API's require a 96-bit RGB floating-point colour instead of 32-bit RGBA.
+	 * Generally used when rendering to the screen as often graphics API's
+	 * require a floating-point RGB colour instead of integer RGBA.
 	 *
 	 * Not advised to be used for storing data such as images
 	 * as its size is 3x that of the other colour type.
@@ -86,7 +86,7 @@ namespace wvn
 	};
 
 	// hamburjger spelling
-	using Color = Colour;
+	using Color = Colour; // todo: remove this...
 }
 
-#endif // COLOUR_H
+#endif // COLOUR_H_

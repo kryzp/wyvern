@@ -1,5 +1,5 @@
-#ifndef COMPLEX_H
-#define COMPLEX_H
+#ifndef COMPLEX_H_
+#define COMPLEX_H_
 
 namespace wvn
 {
@@ -68,4 +68,4 @@ namespace wvn
 	};
 }
 
-#endif // COMPLEX_H
+#endif // COMPLEX_H_

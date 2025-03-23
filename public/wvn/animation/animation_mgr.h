@@ -1,5 +1,5 @@
-#ifndef ANIMATION_MGR_H
-#define ANIMATION_MGR_H
+#ifndef ANIMATION_MGR_H_
+#define ANIMATION_MGR_H_
 
 #include <wvn/singleton.h>
 
@@ -11,7 +11,7 @@ namespace wvn::anim
 	 */
 	class AnimationMgr : public Singleton<AnimationMgr>
 	{
-		WVN_DEF_SINGLETON(AnimationMgr);
+		wvn_DEF_SINGLETON(AnimationMgr);
 
 	public:
 		AnimationMgr();
@@ -21,4 +21,4 @@ namespace wvn::anim
 	};
 }
 
-#endif // ANIMATION_MGR_H
+#endif // ANIMATION_MGR_H_

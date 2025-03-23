@@ -1,2 +1,0 @@
-unless it's not made apparent by the folder name, i didn't write any of the fantastic code here, so all credit goes their respective authors:
- > stb_* files -> sean barrett

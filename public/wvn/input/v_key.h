@@ -1,11 +1,11 @@
-#ifndef V_KEY_H
-#define V_KEY_H
+#ifndef V_KEY_H_
+#define V_KEY_H_
 
 #include <wvn/container/vector.h>
 
 #include <wvn/input/keyboard.h>
 #include <wvn/input/mouse.h>
-#include <wvn/input/joystick.h>
+#include <wvn/input/gamepad.h>
 #include <wvn/input/v_key.h>
 
 namespace wvn::inp
@@ -26,8 +26,8 @@ namespace wvn::inp
 
 		Vector<KeyboardKey> keyboard_keys;
 		Vector<MouseButton> mouse_buttons;
-		Vector<JoystickButton> joystick_buttons;
+		Vector<GamepadButton> gamepad_buttons;
 	};
 }
 
-#endif // V_KEY_H
+#endif // V_KEY_H_

@@ -4,7 +4,7 @@
 using namespace wvn;
 using namespace wvn::sfx;
 
-WVN_IMPL_SINGLETON(AudioMgr);
+wvn_IMPL_SINGLETON(AudioMgr);
 
 AudioMgr::AudioMgr()
 {

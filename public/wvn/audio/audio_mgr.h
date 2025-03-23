@@ -1,5 +1,5 @@
-#ifndef AUDIO_MGR_H
-#define AUDIO_MGR_H
+#ifndef AUDIO_MGR_H_
+#define AUDIO_MGR_H_
 
 #include <wvn/singleton.h>
 
@@ -10,7 +10,7 @@ namespace wvn::sfx
 	 */
 	class AudioMgr : public Singleton<AudioMgr>
 	{
-		WVN_DEF_SINGLETON(AudioMgr);
+		wvn_DEF_SINGLETON(AudioMgr);
 
 	public:
 		AudioMgr();
@@ -20,4 +20,4 @@ namespace wvn::sfx
 	};
 }
 
-#endif // AUDIO_MGR_H
+#endif // AUDIO_MGR_H_

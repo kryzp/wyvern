@@ -1,5 +1,5 @@
-#ifndef ROOT_H
-#define ROOT_H
+#ifndef ROOT_H_
+#define ROOT_H_
 
 #include <wvn/container/vector.h>
 #include <wvn/container/function.h>
@@ -11,14 +11,19 @@ namespace wvn
 {
 	enum WindowMode
 	{
-		WINDOW_MODE_WINDOWED,
-		WINDOW_MODE_BORDERLESS,
-		WINDOW_MODE_FULLSCREEN
+		WINDOW_MODE_NONE,
+
+		WINDOW_MODE_WINDOWED	= 0 << 0,
+		WINDOW_MODE_BORDERLESS	= 1 << 0,
+		WINDOW_MODE_FULLSCREEN	= 1 << 1,
+		WINDOW_MODE_BORDERLESS_FULLSCREEN = WINDOW_MODE_BORDERLESS | WINDOW_MODE_FULLSCREEN,
+
+		WINDOW_MODE_MAX_ENUM
 	};
 
-	namespace act  { class ActorMgr; class EventMgr; }
+	namespace ent  { class EntityMgr; class EventMgr; }
 	namespace phys { class PhysicsMgr; }
-	namespace gfx { class RenderingMgr; class RendererBackend; class MeshMgr; }
+	namespace gfx { class RenderingMgr; class RendererBackend; class MeshMgr; class MaterialSystem; }
 	namespace sys { class SystemBackend; }
 	namespace sfx { class AudioMgr; class AudioBackend; }
 	namespace net { class NetworkMgr; }
@@ -26,17 +31,20 @@ namespace wvn
 	namespace dev { class LogMgr; class Console; }
 	namespace plug { class Plugin; }
 	namespace res { class ResourceMgr; }
-	namespace inp { class InputMgr; }
+	namespace inp { class Input; }
 
 	struct Config
 	{
 		enum ConfigFlag
 		{
-			FLAG_NONE           = 0 << 0,
+			FLAG_NONE,
+
 			FLAG_RESIZABLE      = 1 << 0,
 			FLAG_VSYNC          = 1 << 1,
 			FLAG_CURSOR_VISIBLE = 1 << 2,
-			FLAG_CENTRE_WINDOW  = 1 << 3
+			FLAG_CENTRE_WINDOW  = 1 << 3,
+
+			FLAG_MAX_ENUM
 		};
 
 		const char* name = nullptr;
@@ -45,7 +53,7 @@ namespace wvn
 		unsigned target_fps = 60;
 		unsigned max_updates = 5;
 		float opacity = 1.0f;
-		int flags = FLAG_NONE;
+		int flags = 0;
 		u64 random_seed = 0;
 		WindowMode window_mode = WINDOW_MODE_WINDOWED;
 
@@ -59,7 +67,7 @@ namespace wvn
 
 	class Root : public Singleton<Root>
 	{
-		WVN_DEF_SINGLETON(Root)
+		wvn_DEF_SINGLETON(Root)
 
 	public:
 		Root(const Config& cfg);
@@ -83,8 +91,6 @@ namespace wvn
 		sfx::AudioBackend* audio_backend();
 		void set_audio_backend(sfx::AudioBackend* backend);
 
-		void add_plugin(plug::Plugin* plugin);
-
 		Random<> random;
 		Camera main_camera;
 
@@ -92,20 +98,22 @@ namespace wvn
 		void install_plugins();
 		void uninstall_plugins();
 
-		float calc_delta_time() const;
-
 		phys::PhysicsMgr* m_physics_mgr;
-		act::ActorMgr* m_actor_mgr;
-		act::EventMgr* m_event_mgr;
+		ent::EntityMgr* m_entity_mgr;
+		ent::EventMgr* m_event_mgr;
 		gfx::RenderingMgr* m_rendering_mgr;
 		gfx::MeshMgr* m_mesh_mgr;
+		gfx::MaterialSystem* m_material_mgr;
 		sfx::AudioMgr* m_audio_mgr;
 		net::NetworkMgr* m_network_mgr;
 		anim::AnimationMgr* m_animation_mgr;
 		res::ResourceMgr* m_resource_mgr;
-		inp::InputMgr* m_input_mgr;
+		inp::Input* m_input_mgr;
+
+#if wvn_DEBUG
 		dev::LogMgr* m_log_mgr;
 		dev::Console* m_console;
+#endif // wvn_DEBUG
 
 		sys::SystemBackend* m_system_backend;
 		gfx::RendererBackend* m_rendering_backend;
@@ -118,4 +126,4 @@ namespace wvn
 	};
 }
 
-#endif // ROOT_H
+#endif // ROOT_H_

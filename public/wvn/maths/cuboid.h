@@ -1,5 +1,5 @@
-#ifndef CUBOID_H
-#define CUBOID_H
+#ifndef CUBOID_H_
+#define CUBOID_H_
 
 #include <wvn/maths/vec3.h>
 #include <wvn/maths/rect.h>
@@ -357,4 +357,4 @@ namespace wvn
 	}
 }
 
-#endif // CUBOID_H
+#endif // CUBOID_H_

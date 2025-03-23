@@ -3,7 +3,7 @@
 using namespace wvn;
 using namespace wvn::gfx;
 
-WVN_IMPL_SINGLETON(GPUBufferMgr);
+wvn_IMPL_SINGLETON(GPUBufferMgr);
 
 GPUBufferMgr::GPUBufferMgr()
 {

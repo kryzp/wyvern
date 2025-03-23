@@ -1,9 +1,9 @@
-#ifndef TRANSFORM_3D_H
-#define TRANSFORM_3D_H
+#ifndef TRANSFORM_3D_H_
+#define TRANSFORM_3D_H_
 
 #include <wvn/maths/vec3.h>
 #include <wvn/maths/quat.h>
-#include <wvn/maths/mat3x4.h>
+#include <wvn/maths/affine_3d.h>
 #include <wvn/container/function.h>
 
 namespace wvn
@@ -19,6 +19,9 @@ namespace wvn
 		void move_x(float dx);
 		void move_y(float dy);
 		void move_z(float dz);
+		void set_x(float x);
+		void set_y(float y);
+		void set_z(float z);
 		void position(const Vec3F& v);
 		void position(float x, float y, float z);
 		Vec3F position() const;
@@ -41,7 +44,7 @@ namespace wvn
 		void rotation(const Quat& quat);
 		Quat rotation() const;
 
-		Mat3x4 matrix();
+		Affine3D matrix();
 
 		Function<void(void)> on_transformed;
 
@@ -49,7 +52,7 @@ namespace wvn
 		void recompute_matrix();
 
 		bool m_dirty;
-		Mat3x4 m_matrix;
+		Affine3D m_matrix;
 
 		Vec3F m_position;
 		Quat m_rotation;
@@ -58,4 +61,4 @@ namespace wvn
 	};
 }
 
-#endif // TRANSFORM_3D_H
+#endif // TRANSFORM_3D_H_

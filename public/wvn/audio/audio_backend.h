@@ -1,5 +1,5 @@
-#ifndef AUDIO_BACKEND_H
-#define AUDIO_BACKEND_H
+#ifndef AUDIO_BACKEND_H_
+#define AUDIO_BACKEND_H_
 
 namespace wvn::sfx
 {
@@ -26,4 +26,4 @@ namespace wvn::sfx
 	};
 }
 
-#endif // AUDIO_BACKEND_H
+#endif // AUDIO_BACKEND_H_

@@ -7,10 +7,10 @@
 #define STB_TRUETYPE_IMPLEMENTATION
 #include <third_party/stb_truetype.h>
 
-#define WVN_FONT_ATLAS_W 1024
-#define WVN_FONT_ATLAS_H 512
-#define WVN_FONT_ATLAS_SIZE (WVN_FONT_ATLAS_W * WVN_FONT_ATLAS_H)
-#define WVN_FONT_CHARCOUNT 256
+#define wvn_FONT_ATLAS_W 1024
+#define wvn_FONT_ATLAS_H 512
+#define wvn_FONT_ATLAS_SIZE (wvn_FONT_ATLAS_W * wvn_FONT_ATLAS_H)
+#define wvn_FONT_CHARCOUNT 256
 #define M_INTERNAL_INFO ((stbtt_fontinfo*)m_internal_info)
 
 using namespace wvn;
@@ -39,8 +39,8 @@ Font::~Font()
 
 void Font::load(float size, const String& path)
 {
-	WVN_ASSERT(!path.empty(), "Path must not be empty.");
-	WVN_ASSERT(size > 0.0f, "Size must be greater than 0.");
+	wvn_ASSERT(!path.empty(), "Path must not be empty.");
+	wvn_ASSERT(size > 0.0f, "Size must be greater than 0.");
 
 	FontType type = path.ends_with(".ttf") ? FONT_TYPE_TTF : FONT_TYPE_OTF;
 
@@ -49,7 +49,7 @@ void Font::load(float size, const String& path)
 
 	if (type == FONT_TYPE_OTF)
 	{
-		WVN_ERROR("[GFX:FONT|DEBUG] OTF Loading is currently not supported.");
+		wvn_ERROR("[GFX:FONT|DEBUG] OTF Loading is currently not supported.");
 	}
 	else
 	{
@@ -61,7 +61,7 @@ void Font::load(float size, const String& path)
 		m_internal_info = new stbtt_fontinfo();
 
 		if (!stbtt_InitFont(M_INTERNAL_INFO, ttf_buffer, stbtt_GetFontOffsetForIndex(ttf_buffer, 0))) {
-			WVN_ERROR("[GFX:FONT|DEBUG] OTF Loading is currently not supported.");
+			wvn_ERROR("[GFX:FONT|DEBUG] OTF Loading is currently not supported.");
 		}
 
 		stbtt_GetFontVMetrics(M_INTERNAL_INFO, &m_info.ascent, &m_info.descent, &m_info.line_gap);
@@ -95,28 +95,28 @@ void Font::load(float size, const String& path)
 		}
 
 		// pack data into texture + store character data
-		byte* bitmap = new byte[WVN_FONT_ATLAS_SIZE];
+		byte* bitmap = new byte[wvn_FONT_ATLAS_SIZE];
 		{
-			stbtt_packedchar packed_chars[WVN_FONT_CHARCOUNT];
+			stbtt_packedchar packed_chars[wvn_FONT_CHARCOUNT];
 			stbtt_pack_context pack_context = { 0 };
 
-			if (!stbtt_PackBegin(&pack_context, bitmap, WVN_FONT_ATLAS_W, WVN_FONT_ATLAS_H, WVN_FONT_ATLAS_W, 1, NULL)) {
-				WVN_ERROR("[GFX:FONT|DEBUG] Failed to initialize font.");
+			if (!stbtt_PackBegin(&pack_context, bitmap, wvn_FONT_ATLAS_W, wvn_FONT_ATLAS_H, wvn_FONT_ATLAS_W, 1, NULL)) {
+				wvn_ERROR("[GFX:FONT|DEBUG] Failed to initialize font.");
 			}
 
 			//stbtt_PackSetOversampling(&pack_context, m_info.oversample_x, m_info.oversample_y);
 
-			if (!stbtt_PackFontRange(&pack_context, ttf_buffer, 0, m_info.size, 0, WVN_FONT_CHARCOUNT, packed_chars)) {
-				WVN_ERROR("[GFX:FONT|DEBUG] Failed to pack font.");
+			if (!stbtt_PackFontRange(&pack_context, ttf_buffer, 0, m_info.size, 0, wvn_FONT_CHARCOUNT, packed_chars)) {
+				wvn_ERROR("[GFX:FONT|DEBUG] Failed to pack font.");
 			}
 
 			stbtt_PackEnd(&pack_context);
 
-			m_atlas.texture = TextureMgr::get_singleton()->create(WVN_FONT_ATLAS_W, WVN_FONT_ATLAS_H, TEX_FMT_R8_UNORM, TEX_TILE_NONE, bitmap, WVN_FONT_ATLAS_W * WVN_FONT_ATLAS_H * 1);
+			m_atlas.texture = TextureMgr::get_singleton()->create(wvn_FONT_ATLAS_W, wvn_FONT_ATLAS_H, TEX_FORMAT_R8_UNORM, TEX_TILE_NONE, bitmap, wvn_FONT_ATLAS_W * wvn_FONT_ATLAS_H);
 
-			m_characters = new Character[WVN_FONT_CHARCOUNT];
+			m_characters = new Character[wvn_FONT_CHARCOUNT];
 
-			for (int i = 0; i < WVN_FONT_CHARCOUNT; i++)
+			for (int i = 0; i < wvn_FONT_CHARCOUNT; i++)
 			{
 				const auto& c = packed_chars[i];
 
@@ -137,6 +137,7 @@ void Font::load(float size, const String& path)
 void Font::free()
 {
 	delete M_INTERNAL_INFO;
+	delete m_atlas.texture;
 	delete[] m_kerning;
 	delete[] m_characters;
 }

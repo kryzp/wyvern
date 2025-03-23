@@ -79,3 +79,23 @@ float Line3D::length_squared() const
 {
 	return (b - a).length_squared();
 }
+
+float Line3D::angle(const Vec3F& up) // assuming |up|=1
+{
+	return CalcF::asin(Vec3F::dot(direction(), up));
+}
+
+float Line3D::angle_xy() const
+{
+	return CalcF::asin(direction().z);
+}
+
+float Line3D::angle_yz() const
+{
+	return CalcF::asin(direction().x);
+}
+
+float Line3D::angle_xz() const
+{
+	return CalcF::asin(direction().y);
+}

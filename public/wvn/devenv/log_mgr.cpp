@@ -7,7 +7,7 @@
 using namespace wvn;
 using namespace wvn::dev;
 
-WVN_IMPL_SINGLETON(LogMgr);
+wvn_IMPL_SINGLETON(LogMgr);
 
 LogMgr::LogMgr()
 {

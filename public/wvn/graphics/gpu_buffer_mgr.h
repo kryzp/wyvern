@@ -1,5 +1,5 @@
-#ifndef BUFFER_MGR_H
-#define BUFFER_MGR_H
+#ifndef BUFFER_MGR_H_
+#define BUFFER_MGR_H_
 
 #include <wvn/common.h>
 #include <wvn/graphics/gpu_buffer.h>
@@ -9,7 +9,7 @@ namespace wvn::gfx
 {
 	class GPUBufferMgr : public Singleton<GPUBufferMgr>
 	{
-		WVN_DEF_SINGLETON(GPUBufferMgr);
+		wvn_DEF_SINGLETON(GPUBufferMgr);
 
 	public:
 		GPUBufferMgr();
@@ -18,7 +18,8 @@ namespace wvn::gfx
 		virtual GPUBuffer* create_staging_buffer(u64 size) = 0;
 		virtual GPUBuffer* create_vertex_buffer(u64 vertex_count) = 0;
 		virtual GPUBuffer* create_index_buffer(u64 index_count) = 0;
+		virtual GPUBuffer* create_uniform_buffer(u64 size) = 0;
 	};
 }
 
-#endif // BUFFER_MGR_H
+#endif // BUFFER_MGR_H_

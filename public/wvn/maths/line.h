@@ -1,5 +1,5 @@
-#ifndef LINE_H
-#define LINE_H
+#ifndef LINE_H_
+#define LINE_H_
 
 #include <wvn/maths/vec2.h>
 #include <wvn/maths/vec3.h>
@@ -40,7 +40,12 @@ namespace wvn
 		Vec3F direction() const;
 		float length() const;
 		float length_squared() const;
+
+		float angle(const Vec3F& up);
+		float angle_xy() const; // angle relative to x-y plane
+		float angle_yz() const; // angle relative to y-z plane
+		float angle_xz() const; // angle relative to x-z plane
 	};
 }
 
-#endif // LINE_H
+#endif // LINE_H_

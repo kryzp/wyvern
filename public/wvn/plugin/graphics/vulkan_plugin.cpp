@@ -5,13 +5,13 @@
 using namespace wvn;
 using namespace wvn::plug;
 
-void VulkanPlugin::install()
+void VulkanPlugin::implement()
 {
 	m_backend = new gfx::VulkanBackend();
 	Root::get_singleton()->set_rendering_backend(static_cast<gfx::VulkanBackend*>(m_backend));
 }
 
-void VulkanPlugin::uninstall()
+void VulkanPlugin::remove()
 {
 	delete static_cast<gfx::VulkanBackend*>(m_backend);
 }

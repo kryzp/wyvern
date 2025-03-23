@@ -1,42 +1,26 @@
-#ifndef MESH_H
-#define MESH_H
+#ifndef MODEL_H_
+#define MODEL_H_
 
-#include <wvn/graphics/vertex.h>
-#include <wvn/graphics/gpu_buffer_mgr.h>
-#include <wvn/graphics/gpu_buffer.h>
+#include <wvn/maths/transform_3d.h>
 #include <wvn/container/vector.h>
-#include <wvn/common.h>
+#include <wvn/graphics/sub_mesh.h>
 
 namespace wvn::gfx
 {
-	class MeshMgr;
-
-	/**
-	 * Generic mesh class for representing, storing and manipulating a mesh.
-	 */
 	class Mesh
 	{
-		friend class MeshMgr;
-
 	public:
 		Mesh();
-		virtual ~Mesh();
+		~Mesh();
 
-		GPUBuffer* vertex_buffer();
-		GPUBuffer* index_buffer();
-		Vector<Vertex>& vertices();
-		const Vector<Vertex>& vertices() const;
-		Vector<u16>& indices();
-		const Vector<u16>& indices() const;
-		u64 index_count() const;
+		SubMesh* create_submesh();
+
+		u64 submesh_count() const;
+		SubMesh* submesh(int idx) const;
 
 	private:
-		GPUBuffer* m_vertex_buffer;
-		GPUBuffer* m_index_buffer;
-
-		Vector<Vertex> m_vertices;
-		Vector<u16> m_indices;
+		Vector<SubMesh*> m_meshes;
 	};
 }
 
-#endif // MESH_H
+#endif // MODEL_H_

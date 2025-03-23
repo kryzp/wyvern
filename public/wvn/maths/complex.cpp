@@ -64,7 +64,7 @@ Complex Complex::pow(const Complex& z, const Complex& p)
 		return Complex::one();
 
 	double theta = z.argument();
-	double lnr = CalcD::ln(z.magnitude());
+	double lnr = CalcD::log(z.magnitude());
 
 	Complex part0 = Complex(CalcD ::exp(lnr * p.real)) *
 		((Complex::one() * Complex::cos(lnr * p.imag)) +
@@ -100,7 +100,7 @@ Complex Complex::log2(const Complex& z)
 Complex Complex::ln(const Complex& z)
 {
 	return Complex(
-		CalcD::ln(z.magnitude()),
+		CalcD::log(z.magnitude()),
 		z.argument()
 	);
 }

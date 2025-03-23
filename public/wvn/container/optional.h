@@ -1,5 +1,5 @@
-#ifndef OPTIONAL_H
-#define OPTIONAL_H
+#ifndef OPTIONAL_H_
+#define OPTIONAL_H_
 
 namespace wvn
 {
@@ -32,6 +32,9 @@ namespace wvn
 		constexpr bool has_value() const;
 
 		explicit operator bool () const;
+
+		bool operator == (const Optional& other) const;
+		bool operator != (const Optional& other) const;
 
 	private:
 		T m_value;
@@ -143,6 +146,18 @@ namespace wvn
 	{
 		return m_enabled;
 	}
+
+	template <typename T>
+	bool Optional<T>::operator == (const Optional& other) const
+	{
+		return this->m_enabled && other.m_enabled && this->m_value == other.m_value;
+	}
+
+	template <typename T>
+	bool Optional<T>::operator != (const Optional& other) const
+	{
+		return !((*this) == other);
+	}
 }
 
-#endif // OPTIONAL_H
+#endif // OPTIONAL_H_

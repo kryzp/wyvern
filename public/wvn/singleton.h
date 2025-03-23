@@ -1,20 +1,20 @@
-#ifndef SINGLETON_H
-#define SINGLETON_H
+#ifndef SINGLETON_H_
+#define SINGLETON_H_
 
 #include <wvn/common.h>
 
 /**
  * All singletons must also use these two macros
  * to define and implement themselves as just inheriting
- * from Singleton<T> won't do the trick on its own.
+ * from Singleton<T> won't do the trick is_on its own.
  */
 
-#define WVN_DEF_SINGLETON(_class) \
+#define wvn_DEF_SINGLETON(_class) \
 public: \
 	static _class* get_singleton(); \
 private:
 
-#define WVN_IMPL_SINGLETON(_class) \
+#define wvn_IMPL_SINGLETON(_class) \
 	template <> _class* Singleton<_class>::ps_singleton = nullptr; \
 	_class* _class::get_singleton() { return ps_singleton; }
 
@@ -30,13 +30,13 @@ namespace wvn
 	public:
 		Singleton()
 		{
-			WVN_ASSERT(!ps_singleton, "[SINGLETON|DEBUG] ms_singleton must be nullptr.");
+			wvn_ASSERT(!ps_singleton, "[SINGLETON|DEBUG] ms_singleton must be nullptr.");
 			ps_singleton = static_cast<T*>(this);
 		}
 
 		~Singleton()
 		{
-			WVN_ASSERT(ps_singleton, "[SINGLETON|DEBUG] ms_singleton must not be nullptr.");
+			wvn_ASSERT(ps_singleton, "[SINGLETON|DEBUG] ms_singleton must not be nullptr.");
 			ps_singleton = nullptr;
 		}
 
@@ -50,4 +50,4 @@ namespace wvn
 	};
 }
 
-#endif // SINGLETON_H
+#endif // SINGLETON_H_

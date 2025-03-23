@@ -3,7 +3,7 @@
 using namespace wvn;
 using namespace wvn::dev;
 
-WVN_IMPL_SINGLETON(ProfileMgr);
+wvn_IMPL_SINGLETON(ProfileMgr);
 
 ProfileMgr::ProfileMgr()
 {

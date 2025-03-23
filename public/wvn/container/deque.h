@@ -1,16 +1,17 @@
-#ifndef DEQUE_H
-#define DEQUE_H
+#ifndef DEQUE_H_
+#define DEQUE_H_
 
 #include <wvn/common.h>
 #include <new>
-
-// todo: add WVN_ASSERT's
 
 namespace wvn
 {
 	/**
 	 * Dynamically-resizing double ended queue to which you can add
 	 * new objects or pick the first one out of the queue.
+	 *
+	 * Unrelated but the double-ended queue is such a cool data structure.
+	 * Proud of this.
 	 */
 	template <typename T, u64 ChunkSize = 64>
 	class Deque
@@ -294,13 +295,13 @@ namespace wvn
 		T** new_map = (T**)::operator new (sizeof(T*) * num_chunks);
 		mem::set(new_map, 0, sizeof(T*) * num_chunks);
 
-		int beg_off = m_begin.m_cur   - m_begin.m_first;
-		int end_off = m_end  .m_cur   - m_end.m_first;
-		int beg_chk = m_begin.m_chunk - m_map;
-		int end_chk = m_end  .m_chunk - m_begin.m_chunk;
+		int beg_off = m_begin	.m_cur   - m_begin	.m_first;
+		int end_off = m_end  	.m_cur   - m_end	.m_first;
+		int beg_chk = m_begin	.m_chunk - m_map			;
+		int end_chk = m_end		.m_chunk - m_begin	.m_chunk;
 
 		if (front_or_back == EXPAND_FRONT) {
-			mem::copy(new_map + num_chunks - chunks(), m_map, sizeof(T*) * chunks());
+			mem::copy(new_map + chunks(), m_map, sizeof(T*) * chunks());
 		} else if (front_or_back == EXPAND_BACK) {
 			mem::copy(new_map, m_map, sizeof(T*) * chunks());
 		}
@@ -315,8 +316,8 @@ namespace wvn
 		}
 
 		if (front_or_back == EXPAND_FRONT) {
-			m_begin.set_chunk(new_map + num_chunks - chunks());
-			m_end  .set_chunk(new_map + num_chunks - chunks() + end_chk);
+			m_begin.set_chunk(new_map + chunks());
+			m_end  .set_chunk(new_map + chunks() + end_chk);
 		} else if (front_or_back == EXPAND_BACK) {
 			m_begin.set_chunk(new_map + beg_chk  + 1);
 			m_end  .set_chunk(new_map + chunks() - 1);
@@ -328,7 +329,7 @@ namespace wvn
 		::operator delete (m_map, sizeof(T*) * m_capacity);
 
 		m_map = new_map;
-		m_capacity = num_chunks * ChunkSize;
+		m_capacity *= 2;
 	}
 
 	template <typename T, u64 ChunkSize>
@@ -410,6 +411,7 @@ namespace wvn
 	template <typename T, u64 ChunkSize>
 	T Deque<T, ChunkSize>::pop_front()
 	{
+		wvn_ASSERT(m_size > 0, "[DEQUE|DEBUG] Deque must not be empty!");
 		m_size--;
 		m_begin++;
 		return *m_begin;
@@ -418,6 +420,7 @@ namespace wvn
 	template <typename T, u64 ChunkSize>
 	T Deque<T, ChunkSize>::pop_back()
 	{
+		wvn_ASSERT(m_size > 0, "[DEQUE|DEBUG] Deque must not be empty!");
 		m_size--;
 		m_end--;
 		return *m_end;
@@ -504,4 +507,4 @@ namespace wvn
 	}
 }
 
-#endif // DEQUE_H
+#endif // DEQUE_H_

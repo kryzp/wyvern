@@ -35,7 +35,7 @@ void Transform3D::move(const wvn::Vec3F& dv)
 
 void Transform3D::move(float dx, float dy, float dz)
 {
-	if (dx == 0.0f && dy == 0.0f && dz == 0.0f) {
+	if (CalcF::within_epsilon(dx, 0.0f) && CalcF::within_epsilon(dy, 0.0f) && CalcF::within_epsilon(dz, 0.0f)) {
 		return;
 	}
 
@@ -52,7 +52,7 @@ void Transform3D::move(float dx, float dy, float dz)
 
 void Transform3D::move_x(float dx)
 {
-	if (dx == 0.0f) {
+	if (CalcF::within_epsilon(dx, 0.0f)) {
 		return;
 	}
 
@@ -67,7 +67,7 @@ void Transform3D::move_x(float dx)
 
 void Transform3D::move_y(float dy)
 {
-	if (dy == 0.0f) {
+	if (CalcF::within_epsilon(dy, 0.0f)) {
 		return;
 	}
 
@@ -82,7 +82,7 @@ void Transform3D::move_y(float dy)
 
 void Transform3D::move_z(float dz)
 {
-	if (dz == 0.0f) {
+	if (CalcF::within_epsilon(dz, 0.0f)) {
 		return;
 	}
 
@@ -91,6 +91,51 @@ void Transform3D::move_z(float dz)
 	}
 
 	m_position.z += dz;
+
+	m_dirty = true;
+}
+
+void Transform3D::set_x(float x)
+{
+	if (x == m_position.x) {
+		return;
+	}
+
+	if (on_transformed) {
+		on_transformed();
+	}
+
+	m_position.x = x;
+
+	m_dirty = true;
+}
+
+void Transform3D::set_y(float y)
+{
+	if (y == m_position.y) {
+		return;
+	}
+
+	if (on_transformed) {
+		on_transformed();
+	}
+
+	m_position.y = y;
+
+	m_dirty = true;
+}
+
+void Transform3D::set_z(float z)
+{
+	if (z == m_position.z) {
+		return;
+	}
+
+	if (on_transformed) {
+		on_transformed();
+	}
+
+	m_position.z = z;
 
 	m_dirty = true;
 }
@@ -235,7 +280,7 @@ void Transform3D::scale_by(const Vec3F& dv)
 
 void Transform3D::scale_by(float ds)
 {
-	if (ds == 0.0f) {
+	if (CalcF::within_epsilon(ds, 0.0f)) {
 		return;
 	}
 
@@ -252,7 +297,7 @@ void Transform3D::scale_by(float ds)
 
 void Transform3D::scale_by(float dx, float dy, float dz)
 {
-	if (dx == 0.0f && dy == 0.0f && dz == 0.0f) {
+	if (CalcF::within_epsilon(dx, 0.0f) && CalcF::within_epsilon(dy, 0.0f) && CalcF::within_epsilon(dz, 0.0f)) {
 		return;
 	}
 
@@ -297,7 +342,7 @@ void Transform3D::rotate(const Quat& quat)
 
 void Transform3D::rotation(const Vec3F& axis, float angle)
 {
-    if (angle == 0.0f) {
+    if (CalcF::within_epsilon(angle, 0.0f)) {
         return;
     }
 
@@ -326,7 +371,7 @@ Quat Transform3D::rotation() const
 	return m_rotation;
 }
 
-Mat3x4 Transform3D::matrix()
+Affine3D Transform3D::matrix()
 {
 	if (m_dirty) {
 		recompute_matrix();
@@ -338,7 +383,7 @@ Mat3x4 Transform3D::matrix()
 
 void Transform3D::recompute_matrix()
 {
-	m_matrix = Mat3x4::create_transform(
+	m_matrix = Affine3D::create_transform(
 		m_position,
 		m_rotation,
 		m_scale,

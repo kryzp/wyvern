@@ -1,5 +1,5 @@
-#ifndef FUNCTION_H
-#define FUNCTION_H
+#ifndef FUNCTION_H_
+#define FUNCTION_H_
 
 #include <memory>
 #include <wvn/common.h>
@@ -117,6 +117,7 @@ namespace wvn
 		if (m_destroy_func && m_data) {
 			m_destroy_func(m_data);
 		}
+
 		delete[] m_data;
 	}
 
@@ -157,4 +158,4 @@ namespace wvn
 	}
 }
 
-#endif // FUNCTION_H
+#endif // FUNCTION_H_

@@ -1,5 +1,5 @@
-#ifndef QUATERNION_H
-#define QUATERNION_H
+#ifndef QUATERNION_H_
+#define QUATERNION_H_
 
 namespace wvn
 {
@@ -26,6 +26,7 @@ namespace wvn
 		};
 
 		Quat();
+		Quat(const Vec3F& xyz);
 		Quat(float x, float y, float z);
 		Quat(float w, float x, float y, float z);
         Quat(const Quat& other);
@@ -57,7 +58,6 @@ namespace wvn
 		Quat operator + (const Quat& other) const;
 		Quat operator - (const Quat& other) const;
 		Quat operator * (const Quat& other) const;
-        Quat operator * (float scalar) const;
         Quat operator / (float scalar) const;
 
 		Quat operator - () const;
@@ -66,6 +66,10 @@ namespace wvn
 		Quat& operator -= (const Quat& other);
 		Quat& operator *= (const Quat& other);
 	};
+
+	// global operators
+	inline Quat operator * (const Quat& lhs, float rhs) { return Quat(lhs.w * rhs, lhs.x * rhs, lhs.y * rhs, lhs.z * rhs); }
+	inline Quat operator * (float lhs, const Quat& rhs) { return Quat(lhs * rhs.w, rhs.x * lhs, rhs.y * lhs, rhs.z * lhs); }
 }
 
-#endif // QUATERNION_H
+#endif // QUATERNION_H_

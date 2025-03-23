@@ -1,33 +1,40 @@
-#ifndef LINKED_LIST_H
-#define LINKED_LIST_H
+#ifndef LINKED_LIST_H_
+#define LINKED_LIST_H_
+
+#include <new>
+#include <wvn/common.h>
 
 namespace wvn
 {
 	/**
-	 * List in which each link points to the next link.
+	 * List in which each "link" points to the next and previous link.
 	 */
 	template <typename T>
 	class LinkedList
 	{
-	public:
 		struct Link
 		{
-			Link* next = nullptr;
-			Link* prev = nullptr;
+			Link* next;
+			Link* prev;
 			T data;
 		};
 
+	public:
 		struct Iterator
 		{
+			friend class LinkedList<T>;
+		public:
 			Iterator() : m_ptr(nullptr) { }
-			Iterator(Link* init) : m_ptr(init) { }
+			Iterator(Link* ptr) : m_ptr(ptr) { }
 			~Iterator() = default;
 			T& operator * () const { return m_ptr->data; }
 			T* operator -> () const { return &m_ptr->data; }
-			Iterator& operator ++ () { if (m_ptr) { m_ptr = m_ptr->next; } return *this; }
-			Iterator& operator -- () { if (m_ptr) { m_ptr = m_ptr->prev; } return *this; }
-			Iterator& operator ++ (int) { if (m_ptr) { m_ptr = m_ptr->next; } return *this; }
-			Iterator& operator -- (int) { if (m_ptr) { m_ptr = m_ptr->prev; } return *this; }
+			Iterator operator + (int n) { for (int i = 0; i < n - 1; i++) { m_ptr = m_ptr->next; } return Iterator(m_ptr); }
+			Iterator operator - (int n) { for (int i = 0; i < n - 0; i++) { m_ptr = m_ptr->prev; } return Iterator(m_ptr); }
+			Iterator& operator ++ () { m_ptr = m_ptr->next; return *this; }
+			Iterator& operator -- () { m_ptr = m_ptr->prev; return *this; }
+			const Iterator operator ++ (int) { m_ptr = m_ptr->next; return *this; }
+			const Iterator operator -- (int) { m_ptr = m_ptr->prev; return *this; }
 			bool operator == (const Iterator& other) const { return this->m_ptr == other.m_ptr; }
 			bool operator != (const Iterator& other) const { return this->m_ptr != other.m_ptr; }
 		private:
@@ -36,31 +43,56 @@ namespace wvn
 
 		struct ConstIterator
 		{
+			friend class LinkedList<T>;
+		public:
 			ConstIterator() : m_ptr(nullptr) { }
-			ConstIterator(const Link* init) : m_ptr(init) { }
+			ConstIterator(Link* ptr) : m_ptr(ptr) { }
 			~ConstIterator() = default;
-			const T& operator * () const { return m_ptr->data; }
-			const T* operator -> () const { return &m_ptr->data; }
-			ConstIterator& operator ++ () { if (m_ptr) { m_ptr = m_ptr->next; } return *this; }
-			ConstIterator& operator -- () { if (m_ptr) { m_ptr = m_ptr->prev; } return *this; }
-			ConstIterator& operator ++ (int) { if (m_ptr) { m_ptr = m_ptr->next; } return *this; }
-			ConstIterator& operator -- (int) { if (m_ptr) { m_ptr = m_ptr->prev; } return *this; }
-			bool operator == (const Iterator& other) const { return this->m_ptr == other.m_ptr; }
-			bool operator != (const Iterator& other) const { return this->m_ptr != other.m_ptr; }
+			T& operator * () const { return m_ptr->data; }
+			T* operator -> () const { return &m_ptr->data; }
+			ConstIterator operator + (int n) { for (int i = 0; i < n - 1; i++) { m_ptr = m_ptr->next; } return ConstIterator(m_ptr); }
+			ConstIterator operator - (int n) { for (int i = 0; i < n - 0; i++) { m_ptr = m_ptr->prev; } return ConstIterator(m_ptr); }
+			ConstIterator& operator ++ () { m_ptr = m_ptr->next; return *this; }
+			ConstIterator& operator -- () { m_ptr = m_ptr->prev; return *this; }
+			const ConstIterator operator ++ (int) { m_ptr = m_ptr->next; return *this; }
+			const ConstIterator operator -- (int) { m_ptr = m_ptr->prev; return *this; }
+			bool operator == (const ConstIterator& other) const { return this->m_ptr == other.m_ptr; }
+			bool operator != (const ConstIterator& other) const { return this->m_ptr != other.m_ptr; }
 		private:
-			const Link* m_ptr;
+			Link* m_ptr;
 		};
 
 		LinkedList();
 		~LinkedList();
 
-		Link* add(T item);
-		void remove(T item);
+		void clear();
+		void erase(const Iterator& it);
+		void remove(const T& item);
 
-		T& first();
-		const T& first() const;
-		T& last();
-		const T& last() const;
+		u64 size() const;
+		bool empty() const;
+
+		Iterator insert(const T& item, const Iterator& it);
+
+		template <typename... Args>
+		Iterator emplace(Args&&... args, const Iterator& it);
+
+		template <typename... Args>
+		Iterator emplace_front(Args&&... args);
+
+		template <typename... Args>
+		Iterator emplace_back(Args&&... args);
+
+		Iterator push_front(const T& item);
+		Iterator push_back(const T& item);
+
+		void pop_front();
+		void pop_back();
+
+		T& front();
+		const T& front() const;
+		T& back();
+		const T& back() const;
 
 		Iterator begin();
 		ConstIterator begin() const;
@@ -71,166 +103,217 @@ namespace wvn
 		ConstIterator cend() const;
 
 	private:
-		void remove(Link* link);
-		Link* find(T item) const;
-
-		Link* m_first;
-		Link* m_last;
+		Link* m_root;
+		u64 m_size;
 	};
 
 	template <typename T>
 	LinkedList<T>::LinkedList()
-		: m_first(nullptr)
-		, m_last(nullptr)
+		: m_root(nullptr)
+		, m_size(0)
 	{
+		m_root = new Link();
+		m_root->next = m_root;
+		m_root->prev = m_root;
 	}
 
 	template <typename T>
 	LinkedList<T>::~LinkedList()
 	{
-		Link* node = m_first;
-		while (node)
+		clear();
+	}
+
+	template <typename T>
+	void LinkedList<T>::clear()
+	{
+		Link* curr = m_root;
+
+		for (int i = 0; i < m_size; i++)
 		{
-			Link* next = node->next;
-			delete node;
-			node = next;
+			Link* next = curr->next;
+			delete curr;
+			curr = next;
 		}
 
-		m_first = nullptr;
-		m_last = nullptr;
+		m_size = 0;
+		m_root = new Link();
+		m_root->next = m_root;
+		m_root->prev = m_root;
 	}
 
 	template <typename T>
-	typename LinkedList<T>::Link* LinkedList<T>::add(T item)
+	void LinkedList<T>::erase(const Iterator& it)
 	{
-		Link* node = new Link();
-		node->data = item;
+		it.m_ptr->prev->next = it.m_ptr->next;
+		it.m_ptr->next->prev = it.m_ptr->prev;
+		delete it.m_ptr;
+		m_size--;
+	}
 
-		if (m_last)
+	template<class T>
+	void LinkedList<T>::remove(const T& item)
+	{
+		Iterator curr = begin();
+		Iterator last = end();
+		Iterator next = curr;
+
+		while (curr != last)
 		{
-			m_last->next = node;
-			node->prev = m_last;
-			node->next = nullptr;
-			m_last = node;
-		}
-		else
-		{
-			node->next = nullptr;
-			node->prev = nullptr;
+			next++;
 
-			m_first = node;
-			m_last = node;
-		}
+			if (*curr == item)
+				erase(curr);
 
-		return node;
+			curr = next;
+		}
 	}
 
 	template <typename T>
-	void LinkedList<T>::remove(Link* link)
+	LinkedList<T>::Iterator LinkedList<T>::insert(const T &item, const Iterator& it)
 	{
-		if (!link) {
-			return;
-		}
-
-		if (link->next) {
-			link->next->prev = link->prev;
-		}
-
-		if (link->prev) {
-			link->prev->next = link->next;
-		}
-
-		if (link == m_first) {
-			m_first = link->next;
-		}
-
-		if (link == m_last) {
-			m_last = link->prev;
-		}
-
-		link->next = nullptr;
-		link->prev = nullptr;
-
-		delete link;
+		Link* l = new Link();
+		l->data = item;
+		l->next = it.m_ptr;
+		l->prev = it.m_ptr->prev;
+		l->prev->next = l;
+		l->next->prev = l;
+		it.m_ptr->prev = l;
+		m_size++;
+		return Iterator(l);
 	}
 
 	template <typename T>
-	void LinkedList<T>::remove(T item)
+	template <typename... Args>
+	LinkedList<T>::Iterator LinkedList<T>::emplace(Args&&... args, const Iterator& it)
 	{
-		remove(find(item));
+		Link* l = new Link();
+		new (&l->data) T(std::forward<Args>(args)...);
+		l->next = it.m_ptr;
+		l->prev = it.m_ptr->prev;
+		l->prev->next = l;
+		l->next->prev = l;
+		it.m_ptr->prev = l;
+		m_size++;
+		return Iterator(l);
 	}
 
 	template <typename T>
-	typename LinkedList<T>::Link* LinkedList<T>::find(T item) const
+	template <typename... Args>
+	LinkedList<T>::Iterator LinkedList<T>::emplace_front(Args&&... args)
 	{
-		for (auto* node = m_first; node != nullptr; node = node->next) {
-			if (node->data == item) {
-				return node;
-			}
-		}
-
-		return nullptr;
+		return emplace(std::forward<Args>(args)..., begin());
 	}
 
 	template <typename T>
-	T& LinkedList<T>::first()
+	template <typename... Args>
+	LinkedList<T>::Iterator LinkedList<T>::emplace_back(Args&&... args)
 	{
-		return m_first->data;
+		return emplace(std::forward<Args>(args)..., end());
 	}
 
 	template <typename T>
-	const T& LinkedList<T>::first() const
+	LinkedList<T>::Iterator LinkedList<T>::push_front(const T& item)
 	{
-		return m_first->data;
+		return insert(item, begin());
 	}
 
 	template <typename T>
-	T& LinkedList<T>::last()
+	LinkedList<T>::Iterator LinkedList<T>::push_back(const T& item)
 	{
-		return m_last->data;
+		return insert(item, end());
 	}
 
 	template <typename T>
-	const T& LinkedList<T>::last() const
+	void LinkedList<T>::pop_front()
 	{
-		return m_last->data;
+		Link* l = m_root->next;
+		m_root->next = m_root->next->next;
+		m_root->next->prev = m_root;
+		delete l;
+		m_size--;
+	}
+
+	template <typename T>
+	void LinkedList<T>::pop_back()
+	{
+		Link* l = m_root;
+		m_root = m_root->prev;
+		m_root->next = l->next;
+		delete l;
+		m_size--;
+	}
+
+	template <typename T>
+	u64 LinkedList<T>::size() const
+	{
+		return m_size;
+	}
+
+	template <typename T>
+	bool LinkedList<T>::empty() const
+	{
+		return m_size == 0;
+	}
+
+	template <typename T>
+	T& LinkedList<T>::front()
+	{
+		return m_root->next->data;
+	}
+
+	template <typename T>
+	const T& LinkedList<T>::front() const
+	{
+		return m_root->next->data;
+	}
+
+	template <typename T>
+	T& LinkedList<T>::back()
+	{
+		return m_root->data;
+	}
+
+	template <typename T>
+	const T& LinkedList<T>::back() const
+	{
+		return m_root->data;
 	}
 
 	template <typename T>
 	typename LinkedList<T>::Iterator LinkedList<T>::begin()
 	{
-		return Iterator(m_first);
+		return Iterator(m_root->next);
 	}
 
 	template <typename T>
 	typename LinkedList<T>::ConstIterator LinkedList<T>::begin() const
 	{
-		return ConstIterator(m_first);
+		return ConstIterator(m_root->next);
 	}
 
 	template <typename T>
 	typename LinkedList<T>::Iterator LinkedList<T>::end()
 	{
-		return Iterator(nullptr);
+		return Iterator(m_root);
 	}
 
 	template <typename T>
 	typename LinkedList<T>::ConstIterator LinkedList<T>::end() const
 	{
-		return ConstIterator(nullptr);
+		return Iterator(m_root);
 	}
 
 	template <typename T>
 	typename LinkedList<T>::ConstIterator LinkedList<T>::cbegin() const
 	{
-		return ConstIterator(m_first);
+		return ConstIterator(m_root->next);
 	}
 
 	template <typename T>
 	typename LinkedList<T>::ConstIterator LinkedList<T>::cend() const
 	{
-		return ConstIterator(nullptr);
+		return Iterator(m_root);
 	}
 }
 
-#endif // LINKED_LIST_H
+#endif // LINKED_LIST_H_

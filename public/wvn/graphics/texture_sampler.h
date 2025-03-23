@@ -1,5 +1,5 @@
-#ifndef TEXTURE_SAMPLER_H
-#define TEXTURE_SAMPLER_H
+#ifndef TEXTURE_SAMPLER_H_
+#define TEXTURE_SAMPLER_H_
 
 namespace wvn::gfx
 {
@@ -8,7 +8,7 @@ namespace wvn::gfx
 		TEX_FILTER_NONE = 0,
 		TEX_FILTER_NEAREST,
 		TEX_FILTER_LINEAR,
-		TEX_FILTER_MAX
+		TEX_FILTER_MAX_ENUM
 	};
 
 	enum TextureWrap
@@ -16,7 +16,19 @@ namespace wvn::gfx
 		TEX_WRAP_NONE = 0,
 		TEX_WRAP_CLAMP,
 		TEX_WRAP_REPEAT,
-		TEX_WRAP_MAX
+		TEX_WRAP_MAX_ENUM
+	};
+
+	enum TextureBorderColour
+	{
+		TEX_BORDER_COLOUR_NONE = 0,
+		TEX_BORDER_COLOUR_FLOAT_TRANSPARENT_BLACK,
+		TEX_BORDER_COLOUR_INT_TRANSPARENT_BLACK,
+		TEX_BORDER_COLOUR_FLOAT_OPAQUE_BLACK,
+		TEX_BORDER_COLOUR_INT_OPAQUE_BLACK,
+		TEX_BORDER_COLOUR_FLOAT_OPAQUE_WHITE,
+		TEX_BORDER_COLOUR_INT_OPAQUE_WHITE,
+		TEX_BORDER_COLOUR_MAX_ENUM
 	};
 
 	struct TextureSampler
@@ -28,28 +40,29 @@ namespace wvn::gfx
 			TextureWrap wrap_x;
 			TextureWrap wrap_y;
 			TextureWrap wrap_z;
+			TextureBorderColour border_colour;
 
 			Style()
 				: filter(TEX_FILTER_NONE)
 				, wrap_x(TEX_WRAP_NONE)
 				, wrap_y(TEX_WRAP_NONE)
 				, wrap_z(TEX_WRAP_NONE)
+				, border_colour(TEX_BORDER_COLOUR_INT_OPAQUE_BLACK)
 			{
 			}
 
-			Style(TextureFilter filter)
-				: filter(filter)
-				, wrap_x(TEX_WRAP_CLAMP)
-				, wrap_y(TEX_WRAP_CLAMP)
-				, wrap_z(TEX_WRAP_CLAMP)
-			{
-			}
-
-			Style(TextureFilter filter, TextureWrap wrap_x, TextureWrap wrap_y, TextureWrap wrap_z)
+			Style(
+				TextureFilter filter,
+				TextureWrap wrap_x = TEX_WRAP_CLAMP,
+				TextureWrap wrap_y = TEX_WRAP_CLAMP,
+				TextureWrap wrap_z = TEX_WRAP_CLAMP,
+				TextureBorderColour border_colour = TEX_BORDER_COLOUR_INT_OPAQUE_BLACK
+			)
 				: filter(filter)
 				, wrap_x(wrap_x)
 				, wrap_y(wrap_y)
 				, wrap_z(wrap_z)
+				, border_colour(border_colour)
 			{
 			}
 
@@ -72,9 +85,15 @@ namespace wvn::gfx
 		{
 		}
 
+		virtual ~TextureSampler()
+		{
+		}
+
+		virtual void clean_up() = 0;
+
 		bool operator == (const TextureSampler& other) const { return this->style == other.style; }
 		bool operator != (const TextureSampler& other) const { return this->style != other.style; }
 	};
 }
 
-#endif // TEXTURE_SAMPLER_H
+#endif // TEXTURE_SAMPLER_H_

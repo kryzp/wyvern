@@ -12,7 +12,7 @@ VulkanTextureSampler::VulkanTextureSampler()
 {
 }
 
-VulkanTextureSampler::VulkanTextureSampler(const Style& style)
+VulkanTextureSampler::VulkanTextureSampler(const TextureSampler::Style& style)
 	: TextureSampler(style)
 	, m_sampler(VK_NULL_HANDLE)
 {
@@ -52,7 +52,7 @@ VkSampler VulkanTextureSampler::bind(VkDevice device, VkPhysicalDeviceProperties
 	create_info.addressModeW = vkutil::get_vk_address_mode(style.wrap_z);
 	create_info.anisotropyEnable = VK_TRUE;
 	create_info.maxAnisotropy = properties.limits.maxSamplerAnisotropy;
-	create_info.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+	create_info.borderColor = vkutil::get_vk_border_colour(style.border_colour);
 	create_info.unnormalizedCoordinates = VK_FALSE;
 	create_info.compareEnable = VK_FALSE;
 	create_info.compareOp = VK_COMPARE_OP_ALWAYS;
@@ -62,7 +62,7 @@ VkSampler VulkanTextureSampler::bind(VkDevice device, VkPhysicalDeviceProperties
 	create_info.maxLod = (float)mip_levels;
 
 	if (VkResult result = vkCreateSampler(device, &create_info, nullptr, &m_sampler); result != VK_SUCCESS) {
-		WVN_ERROR("[VULKAN:SAMPLER|DEBUG] Failed to create texture sampler: %d", result);
+		wvn_ERROR("[VULKAN:SAMPLER|DEBUG] Failed to create texture sampler: %d", result);
 	}
 
 	return m_sampler;

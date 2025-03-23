@@ -1,5 +1,5 @@
-#ifndef VECTOR_H
-#define VECTOR_H
+#ifndef VECTOR_H_
+#define VECTOR_H_
 
 #include <initializer_list>
 #include <new>
@@ -20,11 +20,9 @@ namespace wvn
     public:
 		class Iterator
 		{
-			friend class Vector<T>;
-
 		public:
 			Iterator() : m_ptr(nullptr) { }
-			Iterator(T* init) : m_ptr(init) { }
+			Iterator(T* ptr) : m_ptr(ptr) { }
 			~Iterator() = default;
 			T& operator * () const { return *m_ptr; }
 			T* operator -> () const { return m_ptr; }
@@ -40,11 +38,9 @@ namespace wvn
 
 		class ConstIterator
 		{
-			friend class Vector<T>;
-
 		public:
 			ConstIterator() : m_ptr(nullptr) { }
-			ConstIterator(const T* init) : m_ptr(init) { }
+			ConstIterator(const T* ptr) : m_ptr(ptr) { }
 			~ConstIterator() = default;
 			const T& operator * () const { return *m_ptr; }
 			const T* operator -> () const { return m_ptr; }
@@ -60,11 +56,9 @@ namespace wvn
 
 		class ReverseIterator
 		{
-			friend class Vector<T>;
-
 		public:
 			ReverseIterator() : m_ptr(nullptr) { }
-			ReverseIterator(T* init) : m_ptr(init) { }
+			ReverseIterator(T* ptr) : m_ptr(ptr) { }
 			~ReverseIterator() = default;
 			T& operator * () const { return *m_ptr; }
 			T* operator -> () const { return m_ptr; }
@@ -80,11 +74,9 @@ namespace wvn
 
 		class ReverseConstIterator
 		{
-			friend class Vector<T>;
-
 		public:
 			ReverseConstIterator() : m_ptr(nullptr) { }
-			ReverseConstIterator(const T* init) : m_ptr(init) { }
+			ReverseConstIterator(const T* ptr) : m_ptr(ptr) { }
 			~ReverseConstIterator() = default;
 			const T& operator * () const { return *m_ptr; }
 			const T* operator -> () const { return m_ptr; }
@@ -122,22 +114,22 @@ namespace wvn
 		void erase(u64 index, u64 amount = 1);
 		void erase(Iterator it, u64 amount = 1);
 
-		Iterator find(const T& elem);
+		Iterator find(const T& item);
 
 		T* data();
 		const T* data() const;
 
-        T& push_front(const T& item);
-        T& push_back(const T& item);
+        Iterator push_front(const T& item);
+        Iterator push_back(const T& item);
 
-        T pop_front();
-        T pop_back();
-
-		template <typename... Args>
-		T& emplace_front(Args&&... args);
+        void pop_front();
+        void pop_back();
 
 		template <typename... Args>
-		T& emplace_back(Args&&... args);
+		Iterator emplace_front(Args&&... args);
+
+		template <typename... Args>
+		Iterator emplace_back(Args&&... args);
 
         void clear();
         u64 size() const;
@@ -378,7 +370,7 @@ namespace wvn
     template <typename T>
     void Vector<T>::expand(u64 amount)
     {
-        WVN_ASSERT(amount > 0, "[VECTOR|DEBUG] Expand amount must be higher than 0");
+        wvn_ASSERT(amount > 0, "[VECTOR|DEBUG] Expand amount must be higher than 0");
 
         allocate(m_size + amount);
 
@@ -430,10 +422,10 @@ namespace wvn
 	}
 
 	template <typename T>
-	typename Vector<T>::Iterator Vector<T>::find(const T& elem)
+	typename Vector<T>::Iterator Vector<T>::find(const T& item)
 	{
 		for (u64 i = 0; i < m_size; i++) {
-			if (m_buf[i] == elem) {
+			if (m_buf[i] == item) {
 				return Iterator(&m_buf[i]);
 			}
 		}
@@ -442,59 +434,57 @@ namespace wvn
 	}
 
     template <typename T>
-    T& Vector<T>::push_front(const T& item)
+	Vector<T>::Iterator Vector<T>::push_front(const T& item)
     {
         resize(m_size + 1);
         mem::move(m_buf + 1, m_buf, sizeof(T) * m_size);
         new (m_buf) T(std::move(item));
         m_size++;
-		return m_buf[0];
+		return Iterator(m_buf);
     }
 
     template <typename T>
-    T& Vector<T>::push_back(const T& item)
+	Vector<T>::Iterator Vector<T>::push_back(const T& item)
     {
         resize(m_size + 1);
         new (m_buf + m_size - 1) T(std::move(item));
-		return m_buf[m_size - 1];
+		return Iterator(m_buf + m_size - 1);
     }
 
     template <typename T>
-    T Vector<T>::pop_front()
+    void Vector<T>::pop_front()
     {
         T item = std::move(m_buf[0]);
         m_buf[0].~T();
 		mem::move(m_buf, m_buf + 1, m_size - 1);
         m_size--;
-        return item;
     }
 
     template <typename T>
-    T Vector<T>::pop_back()
+    void Vector<T>::pop_back()
     {
         T item = std::move(m_buf[m_size - 1]);
         m_buf[m_size - 1].~T();
         m_size--;
-        return item;
     }
 
 	template <typename T>
 	template <typename... Args>
-	T& Vector<T>::emplace_front(Args&&... args)
+	Vector<T>::Iterator Vector<T>::emplace_front(Args&&... args)
 	{
 		resize(m_size + 1);
 		mem::move(m_buf + 1, m_buf, sizeof(T) * (m_size - 1));
 		new (m_buf) T(std::forward<Args>(args)...);
-		return m_buf[0];
+		return Iterator(m_buf);
 	}
 
 	template <typename T>
 	template <typename... Args>
-	T& Vector<T>::emplace_back(Args&&... args)
+	Vector<T>::Iterator Vector<T>::emplace_back(Args&&... args)
 	{
 		resize(m_size + 1);
 		new (m_buf + m_size - 1) T(std::forward<Args>(args)...);
-		return m_buf[m_size - 1];
+		return Iterator(m_buf + m_size - 1);
 	}
 
 	template <typename T>
@@ -626,26 +616,30 @@ namespace wvn
     template <typename T>
     T& Vector<T>::at(u64 idx)
     {
+		wvn_ASSERT(idx >= 0 && idx < m_size, "[VECTOR|DEBUG] Index must be within bounds: INDEX=%llu, SIZE=%llu", idx, m_size);
         return m_buf[idx];
     }
 
     template <typename T>
     const T& Vector<T>::at(u64 idx) const
     {
+		wvn_ASSERT(idx >= 0 && idx < m_size, "[VECTOR|DEBUG] Index must be within bounds: INDEX=%llu, SIZE=%llu", idx, m_size);
         return m_buf[idx];
     }
 
     template <typename T>
     T& Vector<T>::operator [] (u64 idx)
     {
+		wvn_ASSERT(idx >= 0 && idx < m_size, "[VECTOR|DEBUG] Index must be within bounds: INDEX=%llu, SIZE=%llu", idx, m_size);
         return m_buf[idx];
     }
 
     template <typename T>
     const T& Vector<T>::operator [] (u64 idx) const
     {
+		wvn_ASSERT(idx >= 0 && idx < m_size, "[VECTOR|DEBUG] Index must be within bounds: INDEX=%llu, SIZE=%llu", idx, m_size);
         return m_buf[idx];
     }
 }
 
-#endif // VECTOR_H
+#endif // VECTOR_H_

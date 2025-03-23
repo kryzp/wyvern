@@ -1,5 +1,5 @@
-#ifndef MAT4X4_H
-#define MAT4X4_H
+#ifndef MAT4X4_H_
+#define MAT4X4_H_
 
 #include <wvn/maths/vec3.h>
 #include <wvn/maths/quat.h>
@@ -7,7 +7,7 @@
 namespace wvn
 {
 	struct Mat2x3;
-	struct Mat3x4;
+	struct Affine3D;
 
 	/**
 	 * 4x4 general purpose matrix.
@@ -18,10 +18,10 @@ namespace wvn
 		{
 			struct
 			{
-				float m11, m12, m13, m14;
-				float m21, m22, m23, m24;
-				float m31, m32, m33, m34;
-				float m41, m42, m43, m44;
+				float m11, m21, m31, m41;
+				float m12, m22, m32, m42;
+				float m13, m23, m33, m43;
+				float m14, m24, m34, m44;
 			};
 
 			float elements[4][4];
@@ -38,6 +38,7 @@ namespace wvn
 			float m41, float m42, float m43, float m44
 		);
 
+		static const Mat4x4& zero();
 		static const Mat4x4& identity();
 
 		static Mat4x4 create_translation(float x, float y, float z);
@@ -64,9 +65,7 @@ namespace wvn
 		Mat4x4& operator -= (const Mat4x4& other);
 		Mat4x4& operator += (const Mat4x4& other);
 		Mat4x4& operator *= (const Mat4x4& other);
-
-		float* operator [] (int idx);
 	};
 };
 
-#endif // MAT4X4_H
+#endif // MAT4X4_H_

@@ -1,5 +1,5 @@
-#ifndef VK_SHADER_MGR_H
-#define VK_SHADER_MGR_H
+#ifndef VK_SHADER_MGR_H_
+#define VK_SHADER_MGR_H_
 
 #include <wvn/container/vector.h>
 #include <wvn/graphics/shader_mgr.h>
@@ -15,13 +15,12 @@ namespace wvn::gfx
 		VulkanShaderMgr(VulkanBackend* backend);
 		~VulkanShaderMgr() override;
 
-		Shader* create(const String& source, ShaderType type) override;
+	protected:
+		ShaderProgram* create(const String& source, ShaderProgramType type) override;
 
 	private:
 		VulkanBackend* m_backend;
-
-		Vector<VulkanShader*> m_shaders;
 	};
 }
 
-#endif // VK_SHADER_MGR_H
+#endif // VK_SHADER_MGR_H_
